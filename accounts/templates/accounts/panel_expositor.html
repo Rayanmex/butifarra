@@ -1,0 +1,571 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Mi panel · {{ expositor.nombre_empresa }}{% endblock %}
+
+{% block content %}
+
+<section class="expo-panel">
+    <div class="expo-pattern"></div>
+
+    <div class="container position-relative py-5">
+
+        <!-- ============ HEADER ============ -->
+        <div class="expo-header">
+            <div>
+                <span class="section-tag">Panel del expositor</span>
+                <h1 class="expo-title">
+                    Hola, <span class="text-gradient">{{ expositor.nombre_expositor }}</span>
+                </h1>
+                <p class="expo-subtitle">
+                    Gestiona tu información, productos y fotos para el Festival.
+                </p>
+            </div>
+
+            <div class="expo-state">
+                {% if expositor.estado_solicitud == 'borrador' %}
+                    <span class="state-badge state-draft">
+                        <i class="fas fa-pencil-alt"></i> Borrador
+                    </span>
+                {% elif expositor.estado_solicitud == 'pendiente' %}
+                    <span class="state-badge state-pending">
+                        <i class="fas fa-hourglass-half"></i> Pendiente de revisión
+                    </span>
+                {% elif expositor.estado_solicitud == 'aprobado' %}
+                    <span class="state-badge state-approved">
+                        <i class="fas fa-check-circle"></i> Aprobado y publicado
+                    </span>
+                {% elif expositor.estado_solicitud == 'rechazado' %}
+                    <span class="state-badge state-rejected">
+                        <i class="fas fa-times-circle"></i> Rechazado
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if messages %}
+        <div class="mb-4">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- ============ ALERTA DE ESTADO ============ -->
+        {% if expositor.estado_solicitud == 'rechazado' and expositor.nota_admin %}
+        <div class="expo-alert alert-rejected">
+            <i class="fas fa-exclamation-triangle"></i>
+            <div>
+                <strong>Tu solicitud fue rechazada.</strong>
+                <p>{{ expositor.nota_admin }}</p>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if perfil_incompleto and expositor.estado_solicitud == 'borrador' %}
+        <div class="expo-alert alert-warning">
+            <i class="fas fa-info-circle"></i>
+            <div>
+                <strong>Tu perfil está incompleto.</strong>
+                <p>Completa todos los datos antes de enviar tu solicitud de publicación.</p>
+                <a href="{% url 'accounts:expositor_registro_completo' %}" class="btn btn-warning btn-sm fw-bold mt-2">
+                    <i class="fas fa-edit"></i> Completar registro
+                </a>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- ============ STATS ============ -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-4 col-6">
+                <div class="expo-stat">
+                    <span class="expo-stat-num">{{ n_productos }}</span>
+                    <span class="expo-stat-label">Productos</span>
+                </div>
+            </div>
+            <div class="col-md-4 col-6">
+                <div class="expo-stat">
+                    <span class="expo-stat-num">{{ n_activos }}</span>
+                    <span class="expo-stat-label">Disponibles</span>
+                </div>
+            </div>
+            <div class="col-md-4 col-12">
+                <div class="expo-stat">
+                    <span class="expo-stat-num">{{ n_fotos }}</span>
+                    <span class="expo-stat-label">Fotos</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ ACCIONES RÁPIDAS ============ -->
+        <h2 class="expo-block-title">
+            <i class="fas fa-th-large"></i> Acciones rápidas
+        </h2>
+
+        <div class="row g-3 mb-5">
+
+            <div class="col-md-6 col-lg-3">
+                <a href="{% url 'accounts:expositor_registro_completo' %}" class="expo-action">
+                    <div class="expo-action-icon">
+                        <i class="fas fa-user-edit"></i>
+                    </div>
+                    <div class="expo-action-info">
+                        <strong>Mis datos</strong>
+                        <span>Edita tu información</span>
+                    </div>
+                    <i class="fas fa-arrow-right expo-action-arrow"></i>
+                </a>
+            </div>
+
+            <div class="col-md-6 col-lg-3">
+                <a href="{% url 'accounts:expositor_productos' %}" class="expo-action">
+                    <div class="expo-action-icon">
+                        <i class="fas fa-utensils"></i>
+                    </div>
+                    <div class="expo-action-info">
+                        <strong>Mis productos</strong>
+                        <span>{{ n_productos }} registrados</span>
+                    </div>
+                    <i class="fas fa-arrow-right expo-action-arrow"></i>
+                </a>
+            </div>
+
+            <div class="col-md-6 col-lg-3">
+                <a href="{% url 'accounts:expositor_fotos' %}" class="expo-action">
+                    <div class="expo-action-icon">
+                        <i class="fas fa-camera"></i>
+                    </div>
+                    <div class="expo-action-info">
+                        <strong>Mis fotos</strong>
+                        <span>{{ n_fotos }} subidas</span>
+                    </div>
+                    <i class="fas fa-arrow-right expo-action-arrow"></i>
+                </a>
+            </div>
+
+            <div class="col-md-6 col-lg-3">
+                <a href="{% url 'core:expositor_detail' expositor.pk %}" target="_blank" class="expo-action">
+                    <div class="expo-action-icon">
+                        <i class="fas fa-eye"></i>
+                    </div>
+                    <div class="expo-action-info">
+                        <strong>Ver público</strong>
+                        <span>Vista previa</span>
+                    </div>
+                    <i class="fas fa-arrow-right expo-action-arrow"></i>
+                </a>
+            </div>
+
+        </div>
+
+        <!-- ============ ENVIAR SOLICITUD ============ -->
+        {% if expositor.estado_solicitud != 'pendiente' and expositor.estado_solicitud != 'aprobado' %}
+        <div class="publish-card">
+            <div class="publish-icon">
+                <i class="fas fa-paper-plane"></i>
+            </div>
+            <div class="publish-info">
+                <h3>Enviar solicitud de publicación</h3>
+                <p>
+                    Cuando tu información esté completa y revisada, envía tu solicitud
+                    al equipo del festival. Ellos verificarán tus datos y publicarán
+                    tu stand con logo, productos y fotos.
+                </p>
+            </div>
+            <form method="post" action="{% url 'accounts:expositor_enviar_solicitud' %}" class="publish-action"
+                  onsubmit="return confirm('¿Enviar tu solicitud de publicación al administrador?');">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-warning fw-bold btn-lg">
+                    <i class="fas fa-paper-plane"></i> Enviar solicitud
+                </button>
+            </form>
+        </div>
+        {% elif expositor.estado_solicitud == 'pendiente' %}
+        <div class="publish-card publish-card-pending">
+            <div class="publish-icon publish-icon-pending">
+                <i class="fas fa-hourglass-half"></i>
+            </div>
+            <div class="publish-info">
+                <h3>Solicitud enviada</h3>
+                <p>
+                    Tu solicitud fue enviada el
+                    <strong>{{ expositor.fecha_envio|date:"j \d\e F \d\e Y, H:i" }}</strong>.
+                    El equipo del festival la revisará pronto.
+                </p>
+            </div>
+        </div>
+        {% elif expositor.estado_solicitud == 'aprobado' %}
+        <div class="publish-card publish-card-approved">
+            <div class="publish-icon publish-icon-approved">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="publish-info">
+                <h3>¡Estás publicado en el catálogo!</h3>
+                <p>
+                    Tu stand ya aparece públicamente en el catálogo del Festival.
+                    Puedes actualizar tus productos y fotos cuando quieras.
+                </p>
+            </div>
+            <a href="{% url 'core:expositor_detail' expositor.pk %}" target="_blank"
+               class="btn btn-warning fw-bold">
+                <i class="fas fa-external-link-alt"></i> Ver mi perfil
+            </a>
+        </div>
+        {% endif %}
+
+    </div>
+</section>
+
+{% endblock %}
+
+
+{% block extra_css %}
+<style>
+/* ============================================================
+   PANEL DEL EXPOSITOR — Fondo café claro cálido
+   ============================================================ */
+
+.expo-panel {
+    position: relative;
+    padding: 3rem 0 5rem;
+    background: linear-gradient(180deg, #FDF6E3 0%, #FAEBD5 50%, #F5E1C8 100%);
+    min-height: calc(100vh - 200px);
+    overflow: hidden;
+}
+.expo-pattern {
+    position: absolute;
+    inset: 0;
+    background-image:
+        radial-gradient(circle at 10% 10%, rgba(253, 153, 0, 0.10) 0%, transparent 45%),
+        radial-gradient(circle at 90% 90%, rgba(181, 88, 38, 0.10) 0%, transparent 45%),
+        radial-gradient(rgba(181, 88, 38, 0.07) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 28px 28px;
+    pointer-events: none;
+}
+
+/* ============ HEADER ============ */
+.expo-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+    margin-bottom: 1.75rem;
+}
+.expo-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+    color: var(--cafe);
+    margin: 0.5rem 0 0.35rem;
+    letter-spacing: 0.02em;
+    line-height: 1.1;
+}
+.expo-subtitle {
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    margin: 0;
+    max-width: 560px;
+}
+
+.expo-state { display: flex; }
+.state-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-family: var(--font-heading);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0.55em 1.1em;
+    border-radius: var(--radius-pill);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+}
+.state-draft {
+    background: #FFF;
+    color: var(--cafe);
+    border: 1.5px solid var(--cafe-calido);
+}
+.state-pending {
+    background: var(--grad-amarillo-naranja);
+    color: var(--negro);
+    box-shadow: 0 6px 18px rgba(253, 153, 0, 0.4);
+}
+.state-approved {
+    background: linear-gradient(135deg, #2ECC71 0%, #198754 100%);
+    color: #FFF;
+    box-shadow: 0 6px 18px rgba(25, 135, 84, 0.4);
+}
+.state-rejected {
+    background: linear-gradient(135deg, #ff7b7b 0%, #DC3545 100%);
+    color: #FFF;
+    box-shadow: 0 6px 18px rgba(220, 53, 69, 0.4);
+}
+
+/* ============ ALERTAS ============ */
+.expo-alert {
+    display: flex;
+    gap: 1rem;
+    padding: 1.25rem 1.5rem;
+    background: #FFF;
+    border-radius: var(--radius-md);
+    border-left: 5px solid var(--naranja);
+    box-shadow: 0 6px 20px rgba(181, 88, 38, 0.12);
+    margin-bottom: 1.5rem;
+    font-family: var(--font-body);
+}
+.expo-alert i {
+    font-size: 1.5rem;
+    color: var(--naranja);
+    flex-shrink: 0;
+    margin-top: 0.15rem;
+}
+.expo-alert strong {
+    font-family: var(--font-heading);
+    color: var(--cafe);
+    display: block;
+    font-size: 1rem;
+    letter-spacing: 0.02em;
+    margin-bottom: 0.25rem;
+}
+.expo-alert p {
+    font-size: 0.9rem;
+    color: var(--text-dark);
+    margin: 0;
+    line-height: 1.5;
+}
+.alert-warning { border-left-color: var(--amarillo); }
+.alert-warning i { color: var(--naranja); }
+.alert-rejected { border-left-color: #DC3545; }
+.alert-rejected i { color: #DC3545; }
+
+/* ============ STATS ============ */
+.expo-stat {
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem 1.5rem 1.35rem;
+    background: #FFF;
+    border: 2px solid var(--cafe-calido);
+    border-left: 5px solid var(--naranja);
+    border-radius: var(--radius-md);
+    box-shadow: 0 6px 20px rgba(181, 88, 38, 0.10);
+    transition: transform var(--transition-base), box-shadow var(--transition-base);
+    height: 100%;
+}
+.expo-stat:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 34px rgba(181, 88, 38, 0.22);
+}
+.expo-stat-num {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 4vw, 2.75rem);
+    line-height: 1;
+    color: var(--cafe);
+    letter-spacing: 0.02em;
+}
+.expo-stat-label {
+    font-family: var(--font-heading);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-top: 0.5rem;
+}
+
+/* ============ BLOCK TITLE ============ */
+.expo-block-title {
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    color: var(--cafe);
+    margin: 0 0 1rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.expo-block-title i { color: var(--naranja); }
+
+/* ============ ACCIONES RÁPIDAS ============ */
+.expo-action {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.25rem 1.35rem;
+    background: #FFF;
+    border-radius: var(--radius-md);
+    border: 2px solid var(--cafe-calido);
+    box-shadow: 0 6px 20px rgba(181, 88, 38, 0.10);
+    text-decoration: none;
+    color: inherit;
+    transition: all var(--transition-base);
+    height: 100%;
+}
+.expo-action:hover {
+    transform: translateY(-4px);
+    border-color: var(--naranja);
+    box-shadow: 0 14px 34px rgba(181, 88, 38, 0.22);
+    color: inherit;
+}
+.expo-action-icon {
+    flex-shrink: 0;
+    width: 52px;
+    height: 52px;
+    border-radius: var(--radius-md);
+    background: var(--grad-amarillo-naranja);
+    color: var(--negro);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    box-shadow: 0 6px 16px rgba(253, 153, 0, 0.35);
+}
+.expo-action-info {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+.expo-action-info strong {
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    color: var(--cafe);
+    letter-spacing: 0.02em;
+}
+.expo-action-info span {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    margin-top: 0.15rem;
+}
+.expo-action-arrow {
+    color: var(--cafe-calido);
+    transition: transform var(--transition-fast), color var(--transition-fast);
+}
+.expo-action:hover .expo-action-arrow {
+    color: var(--naranja);
+    transform: translateX(4px);
+}
+
+/* ============ PUBLISH CARD ============ */
+.publish-card {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    padding: 2rem 2.25rem;
+    background: linear-gradient(135deg, #1A0D00 0%, #2D1400 100%);
+    border-radius: var(--radius-lg);
+    border: 2px solid var(--naranja);
+    box-shadow: 0 20px 50px rgba(181, 88, 38, 0.35);
+    position: relative;
+    overflow: hidden;
+}
+.publish-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at 15% 20%, rgba(253, 233, 1, 0.15) 0%, transparent 45%),
+        radial-gradient(circle at 85% 80%, rgba(253, 153, 0, 0.15) 0%, transparent 45%);
+    pointer-events: none;
+}
+.publish-card > * {
+    position: relative;
+    z-index: 1;
+}
+
+.publish-icon {
+    flex-shrink: 0;
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: var(--grad-amarillo-naranja);
+    color: var(--negro);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.85rem;
+    box-shadow: 0 10px 26px rgba(253, 153, 0, 0.5);
+}
+.publish-icon-pending {
+    background: linear-gradient(135deg, #FDE901 0%, #FD9900 100%);
+    animation: pulseIcon 2s ease-in-out infinite;
+}
+.publish-icon-approved {
+    background: linear-gradient(135deg, #2ECC71 0%, #198754 100%);
+    color: #FFF;
+    box-shadow: 0 10px 26px rgba(25, 135, 84, 0.45);
+}
+@keyframes pulseIcon {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.08); }
+}
+
+.publish-info {
+    flex: 1;
+    min-width: 240px;
+}
+.publish-info h3 {
+    font-family: var(--font-display);
+    font-size: clamp(1.25rem, 2.5vw, 1.6rem);
+    color: #FFF;
+    margin: 0 0 0.5rem;
+    letter-spacing: 0.02em;
+}
+.publish-info p {
+    font-family: var(--font-body);
+    font-size: 0.92rem;
+    color: rgba(255, 255, 255, 0.75);
+    margin: 0;
+    line-height: 1.6;
+}
+.publish-info strong { color: var(--amarillo); }
+
+.publish-action .btn {
+    font-size: 1rem;
+    padding: 0.85em 1.75em;
+    border-radius: var(--radius-pill);
+    box-shadow: 0 10px 26px rgba(253, 153, 0, 0.4);
+    white-space: nowrap;
+}
+.publish-action .btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 32px rgba(253, 153, 0, 0.55);
+}
+
+.publish-card-pending {
+    border-color: var(--amarillo);
+}
+.publish-card-approved {
+    border-color: #2ECC71;
+}
+.publish-card-approved .btn {
+    background: linear-gradient(135deg, #2ECC71 0%, #198754 100%);
+    color: #FFF;
+    border: none;
+    box-shadow: 0 10px 26px rgba(25, 135, 84, 0.4);
+}
+.publish-card-approved .btn:hover {
+    color: #FFF;
+    box-shadow: 0 14px 32px rgba(25, 135, 84, 0.55);
+}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width: 768px) {
+    .expo-panel { padding: 2rem 0 3rem; }
+    .expo-header { align-items: flex-start; }
+    .expo-state { width: 100%; }
+    .state-badge { font-size: 0.72rem; }
+    .publish-card {
+        padding: 1.5rem 1.25rem;
+        text-align: center;
+        justify-content: center;
+    }
+    .publish-icon { width: 60px; height: 60px; font-size: 1.5rem; }
+    .publish-action { width: 100%; }
+    .publish-action .btn { width: 100%; }
+}
+</style>
+{% endblock %}

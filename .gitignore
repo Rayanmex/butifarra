@@ -1,0 +1,23 @@
+# ===== Sistema =====
+.DS_Store
+Thumbs.db
+
+# ===== IDE =====
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ===== Python (solo cachés) =====
+__pycache__/
+*.py[cod]
+*$py.class
+# ===== Entorno virtual =====
+venv/
+
+
+# ===== Backups =====
+*.bak
+*.bak_*
+db.sqlite3.bak_*

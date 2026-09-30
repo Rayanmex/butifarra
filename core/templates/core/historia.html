@@ -1,0 +1,632 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Historia - Festival de la Butifarra{% endblock %}
+
+{% block content %}
+
+<!-- ============ HERO HISTORIA ============ -->
+<section class="historia-hero">
+    <div class="historia-hero-bg"></div>
+    <div class="historia-hero-overlay"></div>
+
+    <div class="container historia-hero-content">
+        <span class="hero-badge">Nuestra tradición</span>
+        <h1 class="historia-hero-title">
+            Historia del <span class="text-gradient">Festival</span>
+        </h1>
+        <p class="historia-hero-subtitle">
+            La butifarra jalpaneca: tradición, identidad y orgullo de Jalpa de Méndez
+        </p>
+    </div>
+</section>
+
+<!-- ============ INTRODUCCIÓN ============ -->
+<section class="section-intro">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-9">
+
+                <div class="section-header">
+                    <span class="section-tag">Nuestro origen</span>
+                    <h2 class="section-title">La Butifarra Jalpaneca</h2>
+                </div>
+
+                <p class="lead-text text-center">
+                    La butifarra es uno de los principales símbolos gastronómicos de
+                    <strong>Jalpa de Méndez, Tabasco</strong>. Se trata de un
+                    <strong>embutido artesanal</strong> elaborado tradicionalmente a
+                    partir de carne y especias, cuya producción se ha transmitido de
+                    generación en generación entre las familias del municipio.
+                </p>
+
+                <div class="row g-4 mt-5">
+                    <div class="col-md-4">
+                        <div class="intro-card">
+                            <div class="intro-icon">
+                                <i class="fas fa-drumstick-bite"></i>
+                            </div>
+                            <h5 class="intro-title">Receta Artesanal</h5>
+                            <p class="intro-desc">
+                                Carne de cerdo y res, especias seleccionadas, embutidas en tripa natural.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="intro-card">
+                            <div class="intro-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <h5 class="intro-title">Tradición Familiar</h5>
+                            <p class="intro-desc">
+                                Cada familia productora conserva su receta y le imprime su sello propio.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="intro-card">
+                            <div class="intro-icon">
+                                <i class="fas fa-award"></i>
+                            </div>
+                            <h5 class="intro-title">Identidad Regional</h5>
+                            <p class="intro-desc">
+                                Un símbolo gastronómico de Tabasco y orgullo de la Chontalpa.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============ EL FESTIVAL (BD) ============ -->
+<section class="section-festival">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-9">
+
+                <div class="section-header">
+                    <span class="section-tag">Nacimiento</span>
+                    <h2 class="section-title">El Festival de la Butifarra</h2>
+                </div>
+
+                {% if historia %}
+                    <div class="historia-content">
+                        {% for bloque in historia %}
+                            {% if bloque.parrafo %}
+                                <p class="{% if forloop.first %}lead-text{% endif %}">
+                                    {{ bloque.parrafo }}
+                                </p>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="lead-text">
+                        El Festival de la Butifarra nació con la idea de
+                        <strong>celebrar y preservar</strong> esta tradición gastronómica.
+                        Desde sus inicios, el evento ha crecido año tras año, reuniendo a
+                        productores locales, artesanos y visitantes de todo el país.
+                    </p>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============ CIFRAS DEL FESTIVAL ============ -->
+<section class="cifras-section">
+    <div class="container">
+        <div class="section-header cifras-header">
+            <span class="section-tag section-tag-light">Metas {{ festival.fecha_inicio|date:"Y"|default:"2026" }}</span>
+            <h2 class="section-title cifras-title">Un festival que crece cada año</h2>
+        </div>
+
+        <div class="row text-center g-4">
+            <div class="col-md-3 col-6">
+                <div class="cifra-item">
+                    <div class="cifra-numero">+230,000</div>
+                    <div class="cifra-label">Visitantes esperados</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="cifra-item">
+                    <div class="cifra-numero">+63</div>
+                    <div class="cifra-label">Toneladas de butifarra</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="cifra-item">
+                    <div class="cifra-numero">+$220M</div>
+                    <div class="cifra-label">Derrama económica</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="cifra-item">
+                    <div class="cifra-numero">3</div>
+                    <div class="cifra-label">Días de festival</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============ UN EVENTO PARA TODOS ============ -->
+<section class="section-evento">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+
+                <div class="section-header">
+                    <span class="section-tag">Nuestro propósito</span>
+                    <h2 class="section-title">Un Evento para Todos</h2>
+                    <p class="section-subtitle">
+                        El festival busca convertir la tradición de la butifarra en una
+                        combinación de experiencias que unen a toda la comunidad.
+                    </p>
+                </div>
+
+                <div class="row g-4 mb-5">
+                    <div class="col-md-3 col-6">
+                        <div class="pilar-card">
+                            <div class="pilar-icon">
+                                <i class="fas fa-utensils"></i>
+                            </div>
+                            <h6 class="pilar-title">Gastronomía</h6>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="pilar-card">
+                            <div class="pilar-icon">
+                                <i class="fas fa-theater-masks"></i>
+                            </div>
+                            <h6 class="pilar-title">Cultura</h6>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="pilar-card">
+                            <div class="pilar-icon">
+                                <i class="fas fa-umbrella-beach"></i>
+                            </div>
+                            <h6 class="pilar-title">Turismo</h6>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="pilar-card">
+                            <div class="pilar-icon">
+                                <i class="fas fa-store"></i>
+                            </div>
+                            <h6 class="pilar-title">Comercio</h6>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="cita-block">
+                    <div class="cita-icon">
+                        <i class="fas fa-quote-left"></i>
+                    </div>
+                    <p class="cita-text">
+                        El festival también sirve para que los visitantes conozcan otros
+                        elementos de Jalpa de Méndez, además de la gastronomía.
+                    </p>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============ INVITACIÓN ============ -->
+<section class="section-invitacion">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 text-center">
+
+                <div class="invitacion-icon">
+                    <i class="fas fa-map-marker-alt"></i>
+                </div>
+
+                <h2 class="section-title">Vive la tradición en persona</h2>
+
+                <p class="invitacion-text">
+                    {% if festival %}
+                        Te esperamos los días
+                        <strong>{{ festival.fecha_inicio|date:"j" }} al {{ festival.fecha_fin|date:"j \d\e F \d\e Y" }}</strong>
+                        en {{ festival.lugar }}.
+                    {% else %}
+                        Te esperamos en el Parque Recreativo «El Campestre».
+                    {% endif %}
+                </p>
+
+                <div class="invitacion-buttons">
+                    <a href="{% url 'core:programa' %}" class="btn btn-warning btn-lg">
+                        <i class="fas fa-calendar-alt"></i> Ver Programa
+                    </a>
+                    <a href="{% url 'core:expositores_list' %}" class="btn btn-warning btn-lg">
+                        <i class="fas fa-store"></i> Ver Expositores
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============ CTA FINAL ============ -->
+<section class="section-cta">
+    <div class="cta-pattern"></div>
+    <div class="container text-center position-relative">
+        <h2 class="cta-title">"Tradición que se disfruta, orgullo que se comparte"</h2>
+        <p class="cta-subtitle">
+            Sé parte de la historia del Festival de la Butifarra
+        </p>
+        <a href="{% url 'core:registrar_expositor' %}" class="btn btn-warning btn-lg">
+            <i class="fas fa-plus-circle"></i> Registrar mi exposición
+        </a>
+    </div>
+</section>
+
+{% endblock %}
+
+
+{% block extra_css %}
+<style>
+/* ============================================================
+   ESTILOS ESPECÍFICOS DE HISTORIA
+   ============================================================ */
+
+/* ============ HERO ============ */
+.historia-hero {
+    position: relative;
+    min-height: 50vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    color: #FFF;
+}
+.historia-hero-bg {
+    position: absolute;
+    inset: 0;
+    background-image: url('{% static 'core/img/about/about.jpg' %}');
+    background-size: cover;
+    background-position: center;
+    transform: scale(1.05);
+    animation: heroZoom 25s ease-in-out infinite alternate;
+}
+@keyframes heroZoom {
+    0%   { transform: scale(1.05); }
+    100% { transform: scale(1.15); }
+}
+.historia-hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: var(--grad-hero);
+    z-index: 1;
+}
+.historia-hero-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 4rem 1rem;
+}
+.historia-hero .hero-badge {
+    margin-bottom: 1.5rem;
+}
+.historia-hero-title {
+    font-family: var(--font-display);
+    font-size: clamp(2.25rem, 6vw, 4rem);
+    line-height: 1.05;
+    color: #FFF;
+    text-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+    margin-bottom: 1.25rem;
+    letter-spacing: 0.02em;
+}
+.historia-hero-subtitle {
+    font-family: var(--font-heading);
+    font-size: clamp(1rem, 2vw, 1.35rem);
+    color: #FFF;
+    opacity: 0.95;
+    max-width: 720px;
+    margin: 0 auto;
+    text-shadow: 0 3px 12px rgba(0, 0, 0, 0.7);
+}
+
+/* ============ INTRO ============ */
+.section-intro {
+    padding: 5rem 0;
+    background: var(--bg-blanco);
+}
+.intro-card {
+    background: var(--bg-crema-alt);
+    border-radius: var(--radius-lg);
+    padding: 2rem 1.5rem;
+    text-align: center;
+    height: 100%;
+    border: 2px solid var(--cafe-calido);
+    transition: all var(--transition-base);
+}
+.intro-card:hover {
+    border-color: var(--naranja);
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+}
+.intro-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--grad-amarillo-naranja);
+    color: var(--negro);
+    font-size: 2rem;
+    transition: transform var(--transition-base);
+}
+.intro-card:hover .intro-icon {
+    transform: scale(1.1) rotate(-8deg);
+}
+.intro-title {
+    font-family: var(--font-heading);
+    font-size: 1.15rem;
+    color: var(--negro);
+    margin-bottom: 0.75rem;
+}
+.intro-desc {
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin: 0;
+    line-height: 1.6;
+}
+
+/* ============ FESTIVAL ============ */
+.section-festival {
+    padding: 5rem 0;
+    background: var(--bg-crema-alt);
+}
+.historia-content {
+    position: relative;
+}
+.historia-content p {
+    font-size: 1rem;
+    line-height: 1.8;
+    color: var(--text-dark);
+}
+.historia-content .lead-text {
+    font-size: 1.15rem;
+    line-height: 1.8;
+}
+
+/* ============ CIFRAS ============ */
+.cifras-section {
+    background: var(--grad-oscuro);
+    padding: 4rem 0;
+    position: relative;
+    overflow: hidden;
+}
+.cifras-section::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(253, 233, 1, 0.08) 1px, transparent 1px);
+    background-size: 24px 24px;
+    pointer-events: none;
+}
+.cifras-header {
+    position: relative;
+    z-index: 1;
+    margin-bottom: 2.5rem;
+}
+.cifras-header .section-tag-light {
+    border-color: rgba(253, 233, 1, 0.55);
+    color: var(--amarillo);
+}
+.cifras-title {
+    color: #FFF;
+}
+.cifra-item {
+    position: relative;
+    z-index: 1;
+    padding: 1rem;
+}
+.cifra-numero {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 5vw, 3rem);
+    color: var(--amarillo);
+    line-height: 1;
+    letter-spacing: 0.02em;
+    text-shadow: 0 0 30px rgba(253, 153, 0, 0.4);
+}
+.cifra-label {
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(255, 255, 255, 0.7);
+    margin-top: 0.5rem;
+}
+
+/* ============ UN EVENTO PARA TODOS ============ */
+.section-evento {
+    padding: 5rem 0;
+    background: var(--bg-blanco);
+}
+.pilar-card {
+    background: #FFF;
+    border-radius: var(--radius-lg);
+    padding: 1.75rem 1rem;
+    text-align: center;
+    height: 100%;
+    border: 2px solid var(--border-light);
+    transition: all var(--transition-base);
+}
+.pilar-card:hover {
+    border-color: var(--amarillo);
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-md);
+}
+.pilar-icon {
+    width: 70px;
+    height: 70px;
+    margin: 0 auto 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--grad-amarillo-naranja);
+    color: var(--negro);
+    font-size: 1.75rem;
+    transition: transform var(--transition-base);
+}
+.pilar-card:hover .pilar-icon {
+    transform: scale(1.1) rotate(-8deg);
+}
+.pilar-title {
+    font-family: var(--font-heading);
+    font-size: 1.1rem;
+    color: var(--negro);
+    margin: 0;
+}
+
+/* Cita */
+.cita-block {
+    position: relative;
+    background: var(--bg-crema-alt);
+    border-left: 6px solid var(--naranja);
+    border-radius: var(--radius-md);
+    padding: 2.5rem 2rem 2rem;
+    max-width: 720px;
+    margin: 0 auto;
+    text-align: center;
+}
+.cita-icon {
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 44px;
+    height: 44px;
+    background: var(--grad-amarillo-naranja);
+    color: var(--negro);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    box-shadow: var(--shadow-sm);
+}
+.cita-text {
+    font-family: var(--font-heading);
+    font-size: 1.15rem;
+    color: var(--cafe);
+    font-style: italic;
+    margin: 0;
+    line-height: 1.6;
+}
+
+/* ============ INVITACIÓN ============ */
+.section-invitacion {
+    padding: 5rem 0;
+    background: var(--bg-crema-alt);
+}
+.invitacion-icon {
+    width: 90px;
+    height: 90px;
+    margin: 0 auto 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--grad-amarillo-naranja);
+    color: var(--negro);
+    font-size: 2.25rem;
+    box-shadow: var(--shadow-amarillo);
+    animation: invitacionPulse 3s ease-in-out infinite;
+}
+@keyframes invitacionPulse {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.06); }
+}
+.invitacion-text {
+    font-family: var(--font-body);
+    font-size: 1.1rem;
+    color: var(--text-dark);
+    max-width: 640px;
+    margin: 0 auto 2rem;
+    line-height: 1.7;
+}
+.invitacion-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+/* ============ CTA FINAL ============ */
+.section-cta {
+    position: relative;
+    padding: 5rem 0;
+    background: var(--grad-oscuro);
+    overflow: hidden;
+}
+.cta-pattern {
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at 20% 30%, rgba(253, 233, 1, 0.15) 0%, transparent 40%),
+        radial-gradient(circle at 80% 70%, rgba(253, 153, 0, 0.15) 0%, transparent 40%);
+    pointer-events: none;
+}
+.cta-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 3.5vw, 2.5rem);
+    color: #FFF;
+    margin-bottom: 1rem;
+    letter-spacing: 0.02em;
+}
+.cta-subtitle {
+    font-family: var(--font-body);
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.85);
+    max-width: 640px;
+    margin: 0 auto 2rem;
+}
+
+/* ============ TEXTO CON DEGRADADO VERTICAL ============ */
+.text-gradient {
+    background: linear-gradient(180deg, var(--amarillo) 0%, var(--naranja) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    text-shadow: none !important;
+    filter: none;
+    display: inline-block;
+}
+.historia-hero-title .text-gradient {
+    text-shadow: none !important;
+}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width: 768px) {
+    .historia-hero { min-height: 45vh; }
+    .historia-hero-content { padding: 3rem 1rem; }
+    .section-intro,
+    .section-festival,
+    .section-evento,
+    .section-invitacion,
+    .section-cta,
+    .cifras-section { padding: 3rem 0; }
+    .intro-card { padding: 1.5rem 1rem; }
+    .intro-icon { width: 65px; height: 65px; font-size: 1.6rem; }
+    .pilar-icon { width: 60px; height: 60px; font-size: 1.5rem; }
+    .invitacion-icon { width: 75px; height: 75px; font-size: 1.9rem; }
+    .cita-block { padding: 2rem 1.25rem 1.5rem; }
+    .cita-text { font-size: 1rem; }
+}
+</style>
+{% endblock %}

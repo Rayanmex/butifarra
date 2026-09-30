@@ -1,0 +1,557 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Mis datos · {{ expositor.nombre_empresa }}{% endblock %}
+
+{% block content %}
+
+<section class="expo-panel">
+    <div class="expo-pattern"></div>
+
+    <div class="container position-relative py-5">
+
+        <!-- ============ BREADCRUMB ============ -->
+        <nav class="expo-breadcrumb">
+            <a href="{% url 'accounts:panel_expositor' %}">Mi panel</a>
+            <i class="fas fa-chevron-right"></i>
+            <span>Mis datos</span>
+        </nav>
+
+        <!-- ============ HEADER ============ -->
+        <div class="expo-header">
+            <div>
+                <span class="section-tag">Registro completo</span>
+                <h1 class="expo-title">
+                    Mis datos del <span class="text-gradient">negocio</span>
+                </h1>
+                <p class="expo-subtitle">
+                    Completa toda tu información. Cuando esté lista, envía tu solicitud al administrador.
+                </p>
+            </div>
+            <a href="{% url 'accounts:panel_expositor' %}" class="btn btn-outline-warning">
+                <i class="fas fa-arrow-left"></i> Volver al panel
+            </a>
+        </div>
+
+        {% if messages %}
+        <div class="mb-4">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- ============ FORMULARIO ============ -->
+        <form method="post" enctype="multipart/form-data" class="expo-form">
+            {% csrf_token %}
+
+            <div class="row g-4">
+
+                <!-- ============ INFO PRINCIPAL ============ -->
+                <div class="col-lg-6">
+                    <div class="expo-card">
+                        <div class="expo-card-header">
+                            <i class="fas fa-store"></i>
+                            <span>Información principal</span>
+                        </div>
+                        <div class="expo-card-body">
+
+                            <div class="expo-field">
+                                <label class="expo-label">Nombre del expositor *</label>
+                                {{ form.nombre_expositor }}
+                                {% if form.nombre_expositor.errors %}
+                                <small class="expo-error">{{ form.nombre_expositor.errors.0 }}</small>
+                                {% endif %}
+                            </div>
+
+                            <div class="expo-field">
+                                <label class="expo-label">Marca o nombre del negocio *</label>
+                                {{ form.nombre_empresa }}
+                                {% if form.nombre_empresa.errors %}
+                                <small class="expo-error">{{ form.nombre_empresa.errors.0 }}</small>
+                                {% endif %}
+                            </div>
+
+                            <div class="expo-row">
+                                <div class="expo-field">
+                                    <label class="expo-label">Categoría *</label>
+                                    {{ form.categoria }}
+                                </div>
+                                <div class="expo-field">
+                                    <label class="expo-label">Número de stand</label>
+                                    {{ form.numero_stand }}
+                                </div>
+                            </div>
+
+                            <div class="expo-field">
+                                <label class="expo-label">Descripción corta *</label>
+                                {{ form.descripcion }}
+                                <div class="expo-hint">Cuéntanos sobre tu negocio en 1-2 líneas.</div>
+                            </div>
+
+                            <div class="expo-field">
+                                <label class="expo-label">Logo del negocio</label>
+                                {% if expositor.logo %}
+                                <div class="expo-logo-preview">
+                                    <img src="{{ expositor.logo.url }}" alt="{{ expositor.nombre_empresa }}">
+                                    <div class="expo-logo-info">
+                                        <strong>Logo actual</strong>
+                                        <a href="{% url 'accounts:expositor_logo_delete' %}"
+                                           class="expo-logo-delete"
+                                           onclick="return confirm('¿Eliminar el logo actual?');">
+                                            <i class="fas fa-trash"></i> Borrar logo
+                                        </a>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                {{ form.logo }}
+                                <div class="expo-hint">PNG o JPG. Recomendado: 400x400 px fondo transparente.</div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============ CONTACTO ============ -->
+                <div class="col-lg-6">
+                    <div class="expo-card">
+                        <div class="expo-card-header">
+                            <i class="fas fa-address-card"></i>
+                            <span>Contacto</span>
+                        </div>
+                        <div class="expo-card-body">
+
+                            <div class="expo-field">
+                                <label class="expo-label">Correo electrónico *</label>
+                                {{ form.email_contacto }}
+                                {% if form.email_contacto.errors %}
+                                <small class="expo-error">{{ form.email_contacto.errors.0 }}</small>
+                                {% endif %}
+                            </div>
+
+                            <div class="expo-field">
+                                <label class="expo-label">Teléfono / WhatsApp *</label>
+                                {{ form.numero_contacto }}
+                                {% if form.numero_contacto.errors %}
+                                <small class="expo-error">{{ form.numero_contacto.errors.0 }}</small>
+                                {% endif %}
+                            </div>
+
+                            <div class="expo-field">
+                                <label class="expo-label">Red social principal</label>
+                                {{ form.enlace_red_social_1 }}
+                                <div class="expo-hint">Facebook, Instagram u otra. Pega la URL completa.</div>
+                            </div>
+
+                            <div class="expo-field">
+                                <label class="expo-label">Red social adicional</label>
+                                {{ form.enlace_red_social_2 }}
+                            </div>
+
+                            <div class="expo-field">
+                                <label class="expo-label">Redes sociales (texto)</label>
+                                {{ form.redes_sociales_texto }}
+                                <div class="expo-hint">Si no tienes URL, escribe tu usuario aquí.</div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============ UBICACIÓN ============ -->
+                <div class="col-lg-6">
+                    <div class="expo-card">
+                        <div class="expo-card-header">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Ubicación del negocio</span>
+                        </div>
+                        <div class="expo-card-body">
+
+                            <div class="expo-field">
+                                <label class="expo-label">Dirección</label>
+                                {{ form.direccion_negocio }}
+                                <div class="expo-hint">Calle, número, colonia, ciudad.</div>
+                            </div>
+
+                            <div class="expo-field">
+                                <label class="expo-label">Google Maps (URL)</label>
+                                {{ form.link_google_maps }}
+                                <div class="expo-hint">Pega el link de ubicación si lo tienes.</div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============ PAGOS ============ -->
+                <div class="col-lg-6">
+                    <div class="expo-card">
+                        <div class="expo-card-header">
+                            <i class="fas fa-money-bill-wave"></i>
+                            <span>Formas de pago</span>
+                        </div>
+                        <div class="expo-card-body">
+
+                            <div class="expo-check-line">
+                                {{ form.acepta_tarjeta }}
+                                <label for="{{ form.acepta_tarjeta.id_for_label }}">
+                                    Acepto pago con tarjeta
+                                </label>
+                            </div>
+
+                            <div class="expo-check-line">
+                                {{ form.acepta_efectivo }}
+                                <label for="{{ form.acepta_efectivo.id_for_label }}">
+                                    Acepto pago en efectivo
+                                </label>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============ MENÚ ============ -->
+                <div class="col-12">
+                    <div class="expo-card">
+                        <div class="expo-card-header">
+                            <i class="fas fa-utensils"></i>
+                            <span>Menú completo *</span>
+                        </div>
+                        <div class="expo-card-body">
+                            {{ form.menu_completo }}
+                            <div class="expo-hint">
+                                Un producto por línea. Ej: "1 kilo de butifarra tradicional - $350"
+                            </div>
+                            {% if form.menu_completo.errors %}
+                            <small class="expo-error">{{ form.menu_completo.errors.0 }}</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- ============ ACCIONES ============ -->
+            <div class="expo-actions">
+                <a href="{% url 'accounts:panel_expositor' %}" class="btn btn-outline-warning">
+                    Cancelar
+                </a>
+                <button type="submit" class="btn btn-warning fw-bold">
+                    <i class="fas fa-save"></i> Guardar datos
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+</section>
+
+{% endblock %}
+
+
+{% block extra_css %}
+<style>
+/* ============================================================
+   REGISTRO DEL EXPOSITOR — Fondo café claro cálido
+   ============================================================ */
+
+.expo-panel {
+    position: relative;
+    padding: 3rem 0 5rem;
+    background: linear-gradient(180deg, #FDF6E3 0%, #FAEBD5 50%, #F5E1C8 100%);
+    min-height: calc(100vh - 200px);
+    overflow: hidden;
+}
+.expo-pattern {
+    position: absolute;
+    inset: 0;
+    background-image:
+        radial-gradient(circle at 10% 10%, rgba(253, 153, 0, 0.10) 0%, transparent 45%),
+        radial-gradient(circle at 90% 90%, rgba(181, 88, 38, 0.10) 0%, transparent 45%),
+        radial-gradient(rgba(181, 88, 38, 0.07) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 28px 28px;
+    pointer-events: none;
+}
+
+/* Breadcrumb */
+.expo-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+}
+.expo-breadcrumb a {
+    color: var(--cafe);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+}
+.expo-breadcrumb a:hover { color: var(--naranja); }
+.expo-breadcrumb i { font-size: 0.6rem; color: var(--cafe-calido); }
+.expo-breadcrumb span { color: var(--cafe); font-weight: 600; }
+
+/* Header */
+.expo-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+    margin-bottom: 1.75rem;
+}
+.expo-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+    color: var(--cafe);
+    margin: 0.5rem 0 0.35rem;
+    letter-spacing: 0.02em;
+    line-height: 1.1;
+}
+.expo-subtitle {
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    margin: 0;
+    max-width: 560px;
+}
+
+/* Cards */
+.expo-card {
+    background: #FFF;
+    border: 2px solid var(--cafe-calido);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    height: 100%;
+    box-shadow: 0 6px 20px rgba(181, 88, 38, 0.10);
+    transition: border-color var(--transition-base), box-shadow var(--transition-base);
+}
+.expo-card:hover {
+    border-color: var(--naranja);
+    box-shadow: 0 14px 34px rgba(181, 88, 38, 0.18);
+}
+.expo-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 1.1rem 1.5rem;
+    background: var(--bg-crema-alt);
+    border-bottom: 2px solid var(--cafe-calido);
+    font-family: var(--font-heading);
+    font-size: 0.95rem;
+    color: var(--cafe);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+.expo-card-header i {
+    color: var(--naranja);
+    font-size: 1rem;
+}
+.expo-card-body {
+    padding: 1.5rem;
+}
+
+/* Fields */
+.expo-field {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1.1rem;
+}
+.expo-field:last-child { margin-bottom: 0; }
+
+.expo-label {
+    font-family: var(--font-heading);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--cafe);
+    margin-bottom: 0.45rem;
+}
+
+.expo-error {
+    display: block;
+    color: #DC3545;
+    font-size: 0.78rem;
+    margin-top: 0.35rem;
+}
+
+.expo-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.expo-hint {
+    font-family: var(--font-body);
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-top: 0.4rem;
+    font-style: italic;
+}
+
+/* Inputs */
+.expo-card-body input[type="text"],
+.expo-card-body input[type="email"],
+.expo-card-body input[type="url"],
+.expo-card-body input[type="number"],
+.expo-card-body input[type="file"],
+.expo-card-body select,
+.expo-card-body textarea {
+    width: 100%;
+    font-family: var(--font-body);
+    font-size: 0.92rem;
+    padding: 0.7rem 0.95rem;
+    background: #FFF;
+    border: 1.5px solid var(--cafe-calido);
+    border-radius: var(--radius-sm);
+    color: var(--negro);
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
+}
+.expo-card-body input:focus,
+.expo-card-body select:focus,
+.expo-card-body textarea:focus {
+    outline: none;
+    border-color: var(--naranja);
+    background: #FFFDF5;
+    box-shadow: 0 0 0 0.2rem rgba(253, 153, 0, 0.18);
+}
+.expo-card-body input::placeholder,
+.expo-card-body textarea::placeholder {
+    color: var(--text-muted);
+    opacity: 0.7;
+}
+.expo-card-body textarea {
+    min-height: 100px;
+    resize: vertical;
+    line-height: 1.5;
+}
+
+/* File input */
+.expo-card-body input[type="file"] {
+    padding: 0.55rem;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+.expo-card-body input[type="file"]::file-selector-button {
+    background: var(--grad-amarillo-naranja);
+    color: var(--negro);
+    border: none;
+    padding: 0.5em 1em;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-body);
+    font-weight: 700;
+    cursor: pointer;
+    margin-right: 0.75rem;
+    transition: filter var(--transition-fast);
+}
+.expo-card-body input[type="file"]::file-selector-button:hover {
+    filter: brightness(1.1);
+}
+
+/* Checkbox */
+.expo-check-line {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.75rem 1rem;
+    background: var(--bg-crema-alt);
+    border: 1.5px solid var(--cafe-calido);
+    border-radius: var(--radius-sm);
+    margin-bottom: 0.75rem;
+}
+.expo-check-line:last-child { margin-bottom: 0; }
+.expo-check-line input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--naranja);
+    cursor: pointer;
+    flex-shrink: 0;
+}
+.expo-check-line label {
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    color: var(--text-dark);
+    cursor: pointer;
+    margin: 0;
+}
+
+/* Logo preview */
+.expo-logo-preview {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.85rem 1rem;
+    background: var(--bg-crema-alt);
+    border: 1.5px solid var(--cafe-calido);
+    border-radius: var(--radius-sm);
+    margin-bottom: 0.75rem;
+}
+.expo-logo-preview img {
+    width: 70px;
+    height: 70px;
+    object-fit: contain;
+    background: #FFF;
+    padding: 4px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--cafe-calido);
+}
+.expo-logo-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+.expo-logo-info strong {
+    font-family: var(--font-heading);
+    font-size: 0.82rem;
+    color: var(--cafe);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.expo-logo-delete {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-family: var(--font-body);
+    font-size: 0.78rem;
+    color: #DC3545;
+    text-decoration: none;
+    transition: color var(--transition-fast);
+}
+.expo-logo-delete:hover {
+    color: #b02a37;
+    text-decoration: underline;
+}
+
+/* Actions */
+.expo-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.6rem;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 2px dashed var(--cafe-calido);
+    flex-wrap: wrap;
+}
+.expo-actions .btn {
+    font-size: 0.9rem;
+    padding: 0.7em 1.5em;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .expo-panel { padding: 2rem 0 3rem; }
+    .expo-header { align-items: flex-start; }
+    .expo-row { grid-template-columns: 1fr; gap: 0.85rem; }
+    .expo-card-body { padding: 1.15rem; }
+    .expo-card-header { padding: 0.95rem 1.15rem; font-size: 0.85rem; }
+    .expo-actions { justify-content: stretch; }
+    .expo-actions .btn { flex-grow: 1; }
+    .expo-logo-preview { flex-direction: column; text-align: center; }
+}
+</style>
+{% endblock %}

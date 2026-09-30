@@ -1,0 +1,1146 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Panel · {{ expositor.nombre_empresa }}{% endblock %}
+
+{% block content %}
+
+<section class="panel-section">
+    <div class="panel-pattern"></div>
+
+    <div class="container position-relative py-5">
+
+        <!-- ============ BREADCRUMB ============ -->
+        <nav class="panel-breadcrumb">
+            <a href="{% url 'core:panel_dashboard' %}">Panel</a>
+            <i class="fas fa-chevron-right"></i>
+            <a href="{% url 'core:panel_expositores' %}">Expositores</a>
+            <i class="fas fa-chevron-right"></i>
+            <span>{{ expositor.nombre_empresa }}</span>
+        </nav>
+
+        <!-- ============ ENCABEZADO ============ -->
+        <div class="detail-header">
+
+            <!-- Logo -->
+            <div class="detail-logo-col">
+                {% if expositor.logo %}
+                    <img src="{{ expositor.logo.url }}"
+                         alt="{{ expositor.nombre_empresa }}"
+                         class="detail-logo">
+                    <a href="{% url 'core:panel_logo_delete' expositor.pk %}"
+                       class="detail-logo-delete"
+                       onclick="return confirm('¿Eliminar el logo actual?');">
+                        <i class="fas fa-trash"></i> Borrar logo
+                    </a>
+                {% else %}
+                    <div class="detail-logo-placeholder">
+                        <i class="fas fa-store"></i>
+                    </div>
+                    <div class="detail-logo-empty">Sin logo</div>
+                {% endif %}
+            </div>
+
+            <!-- Info -->
+            <div class="detail-info-col">
+                <h1 class="detail-title">{{ expositor.nombre_empresa }}</h1>
+                <p class="detail-sub">
+                    <i class="fas fa-user"></i> {{ expositor.nombre_expositor }}
+                </p>
+
+                <div class="detail-badges">
+                    <span class="detail-badge badge-cat">{{ expositor.get_categoria_display_corta }}</span>
+                    {% if expositor.numero_stand %}
+                        <span class="detail-badge badge-stand">Stand #{{ expositor.numero_stand }}</span>
+                    {% endif %}
+                    {% if expositor.es_destacado %}
+                        <span class="detail-badge badge-star"><i class="fas fa-star"></i> Destacado</span>
+                    {% endif %}
+                    {% if expositor.activo %}
+                        <span class="detail-badge badge-active">Activo</span>
+                    {% else %}
+                        <span class="detail-badge badge-inactive">Inactivo</span>
+                    {% endif %}
+                </div>
+
+                {% if expositor.descripcion %}
+                    <p class="detail-desc">{{ expositor.descripcion }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Acciones -->
+            <div class="detail-actions-col">
+                <a href="{% url 'core:panel_expositor_edit' expositor.pk %}" class="detail-action">
+                    <i class="fas fa-edit"></i> Editar
+                </a>
+                <a href="{% url 'core:panel_toggle_destacado' expositor.pk %}" class="detail-action">
+                    <i class="fas fa-star"></i>
+                    {% if expositor.es_destacado %}Quitar destacado{% else %}Destacar{% endif %}
+                </a>
+                <a href="{% url 'core:panel_toggle_activo' expositor.pk %}" class="detail-action">
+                    <i class="fas fa-power-off"></i>
+                    {% if expositor.activo %}Desactivar{% else %}Activar{% endif %}
+                </a>
+                <a href="{% url 'core:expositor_detail' expositor.pk %}" target="_blank" class="detail-action detail-action-public">
+                    <i class="fas fa-external-link-alt"></i> Ver público
+                </a>
+            </div>
+
+        </div>
+
+        {% if messages %}
+        <div class="mb-4">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- ============ COLUMNAS ============ -->
+        <div class="row g-4">
+
+            <!-- ========== IZQUIERDA ========== -->
+            <div class="col-lg-4">
+
+                <!-- Contacto -->
+                <div class="form-card mb-3">
+                    <div class="form-card-header">
+                        <i class="fas fa-address-card"></i>
+                        <span>Contacto</span>
+                    </div>
+                    <div class="form-card-body">
+                        <ul class="info-list">
+                            {% if expositor.email_contacto %}
+                            <li>
+                                <i class="fas fa-envelope"></i>
+                                <a href="mailto:{{ expositor.email_contacto }}">{{ expositor.email_contacto }}</a>
+                            </li>
+                            {% endif %}
+                            {% if expositor.numero_contacto %}
+                            <li>
+                                <i class="fas fa-phone"></i>
+                                <a href="https://wa.me/52{{ expositor.numero_contacto|cut:' '|cut:'-'|cut:'('|cut:')'|cut:'.' }}" target="_blank">
+                                    {{ expositor.numero_contacto }}
+                                    <i class="fab fa-whatsapp info-wa"></i>
+                                </a>
+                            </li>
+                            {% endif %}
+                            {% if expositor.direccion_negocio %}
+                            <li>
+                                <i class="fas fa-map-marker-alt"></i>
+                                {{ expositor.direccion_negocio }}
+                            </li>
+                            {% endif %}
+                            {% if expositor.link_google_maps %}
+                            <li>
+                                <i class="fas fa-map"></i>
+                                <a href="{{ expositor.link_google_maps }}" target="_blank">Ver en Google Maps</a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Redes -->
+                <div class="form-card mb-3">
+                    <div class="form-card-header">
+                        <i class="fas fa-share-alt"></i>
+                        <span>Redes sociales</span>
+                    </div>
+                    <div class="form-card-body">
+                        {% if expositor.enlace_red_social_1 %}
+                            <p class="info-line"><strong>Principal:</strong> {{ expositor.enlace_red_social_1 }}</p>
+                        {% endif %}
+                        {% if expositor.enlace_red_social_2 %}
+                            <p class="info-line"><strong>Adicional:</strong> {{ expositor.enlace_red_social_2 }}</p>
+                        {% endif %}
+                        {% if expositor.redes_sociales_texto %}
+                            <p class="info-line info-muted">{{ expositor.redes_sociales_texto }}</p>
+                        {% endif %}
+                        {% if not expositor.enlace_red_social_1 and not expositor.enlace_red_social_2 and not expositor.redes_sociales_texto %}
+                            <p class="info-line info-muted">Sin redes.</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Pagos -->
+                <div class="form-card mb-3">
+                    <div class="form-card-header">
+                        <i class="fas fa-money-bill-wave"></i>
+                        <span>Pagos</span>
+                    </div>
+                    <div class="form-card-body">
+                        <p class="info-line">
+                            {% if expositor.acepta_tarjeta %}<i class="fas fa-check info-check"></i>{% else %}<i class="fas fa-times info-x"></i>{% endif %}
+                            Acepta tarjeta
+                        </p>
+                        <p class="info-line">
+                            {% if expositor.acepta_efectivo %}<i class="fas fa-check info-check"></i>{% else %}<i class="fas fa-times info-x"></i>{% endif %}
+                            Acepta efectivo
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Menú original -->
+                {% if expositor.menu_completo %}
+                <div class="form-card">
+                    <div class="form-card-header">
+                        <i class="fas fa-scroll"></i>
+                        <span>Menú original</span>
+                    </div>
+                    <div class="form-card-body">
+                        <pre class="menu-pre">{{ expositor.menu_completo }}</pre>
+                    </div>
+                </div>
+                {% endif %}
+
+            </div>
+
+            <!-- ========== DERECHA ========== -->
+            <div class="col-lg-8">
+
+                <!-- ============ PRODUCTOS ============ -->
+                <div class="form-card mb-4">
+                    <div class="form-card-header form-card-header-flex">
+                        <div class="header-left">
+                            <i class="fas fa-utensils"></i>
+                            <span>Productos</span>
+                            <span class="count-pill">{{ productos|length }}</span>
+                        </div>
+
+                        {% if expositor.menu_completo %}
+                        <form method="post" action="{% url 'core:panel_importar_menu' expositor.pk %}"
+                              onsubmit="return confirm('Esto reemplazará los productos actuales con los detectados en el menú de texto. ¿Continuar?');">
+                            {% csrf_token %}
+                            <input type="hidden" name="reemplazar" value="1">
+                            <button type="submit" class="btn-mini">
+                                <i class="fas fa-magic"></i> Importar del menú
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+
+                    <!-- Añadir producto rápido -->
+                    <div class="quick-form">
+                        <h6 class="quick-title">
+                            <i class="fas fa-plus-circle"></i> Añadir producto
+                        </h6>
+                        <form method="post" action="{% url 'core:panel_producto_create' expositor.pk %}">
+                            {% csrf_token %}
+                            <div class="quick-row">
+                                <input type="text" name="nombre" class="filter-input"
+                                       placeholder="Ej: 1 kilo de butifarra tradicional"
+                                       required maxlength="200">
+
+                                <select name="categoria" class="filter-input" required>
+                                    <option value="butifarra_tradicional">Butifarra Tradicional</option>
+                                    <option value="butifarra_especialidad">Butifarra Especialidad</option>
+                                    <option value="queso">Queso de Puerco</option>
+                                    <option value="longaniza">Longaniza</option>
+                                    <option value="carne">Carnes</option>
+                                    <option value="patitas">Patitas Curtidas</option>
+                                    <option value="salsa">Salsas y Aderezos</option>
+                                    <option value="bebida">Bebidas</option>
+                                    <option value="postre">Postres</option>
+                                    <option value="combo">Combos</option>
+                                    <option value="otro">Otros</option>
+                                </select>
+
+                                <select name="unidad" class="filter-input" required>
+                                    <option value="kg">Kilo</option>
+                                    <option value="1/2kg">1/2 Kilo</option>
+                                    <option value="1/4kg">1/4 Kilo</option>
+                                    <option value="orden">Orden</option>
+                                    <option value="orden_fam">Orden familiar</option>
+                                    <option value="orden_media">Media orden</option>
+                                    <option value="orden_ind">Orden individual</option>
+                                    <option value="pieza">Pieza</option>
+                                    <option value="rebanada">Rebanada</option>
+                                    <option value="litro">Litro</option>
+                                    <option value="bote">Bote</option>
+                                    <option value="paquete">Paquete</option>
+                                    <option value="unidad">Unidad</option>
+                                </select>
+
+                                <input type="number" name="precio" class="filter-input"
+                                       placeholder="Precio $" step="0.01" min="0">
+
+                                <input type="hidden" name="descripcion" value="">
+                                <input type="checkbox" name="disponible" value="on" checked style="display:none;">
+
+                                <button type="submit" class="btn btn-warning fw-bold">
+                                    <i class="fas fa-plus"></i> Añadir
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Lista de productos -->
+                    {% if productos %}
+                        <div class="table-responsive">
+                            <table class="panel-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 45%;">Nombre</th>
+                                        <th>Categoría</th>
+                                        <th>Unidad</th>
+                                        <th class="text-end">Precio</th>
+                                        <th class="text-end">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for prod in productos %}
+                                    <tr>
+                                        <td>
+                                            <strong class="row-empresa">{{ prod.nombre }}</strong>
+                                            {% if prod.descripcion %}
+                                                <div class="row-categoria">{{ prod.descripcion }}</div>
+                                            {% endif %}
+                                            {% if not prod.disponible %}
+                                                <span class="badge-inactive-sm">No disponible</span>
+                                            {% endif %}
+                                        </td>
+                                        <td><span class="cell-muted">{{ prod.get_categoria_display }}</span></td>
+                                        <td><span class="cell-muted">{{ prod.get_unidad_display }}</span></td>
+                                        <td class="text-end">
+                                            <span class="price-cell">{{ prod.get_precio_display }}</span>
+                                        </td>
+                                        <td class="text-end">
+                                            <div class="row-actions">
+                                                <a href="{% url 'core:panel_producto_edit' prod.pk %}"
+                                                   class="action-btn action-edit" title="Editar">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <a href="{% url 'core:panel_producto_delete' prod.pk %}"
+                                                   class="action-btn action-delete"
+                                                   onclick="return confirm('¿Eliminar el producto {{ prod.nombre|escapejs }}?');"
+                                                   title="Eliminar">
+                                                    <i class="fas fa-trash"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td colspan="3" class="text-end total-label">Total productos:</td>
+                                        <td colspan="2" class="total-num">{{ productos|length }}</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="empty-block">
+                            <i class="fas fa-utensils"></i>
+                            <h5>Sin productos aún</h5>
+                            <p>
+                                Añade uno con el formulario de arriba,
+                                {% if expositor.menu_completo %}
+                                    o pulsa <strong>"Importar del menú"</strong> para detectarlos automáticamente.
+                                {% else %}
+                                    o edita el expositor para pegar un menú en texto.
+                                {% endif %}
+                            </p>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- ============ FOTOS ============ -->
+                <div class="form-card">
+                    <div class="form-card-header form-card-header-flex">
+                        <div class="header-left">
+                            <i class="fas fa-camera"></i>
+                            <span>Fotos de productos</span>
+                            <span class="count-pill">{{ fotos|length }}</span>
+                        </div>
+                        <button type="button" class="btn-mini btn-mini-upload"
+                                data-bs-toggle="modal" data-bs-target="#uploadFotosModal">
+                            <i class="fas fa-upload"></i> Subir fotos
+                        </button>
+                    </div>
+
+                    <div class="form-card-body">
+                        {% if fotos %}
+                            <div class="fotos-grid">
+                                {% for foto in fotos %}
+                                <div class="panel-foto-wrapper">
+                                    <a href="{{ foto.imagen.url }}" target="_blank" class="panel-foto">
+                                        <img src="{{ foto.imagen.url }}" alt="{{ foto.descripcion }}" loading="lazy">
+                                    </a>
+                                    <a href="{% url 'core:panel_foto_delete' foto.pk %}"
+                                       class="panel-foto-delete"
+                                       onclick="return confirm('¿Eliminar esta foto?');"
+                                       title="Eliminar">
+                                        <i class="fas fa-times"></i>
+                                    </a>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="empty-block empty-small">
+                                <i class="fas fa-camera-retro"></i>
+                                <p>Sin fotos de productos.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<!-- ============ MODAL SUBIR FOTOS ============ -->
+<div class="modal fade" id="uploadFotosModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form method="post" action="{% url 'core:panel_foto_upload' expositor.pk %}" enctype="multipart/form-data" class="modal-form-dark">
+            {% csrf_token %}
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-upload"></i> Subir fotos
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-field">
+                        <label class="form-field-label">Selecciona una o varias imágenes</label>
+                        <input type="file" name="imagen" class="filter-input" multiple accept="image/*" required>
+                    </div>
+                    <div class="form-field">
+                        <label class="form-field-label">Descripción (opcional)</label>
+                        <input type="text" name="descripcion" class="filter-input" placeholder="Ej: Butifarras tradicionales">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-warning" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-warning fw-bold">
+                        <i class="fas fa-upload"></i> Subir
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+
+{% block extra_css %}
+<style>
+/* ============================================================
+   PANEL · DETALLE DE EXPOSITOR — Oscuro minimalista
+   ============================================================ */
+
+/* ============ SECCIÓN ============ */
+.panel-section {
+    position: relative;
+    padding: 3rem 0;
+    background: #0A0A0A;
+    min-height: calc(100vh - 200px);
+    overflow: hidden;
+}
+.panel-pattern {
+    position: absolute;
+    inset: 0;
+    background-image:
+        radial-gradient(circle at 10% 10%, rgba(253, 153, 0, 0.08) 0%, transparent 45%),
+        radial-gradient(circle at 90% 90%, rgba(181, 88, 38, 0.08) 0%, transparent 45%),
+        radial-gradient(rgba(253, 233, 1, 0.05) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 28px 28px;
+    pointer-events: none;
+}
+
+/* ============ BREADCRUMB ============ */
+.panel-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.4);
+    margin-bottom: 1.5rem;
+}
+.panel-breadcrumb a {
+    color: rgba(255, 255, 255, 0.55);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+}
+.panel-breadcrumb a:hover { color: var(--amarillo); }
+.panel-breadcrumb i { font-size: 0.6rem; color: rgba(255, 255, 255, 0.25); }
+.panel-breadcrumb span { color: var(--amarillo); font-weight: 600; }
+
+/* ============ HEADER DEL DETALLE ============ */
+.detail-header {
+    display: grid;
+    grid-template-columns: 180px 1fr 220px;
+    gap: 1.75rem;
+    align-items: center;
+    padding: 1.75rem;
+    background: #141414;
+    border: 1.5px solid rgba(253, 233, 1, 0.12);
+    border-radius: var(--radius-lg);
+    margin-bottom: 1.75rem;
+}
+
+/* Logo */
+.detail-logo-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+}
+.detail-logo {
+    width: 100%;
+    max-width: 160px;
+    height: 140px;
+    object-fit: contain;
+    background: #1A1A1A;
+    padding: 8px;
+    border-radius: var(--radius-md);
+    border: 1.5px solid rgba(253, 233, 1, 0.15);
+}
+.detail-logo-placeholder {
+    width: 100%;
+    max-width: 160px;
+    height: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #1A1A1A;
+    border: 1.5px dashed rgba(253, 233, 1, 0.2);
+    border-radius: var(--radius-md);
+    color: rgba(253, 233, 1, 0.35);
+    font-size: 2.5rem;
+}
+.detail-logo-empty {
+    font-family: var(--font-heading);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(255, 255, 255, 0.4);
+}
+.detail-logo-delete {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    width: 100%;
+    padding: 0.5em 0.9em;
+    background: transparent;
+    border: 1.5px solid rgba(231, 76, 60, 0.4);
+    color: #FF8A80;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-body);
+    font-size: 0.78rem;
+    text-decoration: none;
+    transition: all var(--transition-fast);
+}
+.detail-logo-delete:hover {
+    background: rgba(231, 76, 60, 0.12);
+    border-color: #E74C3C;
+    color: #FF8A80;
+}
+
+/* Info */
+.detail-info-col {
+    display: flex;
+    flex-direction: column;
+}
+.detail-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 2.5vw, 2rem);
+    color: #FFF;
+    margin: 0 0 0.35rem;
+    letter-spacing: 0.02em;
+    line-height: 1.15;
+}
+.detail-sub {
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.55);
+    margin: 0 0 0.85rem;
+}
+.detail-sub i { color: var(--naranja); margin-right: 0.35rem; }
+
+.detail-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 0.85rem;
+}
+.detail-badge {
+    font-family: var(--font-body);
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.35em 0.8em;
+    border-radius: var(--radius-pill);
+    letter-spacing: 0.03em;
+}
+.badge-cat {
+    background: var(--grad-amarillo-naranja);
+    color: var(--negro);
+}
+.badge-stand {
+    background: #1A1A1A;
+    color: var(--amarillo);
+    border: 1px solid rgba(253, 233, 1, 0.25);
+}
+.badge-star {
+    background: rgba(253, 233, 1, 0.15);
+    color: var(--amarillo);
+    border: 1px solid rgba(253, 233, 1, 0.3);
+}
+.badge-active {
+    background: rgba(46, 204, 113, 0.15);
+    color: #7EEBAE;
+}
+.badge-inactive {
+    background: rgba(231, 76, 60, 0.15);
+    color: #FF8A80;
+}
+
+.detail-desc {
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0;
+    line-height: 1.6;
+}
+
+/* Acciones */
+.detail-actions-col {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+.detail-action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.65em 1em;
+    background: #1A1A1A;
+    border: 1.5px solid rgba(253, 233, 1, 0.15);
+    color: rgba(255, 255, 255, 0.85);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all var(--transition-fast);
+}
+.detail-action i { font-size: 0.85rem; }
+.detail-action:hover {
+    background: #1F1F1F;
+    border-color: var(--naranja);
+    color: var(--amarillo);
+    transform: translateX(3px);
+}
+.detail-action-public:hover {
+    border-color: #0d6efd;
+    color: #6ea8fe;
+}
+
+/* ============ FORM CARD ============ */
+.form-card {
+    background: #141414;
+    border: 1.5px solid rgba(253, 233, 1, 0.12);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+.form-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 1.1rem 1.5rem;
+    background: #0F0F0F;
+    border-bottom: 1.5px solid rgba(253, 233, 1, 0.12);
+    font-family: var(--font-heading);
+    font-size: 0.95rem;
+    color: var(--amarillo);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+.form-card-header i { color: var(--naranja); font-size: 1rem; }
+
+.form-card-header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.count-pill {
+    font-family: var(--font-display);
+    font-size: 0.82rem;
+    background: var(--grad-amarillo-naranja);
+    color: var(--negro);
+    padding: 0.25em 0.7em;
+    border-radius: var(--radius-pill);
+    letter-spacing: 0.02em;
+    line-height: 1;
+}
+
+.form-card-body {
+    padding: 1.5rem;
+}
+
+/* ============ INFO LIST ============ */
+.info-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+.info-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+    font-family: var(--font-body);
+    font-size: 0.88rem;
+    color: rgba(255, 255, 255, 0.75);
+    word-break: break-word;
+}
+.info-list li > i {
+    color: var(--naranja);
+    font-size: 0.95rem;
+    flex-shrink: 0;
+    margin-top: 0.15rem;
+    width: 16px;
+}
+.info-list a {
+    color: var(--amarillo);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+}
+.info-list a:hover { color: var(--naranja); }
+.info-wa { color: #25D366; margin-left: 0.25rem; }
+
+.info-line {
+    font-family: var(--font-body);
+    font-size: 0.88rem;
+    color: rgba(255, 255, 255, 0.75);
+    margin: 0 0 0.6rem;
+    line-height: 1.5;
+}
+.info-line:last-child { margin-bottom: 0; }
+.info-line strong {
+    color: var(--amarillo);
+    font-family: var(--font-heading);
+    font-size: 0.78rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-right: 0.35rem;
+}
+.info-muted { color: rgba(255, 255, 255, 0.5); }
+.info-check { color: #7EEBAE; margin-right: 0.5rem; }
+.info-x { color: rgba(255, 255, 255, 0.35); margin-right: 0.5rem; }
+
+/* ============ MENÚ PRE ============ */
+.menu-pre {
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.75);
+    white-space: pre-wrap;
+    word-break: break-word;
+    margin: 0;
+    line-height: 1.6;
+}
+
+/* ============ QUICK FORM ============ */
+.quick-form {
+    padding: 1.25rem 1.5rem;
+    background: #0F0F0F;
+    border-bottom: 1.5px solid rgba(253, 233, 1, 0.12);
+}
+.quick-title {
+    font-family: var(--font-heading);
+    font-size: 0.85rem;
+    color: var(--amarillo);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin: 0 0 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.quick-title i { color: var(--naranja); }
+
+.quick-row {
+    display: grid;
+    grid-template-columns: 2fr 1.4fr 1fr 0.9fr auto;
+    gap: 0.6rem;
+    align-items: center;
+}
+
+/* Inputs reutilizables oscuros */
+.filter-input {
+    width: 100%;
+    font-family: var(--font-body);
+    font-size: 0.88rem;
+    padding: 0.6rem 0.85rem;
+    background: #1A1A1A;
+    border: 1.5px solid rgba(253, 233, 1, 0.15);
+    border-radius: var(--radius-sm);
+    color: #FFF;
+    transition: border-color var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast);
+}
+.filter-input:focus {
+    outline: none;
+    border-color: var(--naranja);
+    background: #1F1F1F;
+    box-shadow: 0 0 0 0.15rem rgba(253, 153, 0, 0.2);
+}
+.filter-input::placeholder { color: rgba(255, 255, 255, 0.35); }
+.filter-input option { background: #1A1A1A; color: #FFF; }
+.filter-input::file-selector-button {
+    background: var(--grad-amarillo-naranja);
+    color: var(--negro);
+    border: none;
+    padding: 0.4em 0.9em;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-body);
+    font-weight: 700;
+    cursor: pointer;
+    margin-right: 0.75rem;
+    font-size: 0.82rem;
+}
+
+/* ============ TABLA DE PRODUCTOS ============ */
+.panel-table {
+    width: 100%;
+    border-collapse: collapse;
+    color: #FFF;
+    font-family: var(--font-body);
+}
+.panel-table thead {
+    background: #0F0F0F;
+    border-bottom: 1.5px solid rgba(253, 233, 1, 0.12);
+}
+.panel-table thead th {
+    font-family: var(--font-heading);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--amarillo);
+    padding: 0.9rem 1rem;
+    text-align: left;
+    font-weight: 400;
+}
+.panel-table thead th.text-end { text-align: right; }
+.panel-table tbody tr {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    transition: background var(--transition-fast);
+}
+.panel-table tbody tr:last-child { border-bottom: none; }
+.panel-table tbody tr:hover { background: rgba(253, 233, 1, 0.035); }
+.panel-table td {
+    padding: 0.9rem 1rem;
+    vertical-align: middle;
+    font-size: 0.9rem;
+}
+.panel-table tfoot {
+    background: #0F0F0F;
+    border-top: 1.5px solid rgba(253, 233, 1, 0.12);
+}
+.panel-table tfoot td {
+    padding: 0.9rem 1rem;
+    font-family: var(--font-heading);
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--amarillo);
+}
+.total-label { text-align: right; }
+.total-num {
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    color: var(--amarillo);
+    letter-spacing: 0.02em;
+}
+
+.row-empresa {
+    font-family: var(--font-heading);
+    font-size: 0.95rem;
+    color: #FFF;
+    letter-spacing: 0.02em;
+}
+.row-categoria {
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.45);
+    margin-top: 0.15rem;
+}
+.cell-muted {
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.55);
+}
+.price-cell {
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    color: #7EEBAE;
+    letter-spacing: 0.02em;
+}
+
+.badge-inactive-sm {
+    display: inline-block;
+    margin-top: 0.35rem;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 0.25em 0.7em;
+    border-radius: var(--radius-pill);
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Acciones de fila */
+.row-actions {
+    display: inline-flex;
+    gap: 0.3rem;
+}
+.action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: var(--radius-sm);
+    background: #1A1A1A;
+    border: 1.5px solid rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.55);
+    font-size: 0.82rem;
+    text-decoration: none;
+    transition: all var(--transition-fast);
+}
+.action-btn:hover {
+    transform: translateY(-2px);
+    color: #FFF;
+}
+.action-edit:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.25);
+    color: #FFF;
+}
+.action-delete:hover {
+    background: rgba(231, 76, 60, 0.15);
+    border-color: #E74C3C;
+    color: #FF8A80;
+}
+
+/* ============ EMPTY ============ */
+.empty-block {
+    text-align: center;
+    padding: 3rem 1.5rem;
+    color: rgba(255, 255, 255, 0.5);
+}
+.empty-block i {
+    font-size: 2.5rem;
+    color: rgba(253, 233, 1, 0.25);
+    display: block;
+    margin-bottom: 0.85rem;
+}
+.empty-block h5 {
+    font-family: var(--font-heading);
+    font-size: 1.1rem;
+    color: var(--amarillo);
+    margin: 0 0 0.5rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+.empty-block p {
+    font-family: var(--font-body);
+    font-size: 0.88rem;
+    margin: 0;
+    color: rgba(255, 255, 255, 0.5);
+    line-height: 1.6;
+}
+.empty-block strong { color: var(--amarillo); }
+.empty-small {
+    padding: 2rem 1rem;
+}
+.empty-small i { font-size: 2rem; margin-bottom: 0.6rem; }
+.empty-small p { font-size: 0.85rem; }
+
+/* ============ FOTOS GRID ============ */
+.fotos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 0.75rem;
+}
+.panel-foto-wrapper { position: relative; }
+.panel-foto {
+    display: block;
+    aspect-ratio: 1;
+    overflow: hidden;
+    border-radius: var(--radius-sm);
+    background: #1A1A1A;
+    border: 1.5px solid rgba(253, 233, 1, 0.12);
+    transition: border-color var(--transition-fast);
+}
+.panel-foto img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.35s ease;
+}
+.panel-foto:hover {
+    border-color: var(--naranja);
+}
+.panel-foto:hover img { transform: scale(1.08); }
+
+.panel-foto-delete {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 28px;
+    height: 28px;
+    background: rgba(231, 76, 60, 0.9);
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    opacity: 0;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    font-size: 0.75rem;
+}
+.panel-foto-wrapper:hover .panel-foto-delete {
+    opacity: 1;
+}
+.panel-foto-delete:hover {
+    background: #b02a37;
+    color: #fff;
+    transform: scale(1.1);
+}
+
+/* ============ BOTONES MINI ============ */
+.btn-mini {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: var(--font-body);
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 0.5em 0.9em;
+    background: #1A1A1A;
+    border: 1.5px solid rgba(253, 233, 1, 0.2);
+    color: var(--amarillo);
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+.btn-mini:hover {
+    background: rgba(253, 233, 1, 0.08);
+    border-color: var(--amarillo);
+    color: var(--amarillo);
+}
+.btn-mini-upload {
+    background: var(--grad-amarillo-naranja);
+    color: var(--negro);
+    border: none;
+}
+.btn-mini-upload:hover {
+    filter: brightness(1.1);
+    color: var(--negro);
+}
+
+/* ============ MODAL OSCURO ============ */
+.modal-form-dark .modal-content {
+    background: #141414;
+    border: 1.5px solid rgba(253, 233, 1, 0.15);
+    border-radius: var(--radius-lg);
+    color: #FFF;
+}
+.modal-form-dark .modal-header {
+    border-bottom: 1.5px solid rgba(253, 233, 1, 0.12);
+    padding: 1.15rem 1.5rem;
+}
+.modal-form-dark .modal-title {
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    color: var(--amarillo);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.modal-form-dark .modal-title i { color: var(--naranja); }
+.modal-form-dark .modal-body {
+    padding: 1.5rem;
+}
+.modal-form-dark .modal-footer {
+    border-top: 1.5px solid rgba(253, 233, 1, 0.12);
+    padding: 1rem 1.5rem;
+}
+.form-field {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1rem;
+}
+.form-field:last-child { margin-bottom: 0; }
+.form-field-label {
+    font-family: var(--font-heading);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--amarillo);
+    margin-bottom: 0.45rem;
+}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width: 991px) {
+    .detail-header {
+        grid-template-columns: 1fr;
+        text-align: center;
+        padding: 1.5rem;
+    }
+    .detail-info-col { align-items: center; }
+    .detail-badges { justify-content: center; }
+    .detail-actions-col {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+    .detail-action {
+        flex: 1 1 calc(50% - 0.25rem);
+    }
+    .quick-row {
+        grid-template-columns: 1fr 1fr;
+    }
+    .quick-row > *:first-child { grid-column: 1 / -1; }
+    .quick-row > button { grid-column: 1 / -1; }
+}
+@media (max-width: 576px) {
+    .panel-section { padding: 2rem 0; }
+    .detail-action { flex: 1 1 100%; }
+    .quick-row { grid-template-columns: 1fr; }
+    .fotos-grid {
+        grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    }
+    .panel-table td,
+    .panel-table thead th {
+        padding: 0.7rem 0.6rem;
+        font-size: 0.82rem;
+    }
+    .action-btn { width: 30px; height: 30px; font-size: 0.75rem; }
+}
+</style>
+{% endblock %}

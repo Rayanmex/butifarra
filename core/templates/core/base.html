@@ -1,0 +1,346 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="{% block meta_description %}11.º Festival de la Butifarra 2026 en Jalpa de Méndez, Tabasco. 16, 17 y 18 de octubre. Tradición que se disfruta, orgullo que se comparte.{% endblock %}">
+    <title>{% block title %}11.º Festival de la Butifarra 2026 · Jalpa de Méndez{% endblock %}</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/gif" href="{% static 'core/img/logo/Butifarra.gif' %}">
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Google Fonts · Tipografías oficiales -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Fredoka:wght@300;400;500;600;700&family=Lilita+One&display=swap" rel="stylesheet">
+
+    <!-- Estilos personalizados -->
+    <link rel="stylesheet" href="{% static 'core/css/style.css' %}">
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<!-- ============ PRELOADER (solo si el template lo activa) ============ -->
+{% block preloader %}{% endblock %}
+
+<!-- ============ NAVBAR ============ -->
+<nav class="navbar navbar-expand-lg navbar-dark sticky-top" id="mainNavbar">
+    <div class="container">
+
+        <!-- Marca -->
+        <a class="navbar-brand" href="{% url 'core:index' %}">
+            <span class="brand-text">Festival de la Butifarra</span>
+        </a>
+
+        <!-- Toggler -->
+        <button class="navbar-toggler" type="button"
+                data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Abrir menú">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <!-- Menu -->
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto align-items-lg-center">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'core:index' %}">Inicio</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'core:historia' %}">Historia</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'core:programa' %}">Programa</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'core:expositores_list' %}">Expositores</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'core:contacto' %}">Contacto</a>
+                </li>
+
+                {# ============ BOTÓN DE ACCESO (LOGIN / PANEL) ============ #}
+                {% if user.is_authenticated %}
+                    {% with perfil=user.perfil %}
+                    <li class="nav-item dropdown ms-lg-3 mt-2 mt-lg-0">
+                        <a class="btn btn-warning fw-bold px-3 dropdown-toggle d-flex align-items-center gap-2"
+                           href="#"
+                           id="userDropdown"
+                           role="button"
+                           data-bs-toggle="dropdown"
+                           aria-expanded="false">
+                            <i class="fas fa-user-circle"></i>
+                            <span class="d-none d-lg-inline">
+                                {% if user.is_superuser or perfil.rol == 'admin' %}
+                                    Panel admin
+                                {% else %}
+                                    Mi panel
+                                {% endif %}
+                            </span>
+                            <span class="d-lg-none">Mi cuenta</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 mt-2"
+                            aria-labelledby="userDropdown">
+
+                            <li class="dropdown-header">
+                                <strong>{{ user.get_full_name|default:user.username }}</strong><br>
+                                <small class="text-muted">
+                                    {% if user.is_superuser or perfil.rol == 'admin' %}
+                                        Administrador
+                                    {% else %}
+                                        Expositor
+                                    {% endif %}
+                                </small>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+
+                            {% if user.is_superuser or perfil.rol == 'admin' %}
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'core:panel_dashboard' %}">
+                                        <i class="fas fa-tachometer-alt me-2 text-warning"></i> Dashboard
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'core:panel_expositores' %}">
+                                        <i class="fas fa-store me-2 text-warning"></i> Gestionar expositores
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="/admin/" target="_blank">
+                                        <i class="fas fa-cog me-2 text-warning"></i> Admin Django
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'accounts:panel_expositor' %}">
+                                        <i class="fas fa-tachometer-alt me-2 text-warning"></i> Mi panel
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'accounts:expositor_productos' %}">
+                                        <i class="fas fa-utensils me-2 text-warning"></i> Mis productos
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'accounts:expositor_fotos' %}">
+                                        <i class="fas fa-camera me-2 text-warning"></i> Mis fotos
+                                    </a>
+                                </li>
+                                {% if perfil.expositor %}
+                                <li>
+                                    <a class="dropdown-item"
+                                       href="{% url 'core:expositor_detail' perfil.expositor.pk %}"
+                                       target="_blank">
+                                        <i class="fas fa-eye me-2 text-warning"></i> Ver mi perfil público
+                                    </a>
+                                </li>
+                                {% endif %}
+                            {% endif %}
+
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item text-danger" href="{% url 'accounts:logout' %}">
+                                    <i class="fas fa-sign-out-alt me-2"></i> Cerrar sesión
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    {% endwith %}
+                {% else %}
+                    <li class="nav-item ms-lg-3 mt-2 mt-lg-0">
+                        <a class="btn btn-warning fw-bold px-3" href="{% url 'accounts:login' %}">
+                            <i class="fas fa-sign-in-alt me-1"></i> Ser expositor
+                        </a>
+                    </li>
+                {% endif %}
+
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- ============ MENSAJES ============ -->
+{% if messages %}
+<div class="container mt-3">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show shadow-sm" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- ============ CONTENIDO ============ -->
+<main>
+    {% block content %}{% endblock %}
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="site-footer">
+    <div class="container">
+        <div class="row g-4">
+
+            <!-- Columna 1: Marca -->
+            <div class="col-md-4">
+                <div class="d-flex align-items-center mb-3">
+                    <img src="{% static 'core/img/logo/Butifarra.gif' %}"
+                         alt="Logo Festival de la Butifarra"
+                         class="footer-logo me-3">
+                    <div>
+                        <h5 class="mb-0 fw-bold text-white">Festival de la Butifarra</h5>
+                        <small class="text-warning">Jalpa de Méndez, Tabasco</small>
+                    </div>
+                </div>
+                <p class="text-white-50 small mb-3">
+                    <em>"Tradición que se disfruta, orgullo que se comparte"</em>
+                </p>
+                <div class="social-links">
+                    <a href="https://www.facebook.com/FestivalDeLaButifarra"
+                       target="_blank" rel="noopener" aria-label="Facebook">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+                    <a href="https://www.instagram.com/festivalbutifarra"
+                       target="_blank" rel="noopener" aria-label="Instagram">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Columna 2: Festival -->
+            <div class="col-md-2 col-6">
+                <h6 class="text-uppercase text-warning mb-3 small fw-bold">Festival</h6>
+                <ul class="list-unstyled footer-links">
+                    <li><a href="{% url 'core:index' %}">Inicio</a></li>
+                    <li><a href="{% url 'core:historia' %}">Historia</a></li>
+                    <li><a href="{% url 'core:programa' %}">Programa</a></li>
+                </ul>
+            </div>
+
+            <!-- Columna 3: Expositores -->
+            <div class="col-md-3 col-6">
+                <h6 class="text-uppercase text-warning mb-3 small fw-bold">Expositores</h6>
+                <ul class="list-unstyled footer-links">
+                    <li><a href="{% url 'core:expositores_list' %}">Catálogo</a></li>
+                    {% if user.is_authenticated %}
+                        {% if user.is_superuser or user.perfil.rol == 'admin' %}
+                            <li><a href="{% url 'core:panel_dashboard' %}">Panel admin</a></li>
+                        {% else %}
+                            <li><a href="{% url 'accounts:panel_expositor' %}">Mi panel</a></li>
+                        {% endif %}
+                        <li><a href="{% url 'accounts:logout' %}">Cerrar sesión</a></li>
+                    {% else %}
+                        <li><a href="{% url 'accounts:login' %}">Iniciar sesión</a></li>
+                        <li><a href="{% url 'accounts:registro' %}">Registrarme</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+
+            <!-- Columna 4: Información -->
+            <div class="col-md-3">
+                <h6 class="text-uppercase text-warning mb-3 small fw-bold">Información</h6>
+                <ul class="list-unstyled footer-info">
+                    <li>
+                        <i class="fas fa-calendar-alt text-warning me-2"></i>
+                        16, 17 y 18 de octubre 2026
+                    </li>
+                    <li>
+                        <i class="fas fa-map-marker-alt text-warning me-2"></i>
+                        Parque Recreativo El Campestre
+                    </li>
+                    <li>
+                        <i class="fas fa-city text-warning me-2"></i>
+                        Jalpa de Méndez, Tabasco
+                    </li>
+                    <li>
+                        <i class="fas fa-globe text-warning me-2"></i>
+                        <a href="https://jalpademendez.gob.mx"
+                           target="_blank" rel="noopener"
+                           class="footer-link-light">jalpademendez.gob.mx</a>
+                    </li>
+                </ul>
+            </div>
+
+        </div>
+
+        <hr class="border-secondary mt-5 mb-4">
+
+        <div class="d-flex flex-wrap justify-content-between align-items-center small text-white-50">
+            <p class="mb-0">
+                &copy; 2026 Festival de la Butifarra · H. Ayuntamiento de Jalpa de Méndez
+            </p>
+            <p class="mb-0">
+                Todos los derechos reservados
+            </p>
+        </div>
+    </div>
+</footer>
+
+<!-- ============ MASCOTA FLOTANTE (no se muestra en el index) ============ -->
+{% if request.resolver_match.url_name != 'index' %}
+<a href="{% url 'core:index' %}"
+   class="mascota-flotante"
+   aria-label="Festival de la Butifarra">
+    <img src="{% static 'core/img/logo/Butifarra.gif' %}"
+         alt="Mascota del Festival de la Butifarra"
+         class="mascota-img">
+    <span class="mascota-glow"></span>
+</a>
+{% endif %}
+
+<!-- ============ SCRIPTS ============ -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{% static 'core/js/main.js' %}"></script>
+
+<!-- Navbar: sombra + auto-hide al hacer scroll -->
+<script>
+(function () {
+    const navbar = document.getElementById('mainNavbar');
+    if (!navbar) return;
+
+    let lastScrollY = window.scrollY;
+    let ticking = false;
+    const DELTA_MIN = 5;
+    const OFFSET = 80;
+
+    function updateNavbar() {
+        const currentScrollY = window.scrollY;
+
+        // Sombra
+        if (currentScrollY > 20) {
+            navbar.classList.add('shadow-lg');
+        } else {
+            navbar.classList.remove('shadow-lg');
+        }
+
+        // Auto-hide
+        if (currentScrollY < OFFSET) {
+            navbar.classList.remove('navbar-hidden');
+        } else if (currentScrollY > lastScrollY + DELTA_MIN) {
+            navbar.classList.add('navbar-hidden');
+        } else if (currentScrollY < lastScrollY - DELTA_MIN) {
+            navbar.classList.remove('navbar-hidden');
+        }
+
+        lastScrollY = currentScrollY;
+        ticking = false;
+    }
+
+    window.addEventListener('scroll', () => {
+        if (!ticking) {
+            window.requestAnimationFrame(updateNavbar);
+            ticking = true;
+        }
+    }, { passive: true });
+})();
+</script>
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>

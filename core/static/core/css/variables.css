@@ -1,0 +1,95 @@
+/* ============================================================
+   VARIABLES GLOBALES · FESTIVAL DE LA BUTIFARRA
+   Paleta, tipografía, espaciados y sombras
+   ============================================================ */
+
+:root {
+    /* ========== PALETA PRINCIPAL ========== */
+    --amarillo:        #FDE901;
+    --naranja:         #FD9900;
+    --negro:           #000000;
+    --cafe:            #B55826;
+    --cafe-calido:     #E9BB86;
+
+    /* ========== VARIANTES DERIVADAS ========== */
+    --amarillo-soft:   #FFF45C;
+    --amarillo-dark:   #D4C200;
+    --naranja-soft:    #FFB84D;
+    --naranja-dark:    #CC7A00;
+    --negro-soft:      #1A1A1A;
+    --negro-medio:     #2A2A2A;
+    --cafe-soft:       #D5794A;
+    --cafe-dark:       #8B3F1A;
+    --cafe-calido-soft:#F2D3B0;
+
+    /* ========== FONDOS ========== */
+    --bg-crema:        #FFFDF5;
+    --bg-crema-alt:    #FFF9E6;
+    --bg-blanco:       #FFFFFF;
+    --bg-gris-claro:   #F5F5F5;
+    --bg-oscuro:       #0A0A0A;
+
+    /* ========== TEXTO ========== */
+    --text-dark:       #1A1A1A;
+    --text-medio:      #4A4A4A;
+    --text-muted:      #6B6B6B;
+    --text-light:      #FFFFFF;
+    --text-light-soft: rgba(255, 255, 255, 0.75);
+
+    /* ========== BORDES ========== */
+    --border-light:    #EFEFEF;
+    --border-medio:    #E0E0E0;
+    --border-amarillo: rgba(253, 233, 1, 0.5);
+
+    /* ========== GRADIENTES ========== */
+    --grad-amarillo-naranja: linear-gradient(180deg, var(--amarillo) 0%, var(--naranja) 100%);
+    --grad-naranja-cafe:     linear-gradient(135deg, var(--naranja) 0%, var(--cafe) 100%);
+    --grad-festival:         linear-gradient(90deg, var(--amarillo) 0%, var(--naranja) 50%, var(--cafe) 100%);
+    --grad-oscuro:           linear-gradient(135deg, var(--negro-soft) 0%, var(--negro) 100%);
+    --grad-crema:            linear-gradient(135deg, var(--bg-crema) 0%, var(--bg-crema-alt) 100%);
+    --grad-hero:             linear-gradient(180deg, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.5) 60%, rgba(181, 88, 38, 0.4) 100%);
+
+    /* ========== TIPOGRAFÍAS ========== */
+    --font-display:  'Anton', sans-serif;          /* Títulos grandes */
+    --font-heading:  'Lilita One', cursive;         /* Subtítulos y badges */
+    --font-body:     'Fredoka', sans-serif;         /* Cuerpo, botones, navbar */
+
+    /* Tamaños de fuente */
+    --fs-xs:   0.75rem;   /* 12px */
+    --fs-sm:   0.875rem;  /* 14px */
+    --fs-base: 1rem;      /* 16px */
+    --fs-md:   1.125rem;  /* 18px */
+    --fs-lg:   1.375rem;  /* 22px */
+    --fs-xl:   1.75rem;   /* 28px */
+    --fs-2xl:  2.5rem;    /* 40px */
+    --fs-3xl:  3.5rem;    /* 56px */
+
+    /* ========== ESPACIADOS ========== */
+    --space-xs: 0.25rem;
+    --space-sm: 0.5rem;
+    --space-md: 1rem;
+    --space-lg: 1.5rem;
+    --space-xl: 2.5rem;
+    --space-2xl: 4rem;
+
+    /* ========== RADIOS ========== */
+    --radius-sm:   8px;
+    --radius-md:   14px;
+    --radius-lg:   20px;
+    --radius-xl:   30px;
+    --radius-pill: 999px;
+
+    /* ========== SOMBRAS ========== */
+    --shadow-sm:      0 2px 8px rgba(0, 0, 0, 0.08);
+    --shadow-md:      0 6px 18px rgba(0, 0, 0, 0.12);
+    --shadow-lg:      0 12px 30px rgba(0, 0, 0, 0.18);
+    --shadow-xl:      0 20px 50px rgba(0, 0, 0, 0.22);
+    --shadow-amarillo: 0 6px 24px rgba(253, 233, 1, 0.4);
+    --shadow-naranja:  0 6px 24px rgba(253, 153, 0, 0.35);
+    --shadow-cafe:     0 6px 24px rgba(181, 88, 38, 0.35);
+
+    /* ========== TRANSICIONES ========== */
+    --transition-fast:   0.2s ease;
+    --transition-base:   0.3s ease;
+    --transition-slow:   0.5s ease;
+}

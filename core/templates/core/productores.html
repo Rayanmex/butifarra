@@ -1,0 +1,371 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Productores - Festival de la Butifarra{% endblock %}
+
+{% block content %}
+
+<!-- ============ HERO PRODUCTORES ============ -->
+<section class="py-5 text-white text-center"
+         style="background: linear-gradient(rgba(0,0,0,0.65), rgba(0,0,0,0.65)),
+                url('{% static 'core/img/about/about.jpg' %}') center/cover no-repeat;
+                min-height: 40vh; display: flex; align-items: center;">
+    <div class="container">
+        <span class="section-tag text-warning">Los artesanos del sabor</span>
+        <h1 class="display-4 fw-bold mb-3">Productores de Butifarra</h1>
+        <p class="lead mb-0" style="max-width: 720px; margin: 0 auto;">
+            Los artesanos detrás del sabor que nos identifica
+        </p>
+    </div>
+</section>
+
+<!-- ============ INTRO ============ -->
+<section class="py-5 bg-seccion-cajas">
+    <div class="container">
+        <div class="row mb-4">
+            <div class="col-md-8 offset-md-2 text-center">
+                <p class="fs-5">
+                    En el {{ festival.edicion|default:11 }}.º Festival de la Butifarra participan
+                    productores locales que mantienen viva la tradición de la butifarra jalpaneca,
+                    transmitida de generación en generación.
+                </p>
+                <p>
+                    El <strong>18 de agosto de 2026</strong>, el Ayuntamiento de Jalpa de Méndez
+                    realizó el primer encuentro con productores en la Casa de la Cultura, donde se
+                    presentaron los requisitos, lineamientos y la organización para el festival.
+                </p>
+                <p>
+                    El <strong>15 de septiembre</strong>, los productores formalizaron su
+                    participación, confirmando su presencia en esta edición {{ festival.fecha_inicio|date:"Y"|default:"2026" }}.
+                </p>
+            </div>
+        </div>
+
+        <!-- Contadores -->
+        <div class="row text-center">
+            <div class="col-md-4 mb-3">
+                <div class="contador-card">
+                    <div class="contador-num">{{ total_expositores }}</div>
+                    <div class="contador-label">Expositores registrados</div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="contador-card">
+                    <div class="contador-num">{{ total_destacados }}</div>
+                    <div class="contador-label">Destacados</div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="contador-card">
+                    <div class="contador-num">{{ total_con_menu }}</div>
+                    <div class="contador-label">Con menú publicado</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============ LISTADO DE PRODUCTORES ============ -->
+<section class="py-5" style="background: var(--bg-gray);">
+    <div class="container">
+        <div class="text-center mb-5">
+            <span class="section-tag">Conócelos</span>
+            <h2 class="fw-bold mb-2" style="color: var(--primary);">Nuestros Productores</h2>
+            <p class="text-muted mb-0">Los expositores que participarán este año</p>
+        </div>
+
+        {% if productores %}
+        <div class="row g-4">
+            {% for exp in productores %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card productor-card h-100 border-0 overflow-hidden shadow-sm {% if exp.es_destacado %}productor-destacado{% endif %}">
+
+                    {% if exp.es_destacado %}
+                    <span class="badge-destacado">
+                        <i class="fas fa-star"></i> Destacado
+                    </span>
+                    {% endif %}
+
+                    <!-- Logo -->
+                    <div class="productor-logo-wrapper">
+                        {% if exp.logo %}
+                            <img src="{{ exp.logo.url }}"
+                                 alt="{{ exp.nombre_empresa }}"
+                                 class="productor-logo"
+                                 loading="lazy">
+                        {% else %}
+                            <div class="productor-logo-placeholder d-flex align-items-center justify-content-center">
+                                <i class="fas fa-store fa-3x"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="card-body d-flex flex-column">
+                        <!-- Stand + Categoría -->
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <span class="badge bg-secondary">
+                                {{ exp.get_stand_display }}
+                            </span>
+                            <span class="badge bg-warning text-dark">
+                                {{ exp.get_categoria_display_corta }}
+                            </span>
+                        </div>
+
+                        <!-- Nombre -->
+                        <h4 class="productor-nombre mb-1">
+                            {{ exp.nombre_empresa }}
+                        </h4>
+                        <p class="text-muted small mb-3">
+                            <i class="fas fa-user"></i> {{ exp.nombre_expositor }}
+                        </p>
+
+                        <!-- Descripción -->
+                        {% if exp.descripcion %}
+                        <p class="productor-desc">
+                            {{ exp.descripcion|truncatewords:20 }}
+                        </p>
+                        {% endif %}
+
+                        <!-- Especialidades -->
+                        {% if exp.especialidades %}
+                        <div class="mb-3">
+                            {% for esp in exp.get_especialidades_list|slice:":3" %}
+                                <span class="badge bg-light text-dark border me-1 mb-1">
+                                    {{ esp }}
+                                </span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <!-- Precio desde -->
+                        {% if exp.precio_desde %}
+                        <p class="productor-precio mb-3">
+                            <span class="text-muted small">Desde</span>
+                            <strong>${{ exp.precio_desde|floatformat:0 }}</strong>
+                        </p>
+                        {% endif %}
+
+                        <!-- Botón ver detalle -->
+                        <a href="{% url 'core:expositor_detail' exp.pk %}"
+                           class="btn btn-primary btn-sm mt-auto">
+                            <i class="fas fa-eye"></i> Ver detalle
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="text-center mt-5">
+            <a href="{% url 'core:expositores_list' %}" class="btn btn-outline-primary btn-lg">
+                <i class="fas fa-list"></i> Ver todos los expositores con filtros
+            </a>
+        </div>
+
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-store-slash fa-4x text-muted mb-3"></i>
+            <p class="text-muted">
+                Aún no hay expositores registrados. Los productores aparecerán aquí al confirmar su participación.
+            </p>
+            <a href="{% url 'core:registrar_expositor' %}" class="btn btn-warning mt-3">
+                <i class="fas fa-plus-circle"></i> Registrar mi exposición
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- ============ COMITÉ ORGANIZADOR ============ -->
+<section class="py-5 bg-seccion-cajas">
+    <div class="container">
+        <div class="row mb-5">
+            <div class="col-md-10 offset-md-1">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0"><i class="fas fa-users"></i> Comité Organizador</h4>
+                    </div>
+                    <div class="card-body">
+                        <p>
+                            El festival es organizado por el <strong>H. Ayuntamiento Constitucional
+                            de Jalpa de Méndez</strong>, a través de la <strong>Dirección de Fomento
+                            Económico y Turismo</strong>, en coordinación con el
+                            <strong>Comité de Productores de Butifarra</strong>.
+                        </p>
+                        <p class="mb-0">En la organización participan:</p>
+                        <ul class="mt-2 mb-0">
+                            <li><strong>José del Carmen Olán Olán</strong> — Presidente Municipal de Jalpa de Méndez</li>
+                            <li><strong>Jonathan de Jesús Jiménez Ricardez</strong> — Director de Fomento Económico y Turismo</li>
+                            <li><strong>Lucio Hernández Zúñiga</strong> — Director de Educación, Cultura y Recreación (DECUR)</li>
+                            <li><strong>Juan Carlos Domínguez Méndez</strong> — Productor artesanal de butifarra</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CONCURSO GASTRONÓMICO -->
+        <div class="row mb-5">
+            <div class="col-md-10 offset-md-1">
+                <div class="card shadow-sm border-0 border-warning" style="border-width: 3px !important;">
+                    <div class="card-header bg-warning text-dark">
+                        <h4 class="mb-0"><i class="fas fa-trophy"></i> Concurso Gastronómico {{ festival.fecha_inicio|date:"Y"|default:"2026" }}</h4>
+                    </div>
+                    <div class="card-body">
+                        <p>Uno de los momentos más esperados del festival es el reconocimiento al mejor producto.</p>
+                        <div class="row text-center mt-4">
+                            <div class="col-md-4 mb-3">
+                                <div class="premio-card premio-1">
+                                    <i class="fas fa-medal fa-2x mb-2"></i>
+                                    <h5 class="mb-2">🥇 Primer lugar</h5>
+                                    <p class="fs-4 fw-bold mb-0">$15,000</p>
+                                    <small class="text-muted">pesos</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="premio-card premio-2">
+                                    <i class="fas fa-medal fa-2x mb-2"></i>
+                                    <h5 class="mb-2">🥈 Segundo lugar</h5>
+                                    <p class="mb-0 fw-bold">Utensilios de cocina</p>
+                                    <small class="text-muted">profesionales</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="premio-card premio-3">
+                                    <i class="fas fa-medal fa-2x mb-2"></i>
+                                    <h5 class="mb-2">🥉 Tercer lugar</h5>
+                                    <p class="mb-0 fw-bold">Utensilios de cocina</p>
+                                    <small class="text-muted">profesionales</small>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-muted small mb-0 mt-3">
+                            <i class="fas fa-info-circle"></i> Las bases completas y los criterios de
+                            evaluación serán publicados por el comité organizador.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============ CTA EXPOSITORES ============ -->
+<section class="seccion-cta-final">
+    <div class="container text-center text-white">
+        <h2 class="mb-3 fw-bold">¿Eres productor o expositor?</h2>
+        <p class="lead mb-4" style="color: rgba(255,255,255,0.9); max-width: 700px; margin: 0 auto 1.5rem;">
+            Regístrate para participar en el {{ festival.edicion|default:11 }}.º Festival de la Butifarra
+        </p>
+        <a href="{% url 'core:registrar_expositor' %}" class="btn-cta-oro">
+            <i class="fas fa-plus-circle"></i> Registrar mi exposición
+        </a>
+    </div>
+</section>
+
+<!-- ============ ESTILOS ============ -->
+<style>
+/* Contadores */
+.contador-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px 16px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+}
+.contador-num {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--primary, #dca54a);
+    line-height: 1;
+}
+.contador-label {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #6c757d;
+    margin-top: 8px;
+}
+
+/* Card productor */
+.productor-card {
+    border-radius: 14px;
+    position: relative;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.productor-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.12) !important;
+}
+.productor-destacado {
+    border: 2px solid var(--primary, #dca54a) !important;
+}
+
+.badge-destacado {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: var(--primary, #dca54a);
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    z-index: 3;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Logo */
+.productor-logo-wrapper {
+    height: 160px;
+    background: linear-gradient(135deg, #faf5e5, #f0e6c5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+.productor-logo {
+    max-width: 80%;
+    max-height: 80%;
+    object-fit: contain;
+}
+.productor-logo-placeholder {
+    width: 100%;
+    height: 100%;
+    color: #dca54a;
+    opacity: 0.4;
+}
+
+/* Texto */
+.productor-nombre {
+    color: var(--primary, #dca54a);
+    font-weight: 700;
+    font-size: 1.15rem;
+}
+.productor-desc {
+    color: #555;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+.productor-precio {
+    font-size: 1rem;
+    margin-top: auto;
+}
+
+/* Premios */
+.premio-card {
+    padding: 20px 12px;
+    border-radius: 10px;
+    background: #fff;
+    border: 2px solid #eee;
+    transition: transform 0.3s ease, border-color 0.3s ease;
+}
+.premio-card:hover {
+    transform: translateY(-4px);
+}
+.premio-1 { border-color: #dca54a; color: #b8822b; }
+.premio-1 p { color: #198754; }
+.premio-2 { border-color: #adb5bd; color: #6c757d; }
+.premio-3 { border-color: #dc3545; color: #b02a37; }
+</style>
+
+{% endblock %}

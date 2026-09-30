@@ -1,0 +1,1244 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Expositores y Productos - Festival de la Butifarra 2026{% endblock %}
+
+{% block content %}
+
+<!-- ============ HERO CON BUSCADOR ============ -->
+<section class="expositores-hero">
+    <div class="expositores-hero-bg"></div>
+    <div class="expositores-hero-overlay"></div>
+
+    <div class="container expositores-hero-content">
+
+        <span class="hero-badge">Los artesanos del sabor</span>
+        <h1 class="expositores-hero-title">
+            Expositores y <span class="text-gradient">Productos</span>
+        </h1>
+        <p class="expositores-hero-subtitle">
+            Descubre, busca y contacta a los productores del
+            {{ festival.edicion|default:11 }}.º Festival de la Butifarra
+        </p>
+
+        <!-- Buscador -->
+        <div class="row justify-content-center mb-4">
+            <div class="col-lg-8">
+                <form method="get" class="position-relative">
+                    <input type="hidden" name="modo" value="{{ modo }}">
+                    {% for key, value in filtros.items %}
+                        {% if key != 'q' and value %}
+                            <input type="hidden" name="{{ key }}" value="{{ value }}">
+                        {% endif %}
+                    {% endfor %}
+
+                    <div class="search-bar">
+                        <span class="search-icon">
+                            <i class="fas fa-search"></i>
+                        </span>
+                        <input type="text"
+                               name="q"
+                               class="search-input"
+                               placeholder="Buscar expositor, producto, especialidad..."
+                               value="{{ filtros.q }}">
+                        {% if filtros.q %}
+                        <a href="?modo={{ modo }}" class="search-clear" title="Limpiar búsqueda">
+                            <i class="fas fa-times"></i>
+                        </a>
+                        {% endif %}
+                        <button class="search-btn" type="submit">
+                            Buscar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Toggle modo -->
+        <div class="text-center">
+            <div class="toggle-modo">
+                <a href="?modo=expositores{% if querystring %}&{{ querystring }}{% endif %}"
+                   class="toggle-btn {% if modo == 'expositores' %}active{% endif %}">
+                    <i class="fas fa-store"></i> Expositores
+                </a>
+                <a href="?modo=productos{% if querystring %}&{{ querystring }}{% endif %}"
+                   class="toggle-btn {% if modo == 'productos' %}active{% endif %}">
+                    <i class="fas fa-utensils"></i> Productos
+                </a>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<!-- ============ CATÁLOGO CON FONDO CÁLIDO ============ -->
+<section class="catalogo-section">
+    <div class="catalogo-pattern"></div>
+
+    <div class="container position-relative py-5">
+        <div class="row g-4">
+
+            <!-- ========== SIDEBAR FILTROS ========== -->
+            <div class="col-lg-3">
+                <div class="filtros-sidebar">
+                    <div class="filtros-card">
+
+                        <div class="filtros-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-filter"></i> Filtros
+                            </h5>
+                            <a href="?modo={{ modo }}" class="filtros-limpiar">
+                                Limpiar
+                            </a>
+                        </div>
+
+                        <form method="get" class="filtros-form">
+                            <input type="hidden" name="modo" value="{{ modo }}">
+                            <input type="hidden" name="q" value="{{ filtros.q }}">
+
+                            <!-- Categoría expositor -->
+                            <div class="filtro-grupo">
+                                <label class="filtro-label">Categoría</label>
+                                <select name="categoria" class="filtro-select">
+                                    <option value="">Todas</option>
+                                    {% for cat_value, cat_label in categorias_disponibles %}
+                                    <option value="{{ cat_value }}"
+                                            {% if filtros.categoria == cat_value %}selected{% endif %}>
+                                        {{ cat_label }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <!-- Categoría producto (solo modo productos) -->
+                            {% if modo == 'productos' %}
+                            <div class="filtro-grupo">
+                                <label class="filtro-label">Tipo de producto</label>
+                                <select name="cat_prod" class="filtro-select">
+                                    <option value="">Todos</option>
+                                    {% for cat_value, cat_label in categorias_producto %}
+                                    <option value="{{ cat_value }}"
+                                            {% if filtros.cat_prod == cat_value %}selected{% endif %}>
+                                        {{ cat_label }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            {% endif %}
+
+                            <!-- Especialidad -->
+                            {% if especialidades_top %}
+                            <div class="filtro-grupo">
+                                <label class="filtro-label">Especialidad</label>
+                                <input type="text"
+                                       name="especialidad"
+                                       class="filtro-input"
+                                       placeholder="Ej: camarón, BBQ"
+                                       value="{{ filtros.especialidad }}">
+
+                                <div class="chips-container">
+                                    {% for esp, count in especialidades_top|slice:":8" %}
+                                    <a href="?modo={{ modo }}&especialidad={{ esp|urlencode }}{% if filtros.q %}&q={{ filtros.q }}{% endif %}"
+                                       class="chip {% if filtros.especialidad == esp %}active{% endif %}">
+                                        {{ esp }} <span class="chip-count">{{ count }}</span>
+                                    </a>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <!-- Precio -->
+                            <div class="filtro-grupo">
+                                <label class="filtro-label">Precio</label>
+                                <div class="precio-inputs">
+                                    <input type="number" name="precio_min" class="filtro-input"
+                                           placeholder="Mín" value="{{ filtros.precio_min }}" min="0">
+                                    <input type="number" name="precio_max" class="filtro-input"
+                                           placeholder="Máx" value="{{ filtros.precio_max }}" min="0">
+                                </div>
+                                <div class="chips-container">
+                                    <a href="?modo={{ modo }}&precio_max=200" class="chip">Hasta $200</a>
+                                    <a href="?modo={{ modo }}&precio_min=200&precio_max=400" class="chip">$200-$400</a>
+                                    <a href="?modo={{ modo }}&precio_min=400" class="chip">+$400</a>
+                                </div>
+                            </div>
+
+                            <!-- Checkboxes -->
+                            <div class="filtro-grupo">
+                                <div class="filtro-check">
+                                    <input class="filtro-checkbox" type="checkbox" name="tarjeta" value="1"
+                                           id="check-tarjeta" {% if filtros.tarjeta %}checked{% endif %}>
+                                    <label for="check-tarjeta">
+                                        <i class="fas fa-credit-card"></i> Acepta tarjeta
+                                    </label>
+                                </div>
+                                <div class="filtro-check">
+                                    <input class="filtro-checkbox" type="checkbox" name="fotos" value="1"
+                                           id="check-fotos" {% if filtros.fotos %}checked{% endif %}>
+                                    <label for="check-fotos">
+                                        <i class="fas fa-camera"></i> Con fotos
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Ordenar -->
+                            <div class="filtro-grupo">
+                                <label class="filtro-label">Ordenar por</label>
+                                <select name="orden" class="filtro-select">
+                                    <option value="nombre" {% if filtros.orden == 'nombre' %}selected{% endif %}>Nombre (A-Z)</option>
+                                    <option value="precio_asc" {% if filtros.orden == 'precio_asc' %}selected{% endif %}>Precio (menor a mayor)</option>
+                                    <option value="precio_desc" {% if filtros.orden == 'precio_desc' %}selected{% endif %}>Precio (mayor a menor)</option>
+                                    <option value="stand" {% if filtros.orden == 'stand' %}selected{% endif %}>Número de stand</option>
+                                    <option value="reciente" {% if filtros.orden == 'reciente' %}selected{% endif %}>Más recientes</option>
+                                </select>
+                            </div>
+
+                            <button type="submit" class="btn btn-warning w-100 fw-bold">
+                                <i class="fas fa-check"></i> Aplicar filtros
+                            </button>
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========== RESULTADOS ========== -->
+            <div class="col-lg-9">
+
+                <div class="resultados-info">
+                    <h5 class="mb-0">
+                        <span class="resultados-count">{{ total_resultados }}</span>
+                        {% if modo == 'expositores' %}
+                            expositor{{ total_resultados|pluralize:"es" }}
+                        {% else %}
+                            producto{{ total_resultados|pluralize:"s" }}
+                        {% endif %}
+                        {% if filtros.q %}para "<strong>{{ filtros.q }}</strong>"{% endif %}
+                    </h5>
+                </div>
+
+                <!-- Grid expositores -->
+                {% if modo == 'expositores' %}
+                    <div class="row g-4">
+                        {% for exp in expositores %}
+                        <div class="col-md-6 col-xl-4">
+                            <div class="expositor-card {% if exp.es_destacado %}expositor-destacado{% endif %}">
+
+                                {% if exp.es_destacado %}
+                                <span class="badge-destacado">
+                                    <i class="fas fa-star"></i> Destacado
+                                </span>
+                                {% endif %}
+
+                                <!-- Logo -->
+                                <div class="expositor-logo-wrapper">
+                                    {% if exp.logo %}
+                                        <img src="{{ exp.logo.url }}"
+                                             alt="{{ exp.nombre_empresa }}"
+                                             class="expositor-logo"
+                                             loading="lazy">
+                                    {% else %}
+                                        <div class="expositor-logo-placeholder">
+                                            <i class="fas fa-store"></i>
+                                        </div>
+                                    {% endif %}
+                                    {% if exp.numero_stand and exp.numero_stand|lower not in "todavía está pendiente.,ninguno,0" %}
+                                    <span class="badge-stand-card">
+                                        <i class="fas fa-map-pin"></i> {{ exp.get_stand_display }}
+                                    </span>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Body -->
+                                <div class="expositor-body">
+                                    <h5 class="expositor-nombre">{{ exp.nombre_empresa }}</h5>
+                                    <p class="expositor-persona">
+                                        <i class="fas fa-user"></i> {{ exp.nombre_expositor }}
+                                    </p>
+
+                                    {% if exp.descripcion %}
+                                    <p class="expositor-descripcion">{{ exp.descripcion|truncatewords:12 }}</p>
+                                    {% endif %}
+
+                                    <div class="expositor-badges">
+                                        <span class="badge-categoria">{{ exp.get_categoria_display_corta }}</span>
+                                        {% for esp in exp.get_especialidades_list|slice:":3" %}
+                                        <span class="badge-especialidad-sm">{{ esp }}</span>
+                                        {% endfor %}
+                                    </div>
+
+                                    <div class="expositor-meta">
+                                        {% if exp.precio_desde %}
+                                        <div class="meta-item">
+                                            <i class="fas fa-tag"></i>
+                                            Desde <strong>${{ exp.precio_desde|floatformat:0 }}</strong>
+                                        </div>
+                                        {% endif %}
+                                        <div class="meta-item">
+                                            {% if exp.acepta_tarjeta %}
+                                            <i class="fas fa-credit-card"></i> Acepta tarjeta
+                                            {% else %}
+                                            <i class="fas fa-money-bill-wave"></i> Solo efectivo
+                                            {% endif %}
+                                        </div>
+                                        {% if exp.fotos.count %}
+                                        <div class="meta-item">
+                                            <i class="fas fa-camera"></i> {{ exp.fotos.count }} foto{{ exp.fotos.count|pluralize:"s" }}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <!-- Footer -->
+                                <div class="expositor-footer">
+                                    <a href="{% url 'core:expositor_detail' exp.pk %}"
+                                       class="btn btn-warning w-100">
+                                        <i class="fas fa-eye"></i> Ver productos
+                                    </a>
+
+                                    <div class="expositor-contacto">
+                                        {% if exp.numero_contacto %}
+                                        <a href="https://wa.me/52{{ exp.numero_contacto|cut:' '|cut:'-'|cut:'('|cut:')'|cut:'.' }}?text=Hola%2C%20vi%20tu%20exposici%C3%B3n%20en%20el%20Festival%20de%20la%20Butifarra"
+                                           target="_blank" rel="noopener"
+                                           class="contacto-btn whatsapp" title="WhatsApp">
+                                            <i class="fab fa-whatsapp"></i>
+                                        </a>
+                                        {% endif %}
+                                        {% if exp.link_google_maps %}
+                                        <a href="{{ exp.link_google_maps }}"
+                                           target="_blank" rel="noopener"
+                                           class="contacto-btn maps" title="Ubicación">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                        </a>
+                                        {% endif %}
+                                        {% if exp.enlace_red_social_1 %}
+                                        <a href="{{ exp.enlace_red_social_1 }}"
+                                           target="_blank" rel="noopener"
+                                           class="contacto-btn social" title="Red social">
+                                            <i class="fas fa-share-alt"></i>
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="col-12">
+                            <div class="empty-state">
+                                <i class="fas fa-search"></i>
+                                <h3>Sin resultados</h3>
+                                <p>Prueba con otros filtros o búsqueda</p>
+                                <a href="?modo=expositores" class="btn btn-warning">
+                                    Ver todos
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                <!-- Grid productos -->
+                {% else %}
+                    <div class="row g-3">
+                        {% for prod in productos %}
+                        <div class="col-md-6 col-lg-4">
+                            <div class="producto-card">
+                                <div class="producto-header">
+                                    <span class="badge-categoria-sm">{{ prod.get_categoria_display }}</span>
+                                    <span class="badge-unidad-sm">{{ prod.get_unidad_display }}</span>
+                                </div>
+
+                                <h6 class="producto-nombre">{{ prod.nombre }}</h6>
+
+                                {% if prod.descripcion and prod.descripcion|lower != prod.nombre|lower %}
+                                <p class="producto-desc">{{ prod.descripcion|truncatewords:10 }}</p>
+                                {% endif %}
+
+                                <div class="producto-footer">
+                                    <div class="producto-info">
+                                        <span class="producto-precio">{{ prod.get_precio_display }}</span>
+                                        <span class="producto-expositor">{{ prod.expositor.nombre_empresa }}</span>
+                                    </div>
+                                    <a href="{% url 'core:expositor_detail' prod.expositor.pk %}"
+                                       class="producto-link" title="Ver expositor">
+                                        <i class="fas fa-store"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="col-12">
+                            <div class="empty-state">
+                                <i class="fas fa-utensils"></i>
+                                <h3>Sin productos</h3>
+                                <p>Prueba con otros filtros</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <!-- Paginación -->
+                {% if page_obj.has_other_pages %}
+                <nav class="paginacion mt-5">
+                    <ul class="paginacion-list">
+                        {% if page_obj.has_previous %}
+                        <li>
+                            <a class="paginacion-btn" href="?{{ querystring }}&page={{ page_obj.previous_page_number }}">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if num == page_obj.number %}
+                            <li><span class="paginacion-btn active">{{ num }}</span></li>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li><a class="paginacion-btn" href="?{{ querystring }}&page={{ num }}">{{ num }}</a></li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                        <li>
+                            <a class="paginacion-btn" href="?{{ querystring }}&page={{ page_obj.next_page_number }}">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============ CTA FINAL ============ -->
+<section class="section-cta">
+    <div class="cta-pattern"></div>
+    <div class="container text-center position-relative">
+        <h2 class="cta-title">¿Eres productor o expositor?</h2>
+        <p class="cta-subtitle">
+            Regístrate para participar en el {{ festival.edicion|default:11 }}.º Festival de la Butifarra
+        </p>
+        <a href="{% url 'core:registrar_expositor' %}" class="btn btn-warning btn-lg">
+            <i class="fas fa-plus-circle"></i> Registrar mi exposición
+        </a>
+    </div>
+</section>
+
+{% endblock %}
+
+
+{% block extra_css %}
+<style>
+/* ============================================================
+   EXPOSITORES Y PRODUCTOS — Fondo cálido con contraste
+   ============================================================ */
+
+/* ============ TEXTO CON DEGRADADO VERTICAL ============ */
+.text-gradient {
+    background: linear-gradient(180deg, var(--amarillo) 0%, var(--naranja) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    text-shadow: none !important;
+    filter: none;
+    display: inline-block;
+}
+.expositores-hero-title .text-gradient {
+    text-shadow: none !important;
+}
+
+/* ============ HERO ============ */
+.expositores-hero {
+    position: relative;
+    min-height: 55vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    color: #FFF;
+}
+.expositores-hero-bg {
+    position: absolute;
+    inset: 0;
+    background-image: url('{% static 'core/img/about/about.jpg' %}');
+    background-size: cover;
+    background-position: center;
+    transform: scale(1.05);
+    animation: heroZoom 25s ease-in-out infinite alternate;
+}
+@keyframes heroZoom {
+    0%   { transform: scale(1.05); }
+    100% { transform: scale(1.15); }
+}
+.expositores-hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(30, 15, 0, 0.75) 0%, rgba(60, 30, 0, 0.55) 50%, rgba(30, 15, 0, 0.85) 100%);
+    z-index: 1;
+}
+.expositores-hero-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 3.5rem 1rem;
+}
+.expositores-hero .hero-badge {
+    margin-bottom: 1.25rem;
+}
+.expositores-hero-title {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 5.5vw, 3.5rem);
+    line-height: 1.05;
+    color: #FFF;
+    text-shadow: 0 6px 20px rgba(0, 0, 0, 0.8);
+    margin-bottom: 1rem;
+    letter-spacing: 0.02em;
+}
+.expositores-hero-subtitle {
+    font-family: var(--font-heading);
+    font-size: clamp(1rem, 2vw, 1.25rem);
+    color: rgba(255, 255, 255, 0.9);
+    max-width: 720px;
+    margin: 0 auto 2rem;
+    text-shadow: 0 3px 12px rgba(0, 0, 0, 0.7);
+}
+
+/* Buscador */
+.search-bar {
+    display: flex;
+    align-items: center;
+    background: #FFF;
+    border-radius: var(--radius-pill);
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+    padding: 0.35rem;
+    padding-left: 1.25rem;
+    border: 2px solid var(--naranja);
+}
+.search-icon {
+    color: var(--naranja);
+    font-size: 1.15rem;
+    margin-right: 0.75rem;
+}
+.search-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-family: var(--font-body);
+    font-size: 1rem;
+    padding: 0.75rem 0;
+    background: transparent;
+    color: var(--negro);
+}
+.search-input::placeholder {
+    color: var(--text-muted);
+}
+.search-clear {
+    color: var(--text-muted);
+    padding: 0.5rem;
+    transition: color var(--transition-fast);
+}
+.search-clear:hover {
+    color: var(--cafe);
+}
+.search-btn {
+    background: var(--grad-amarillo-naranja);
+    color: var(--negro);
+    border: none;
+    padding: 0.85rem 2rem;
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 0.95rem;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    transition: all var(--transition-base);
+    letter-spacing: 0.02em;
+}
+.search-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(253, 153, 0, 0.6);
+}
+
+/* Toggle modo */
+.toggle-modo {
+    display: inline-flex;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(10px);
+    border-radius: var(--radius-pill);
+    padding: 0.35rem;
+    border: 1.5px solid rgba(253, 233, 1, 0.4);
+}
+.toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.5rem;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.85);
+    border-radius: var(--radius-pill);
+    transition: all var(--transition-base);
+    text-decoration: none;
+    letter-spacing: 0.02em;
+}
+.toggle-btn i {
+    font-size: 0.9rem;
+}
+.toggle-btn:hover {
+    color: var(--amarillo);
+}
+.toggle-btn.active {
+    background: var(--grad-amarillo-naranja);
+    color: var(--negro);
+    box-shadow: 0 4px 12px rgba(253, 153, 0, 0.5);
+}
+
+/* ============ CATÁLOGO CON FONDO CÁLIDO ============ */
+.catalogo-section {
+    position: relative;
+    background: linear-gradient(180deg, #FDF6E3 0%, #FAEBD5 50%, #F5E1C8 100%);
+    padding: 4rem 0;
+    overflow: hidden;
+}
+.catalogo-pattern {
+    position: absolute;
+    inset: 0;
+    background-image:
+        radial-gradient(circle at 10% 15%, rgba(253, 153, 0, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 90% 85%, rgba(181, 88, 38, 0.08) 0%, transparent 40%),
+        radial-gradient(rgba(181, 88, 38, 0.06) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 26px 26px;
+    pointer-events: none;
+}
+
+/* ============ SIDEBAR ============ */
+.filtros-sidebar {
+    position: sticky;
+    top: 90px;
+}
+.filtros-card {
+    background: #2A1500;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    border: 2px solid var(--cafe);
+    box-shadow: 0 12px 40px rgba(60, 30, 0, 0.35);
+}
+.filtros-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+    background: linear-gradient(135deg, #1A0D00 0%, #2D1400 100%);
+    border-bottom: 2px solid var(--naranja);
+}
+.filtros-header h5 {
+    font-family: var(--font-heading);
+    font-size: 1.05rem;
+    color: #FFF;
+    margin: 0;
+}
+.filtros-header i {
+    color: var(--naranja);
+    margin-right: 0.35rem;
+}
+.filtros-limpiar {
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    color: var(--amarillo);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    transition: color var(--transition-fast);
+}
+.filtros-limpiar:hover {
+    color: var(--naranja);
+}
+
+.filtros-form {
+    padding: 1.5rem;
+}
+.filtro-grupo {
+    margin-bottom: 1.5rem;
+}
+.filtro-label {
+    display: block;
+    font-family: var(--font-heading);
+    font-size: 0.72rem;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--amarillo);
+    margin-bottom: 0.6rem;
+}
+.filtro-select,
+.filtro-input {
+    width: 100%;
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    padding: 0.6rem 0.9rem;
+    border: 1.5px solid rgba(253, 233, 1, 0.25);
+    border-radius: var(--radius-sm);
+    background: rgba(255, 255, 255, 0.06);
+    color: #FFF;
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
+}
+.filtro-select:focus,
+.filtro-input:focus {
+    outline: none;
+    border-color: var(--naranja);
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 0 0.15rem rgba(253, 153, 0, 0.25);
+}
+.filtro-select option {
+    background: #2A1500;
+    color: #FFF;
+}
+.filtro-input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.precio-inputs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+}
+
+.chips-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.65rem;
+}
+.chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-family: var(--font-body);
+    font-size: 0.72rem;
+    padding: 0.3rem 0.7rem;
+    background: rgba(253, 233, 1, 0.08);
+    color: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(253, 233, 1, 0.25);
+    border-radius: var(--radius-pill);
+    text-decoration: none;
+    transition: all var(--transition-fast);
+}
+.chip:hover {
+    background: var(--grad-amarillo-naranja);
+    color: var(--negro);
+    border-color: var(--naranja);
+}
+.chip.active {
+    background: var(--grad-amarillo-naranja);
+    color: var(--negro);
+    border-color: var(--naranja);
+}
+.chip-count {
+    opacity: 0.7;
+    font-size: 0.68rem;
+}
+
+.filtro-check {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+.filtro-checkbox {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--naranja);
+    cursor: pointer;
+}
+.filtro-check label {
+    font-family: var(--font-body);
+    font-size: 0.88rem;
+    color: rgba(255, 255, 255, 0.85);
+    cursor: pointer;
+    margin: 0;
+}
+.filtro-check label i {
+    color: var(--naranja);
+    margin-right: 0.2rem;
+}
+
+/* ============ RESULTADOS INFO ============ */
+.resultados-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding: 1rem 1.25rem;
+    background: #FFF;
+    border-radius: var(--radius-md);
+    border-left: 5px solid var(--naranja);
+    box-shadow: 0 4px 16px rgba(181, 88, 38, 0.15);
+}
+.resultados-info h5 {
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    color: var(--cafe);
+    margin: 0;
+}
+.resultados-count {
+    display: inline-block;
+    background: var(--grad-amarillo-naranja);
+    color: var(--negro);
+    font-family: var(--font-display);
+    font-size: 0.95rem;
+    padding: 0.3rem 0.7rem;
+    border-radius: var(--radius-sm);
+    margin-right: 0.5rem;
+    letter-spacing: 0.02em;
+}
+.resultados-info strong {
+    color: var(--cafe-dark);
+}
+
+/* ============ EXPOSITOR CARD ============ */
+.expositor-card {
+    position: relative;
+    background: #FFF;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    border: 2px solid transparent;
+    box-shadow: 0 6px 20px rgba(181, 88, 38, 0.12);
+    transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+.expositor-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 50px rgba(181, 88, 38, 0.28);
+    border-color: var(--naranja);
+}
+.expositor-destacado {
+    border-color: var(--naranja);
+    box-shadow: 0 6px 24px rgba(253, 153, 0, 0.35);
+}
+
+.badge-destacado {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: var(--grad-amarillo-naranja);
+    color: var(--negro);
+    font-family: var(--font-heading);
+    font-size: 0.72rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: var(--radius-pill);
+    z-index: 3;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    letter-spacing: 0.02em;
+}
+.badge-destacado i {
+    font-size: 0.7rem;
+}
+
+/* Logo */
+.expositor-logo-wrapper {
+    position: relative;
+    height: 180px;
+    background: linear-gradient(135deg, #FAFAFA 0%, #F0F0F0 100%);
+    border-bottom: 2px solid var(--bg-crema-alt);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+.expositor-logo {
+    max-width: 80%;
+    max-height: 80%;
+    object-fit: contain;
+    transition: transform var(--transition-base);
+}
+.expositor-card:hover .expositor-logo {
+    transform: scale(1.06);
+}
+.expositor-logo-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--cafe-calido);
+    font-size: 3.5rem;
+    background: var(--grad-crema);
+}
+.badge-stand-card {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    background: linear-gradient(135deg, #1A0D00 0%, #2D1400 100%);
+    color: var(--amarillo);
+    font-family: var(--font-heading);
+    font-size: 0.7rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: var(--radius-pill);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    letter-spacing: 0.02em;
+}
+.badge-stand-card i {
+    font-size: 0.7rem;
+    margin-right: 0.2rem;
+}
+
+/* Body */
+.expositor-body {
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    background: #FFF;
+}
+.expositor-nombre {
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    color: var(--cafe);
+    margin: 0 0 0.35rem;
+    letter-spacing: 0.02em;
+    line-height: 1.2;
+}
+.expositor-persona {
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin: 0 0 0.75rem;
+}
+.expositor-persona i {
+    color: var(--naranja);
+    margin-right: 0.25rem;
+    font-size: 0.8rem;
+}
+.expositor-descripcion {
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    color: var(--text-dark);
+    margin: 0 0 0.85rem;
+    line-height: 1.5;
+}
+
+.expositor-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-bottom: 0.85rem;
+}
+.badge-categoria {
+    display: inline-block;
+    background: linear-gradient(135deg, #1A0D00 0%, #2D1400 100%);
+    color: var(--amarillo);
+    font-family: var(--font-body);
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 0.28rem 0.65rem;
+    border-radius: var(--radius-pill);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.badge-especialidad-sm {
+    display: inline-block;
+    background: var(--bg-crema-alt);
+    color: var(--cafe);
+    font-family: var(--font-body);
+    font-size: 0.68rem;
+    padding: 0.25rem 0.6rem;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--cafe-calido);
+}
+
+.expositor-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding-top: 0.85rem;
+    border-top: 1px dashed var(--cafe-calido);
+    margin-bottom: 1rem;
+}
+.meta-item {
+    font-family: var(--font-body);
+    font-size: 0.78rem;
+    color: var(--text-muted);
+}
+.meta-item i {
+    color: var(--naranja);
+    width: 14px;
+    margin-right: 0.3rem;
+}
+.meta-item strong {
+    color: var(--cafe);
+    font-weight: 700;
+}
+
+/* Footer */
+.expositor-footer {
+    padding: 0 1.25rem 1.25rem;
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+.expositor-footer .btn {
+    font-size: 0.85rem;
+    padding: 0.55em 1em;
+}
+.expositor-contacto {
+    display: flex;
+    gap: 0.4rem;
+    justify-content: center;
+}
+.contacto-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border-medio);
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    transition: all var(--transition-fast);
+    text-decoration: none;
+}
+.contacto-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(181, 88, 38, 0.2);
+}
+.contacto-btn.whatsapp:hover {
+    border-color: #25D366;
+    background: #25D366;
+    color: #FFF;
+}
+.contacto-btn.maps:hover {
+    border-color: var(--naranja);
+    background: var(--grad-amarillo-naranja);
+    color: var(--negro);
+}
+.contacto-btn.social:hover {
+    border-color: var(--cafe);
+    background: var(--cafe);
+    color: #FFF;
+}
+
+/* ============ PRODUCTO CARD ============ */
+.producto-card {
+    background: #FFF;
+    border-radius: var(--radius-md);
+    padding: 1.15rem;
+    height: 100%;
+    border-left: 4px solid var(--naranja);
+    box-shadow: 0 6px 20px rgba(181, 88, 38, 0.12);
+    transition: all var(--transition-base);
+    display: flex;
+    flex-direction: column;
+}
+.producto-card:hover {
+    transform: translateX(4px);
+    box-shadow: 0 12px 30px rgba(253, 153, 0, 0.25);
+    border-left-color: var(--amarillo);
+}
+.producto-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin-bottom: 0.6rem;
+}
+.badge-categoria-sm {
+    background: linear-gradient(135deg, #1A0D00 0%, #2D1400 100%);
+    color: var(--amarillo);
+    font-family: var(--font-body);
+    font-size: 0.66rem;
+    font-weight: 700;
+    padding: 0.22rem 0.55rem;
+    border-radius: var(--radius-pill);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+.badge-unidad-sm {
+    background: var(--cafe-calido);
+    color: var(--cafe);
+    font-family: var(--font-body);
+    font-size: 0.66rem;
+    font-weight: 600;
+    padding: 0.22rem 0.55rem;
+    border-radius: var(--radius-pill);
+}
+.producto-nombre {
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    color: var(--negro);
+    margin: 0 0 0.35rem;
+    line-height: 1.3;
+}
+.producto-desc {
+    font-family: var(--font-body);
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin: 0 0 0.75rem;
+    line-height: 1.4;
+}
+.producto-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 0.5rem;
+    margin-top: auto;
+}
+.producto-info {
+    display: flex;
+    flex-direction: column;
+}
+.producto-precio {
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    color: var(--cafe);
+    line-height: 1;
+    letter-spacing: 0.02em;
+}
+.producto-expositor {
+    font-family: var(--font-body);
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    margin-top: 0.2rem;
+}
+.producto-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #1A0D00 0%, #2D1400 100%);
+    color: var(--amarillo);
+    transition: all var(--transition-fast);
+}
+.producto-link:hover {
+    background: var(--grad-amarillo-naranja);
+    color: var(--negro);
+    transform: scale(1.1);
+}
+
+/* ============ EMPTY STATE ============ */
+.empty-state {
+    text-align: center;
+    padding: 4rem 1rem;
+    background: #FFF;
+    border-radius: var(--radius-lg);
+    border: 2px dashed var(--cafe-calido);
+    box-shadow: 0 6px 20px rgba(181, 88, 38, 0.1);
+}
+.empty-state i {
+    font-size: 3.5rem;
+    color: var(--cafe-calido);
+    margin-bottom: 1rem;
+}
+.empty-state h3 {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    color: var(--cafe);
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.02em;
+}
+.empty-state p {
+    font-family: var(--font-body);
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+}
+
+/* ============ PAGINACIÓN ============ */
+.paginacion-list {
+    display: flex;
+    justify-content: center;
+    gap: 0.4rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    flex-wrap: wrap;
+}
+.paginacion-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 42px;
+    height: 42px;
+    padding: 0 0.85rem;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--cafe);
+    background: #FFF;
+    border: 1.5px solid var(--cafe-calido);
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    transition: all var(--transition-fast);
+    cursor: pointer;
+    box-shadow: 0 3px 10px rgba(181, 88, 38, 0.1);
+}
+.paginacion-btn:hover {
+    background: var(--bg-crema-alt);
+    border-color: var(--naranja);
+    color: var(--naranja);
+}
+.paginacion-btn.active {
+    background: var(--grad-amarillo-naranja);
+    border-color: var(--naranja);
+    color: var(--negro);
+    box-shadow: 0 4px 12px rgba(253, 153, 0, 0.4);
+}
+
+/* ============ CTA FINAL ============ */
+.section-cta {
+    position: relative;
+    padding: 5rem 0;
+    background: linear-gradient(135deg, #1A0D00 0%, #2D1400 50%, #1A0D00 100%);
+    overflow: hidden;
+}
+.cta-pattern {
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at 20% 30%, rgba(253, 233, 1, 0.15) 0%, transparent 40%),
+        radial-gradient(circle at 80% 70%, rgba(253, 153, 0, 0.15) 0%, transparent 40%);
+    pointer-events: none;
+}
+.cta-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.75rem, 4vw, 2.75rem);
+    color: #FFF;
+    margin-bottom: 1rem;
+    letter-spacing: 0.02em;
+}
+.cta-subtitle {
+    font-family: var(--font-body);
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.85);
+    max-width: 640px;
+    margin: 0 auto 2rem;
+}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width: 991px) {
+    .filtros-sidebar {
+        position: static;
+    }
+}
+@media (max-width: 768px) {
+    .expositores-hero { min-height: 50vh; }
+    .expositores-hero-content { padding: 3rem 1rem; }
+    .search-bar { padding: 0.25rem; padding-left: 1rem; }
+    .search-btn { padding: 0.75rem 1.25rem; font-size: 0.85rem; }
+    .toggle-btn { padding: 0.6rem 1rem; font-size: 0.82rem; }
+    .expositor-logo-wrapper { height: 150px; }
+    .expositor-nombre { font-size: 1.05rem; }
+    .producto-precio { font-size: 1.15rem; }
+    .catalogo-section { padding: 2rem 0; }
+}
+</style>
+{% endblock %}

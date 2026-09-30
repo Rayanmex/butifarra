@@ -1,0 +1,658 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Programa - {{ festival.edicion|default:11 }}.º Festival de la Butifarra{% endblock %}
+
+{% block content %}
+
+<!-- ============ HERO PROGRAMA ============ -->
+<section class="programa-hero">
+    <div class="programa-hero-bg"></div>
+    <div class="programa-hero-overlay"></div>
+
+    <div class="container programa-hero-content">
+        <span class="hero-badge">Programa oficial</span>
+
+        <h1 class="programa-hero-title">
+            Programa del <span class="text-gradient">{{ festival.edicion|default:11 }}.º Festival</span>
+        </h1>
+
+        <p class="programa-hero-subtitle">
+            Tres días llenos de sabor, cultura, música y tradición en Jalpa de Méndez.
+        </p>
+
+        {% if festival %}
+        <div class="hero-info">
+            <div class="hero-info-item">
+                <i class="fas fa-calendar-alt"></i>
+                <span>{{ festival.fecha_inicio|date:"j" }} al {{ festival.fecha_fin|date:"j \d\e F \d\e Y" }}</span>
+            </div>
+            <div class="hero-info-sep"></div>
+            <div class="hero-info-item">
+                <i class="fas fa-map-marker-alt"></i>
+                <span>{{ festival.lugar|default:"Parque Recreativo «El Campestre»" }}</span>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- ============ FORO ARTÍSTICO CULTURAL ============ -->
+<section class="section-foro">
+    <div class="container">
+
+        <div class="section-header">
+            <span class="section-tag">Un encuentro con el arte y la cultura</span>
+            <h2 class="section-title">Programa del Foro Artístico Cultural</h2>
+            <p class="section-subtitle">
+                Como parte de esta gran celebración, se presenta el Programa del Foro Artístico Cultural,
+                un espacio dedicado a disfrutar de diversas expresiones artísticas y culturales.
+            </p>
+        </div>
+
+        {% if dias_programa %}
+        <div class="row g-4">
+            {% for dia in dias_programa %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card programa-dia-card">
+
+                    <div class="programa-dia-img-wrapper">
+                        {% if dia.imagen %}
+                            <img src="{{ dia.imagen }}"
+                                 class="programa-dia-img"
+                                 alt="Programa {{ dia.descripcion }}"
+                                 loading="lazy">
+                        {% else %}
+                            <div class="programa-dia-placeholder">
+                                <i class="fas fa-calendar-alt"></i>
+                            </div>
+                        {% endif %}
+                        <span class="programa-dia-badge">
+                            <i class="fas fa-calendar-day"></i>
+                            {{ dia.dia|date:"l j"|capfirst }}
+                        </span>
+                    </div>
+
+                    <div class="programa-dia-body">
+                        <h4 class="programa-dia-title">
+                            {{ dia.descripcion|default:dia.dia|date:"j \d\e F" }}
+                        </h4>
+
+                        {% if dia.artistas_del_dia %}
+                        <div class="programa-dia-artistas">
+                            <p class="programa-artistas-label">
+                                <i class="fas fa-music"></i> Cartelera del día
+                            </p>
+                            {% for art in dia.artistas_del_dia %}
+                            <div class="programa-artista-item">
+                                <i class="fas fa-star"></i>
+                                <strong>{{ art.nombre }}</strong>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        {% if dia.imagen %}
+                        <button type="button"
+                                class="btn btn-warning btn-sm w-100"
+                                data-bs-toggle="modal"
+                                data-bs-target="#programaDetalleModal{{ dia.pk }}">
+                            <i class="fas fa-expand"></i> Ver programa completo
+                        </button>
+                        {% else %}
+                        <p class="text-muted small mb-0 mt-3">
+                            <i class="fas fa-hourglass-half"></i> Programa en preparación
+                        </p>
+                        {% endif %}
+                    </div>
+
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-calendar-times"></i>
+            <p>El programa se publicará próximamente.</p>
+        </div>
+        {% endif %}
+
+    </div>
+</section>
+
+<!-- ============ CARTELERA MUSICAL ============ -->
+{% if artistas %}
+<section class="section-cartelera">
+    <div class="container">
+
+        <div class="section-header">
+            <span class="section-tag">Tres noches inolvidables</span>
+            <h2 class="section-title">Cartelera Musical</h2>
+            <p class="section-subtitle">Los artistas que harán vibrar El Campestre</p>
+        </div>
+
+        <div class="row g-4 justify-content-center">
+            {% for artista in artistas %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card artist-card">
+                    <div class="artist-img-wrapper">
+                        {% if artista.imagen_url %}
+                            <img src="{{ artista.imagen_url }}"
+                                 class="artist-img"
+                                 alt="{{ artista.nombre }}"
+                                 loading="lazy">
+                        {% else %}
+                            <img src="{% static 'core/img/artists/placeholder.jpg' %}"
+                                 class="artist-img"
+                                 alt="{{ artista.nombre }}">
+                        {% endif %}
+                        <div class="artist-overlay"></div>
+                        {% if artista.dia_presentacion %}
+                        <span class="artist-day">
+                            <i class="fas fa-music"></i>
+                            {{ artista.dia_presentacion|date:"l j"|capfirst }}
+                        </span>
+                        {% endif %}
+                    </div>
+                    <div class="artist-body">
+                        <h4 class="artist-name">{{ artista.nombre }}</h4>
+                        {% if artista.descripcion %}
+                            <p class="artist-desc">{{ artista.descripcion }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+    </div>
+</section>
+{% endif %}
+
+<!-- ============ INFORMACIÓN PRÁCTICA ============ -->
+<section class="section-info-practica">
+    <div class="container">
+
+        <div class="section-header">
+            <span class="section-tag">Todo lo que necesitas saber</span>
+            <h2 class="section-title">Información Práctica</h2>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="info-card">
+                    <div class="info-icon">
+                        <i class="fas fa-parking"></i>
+                    </div>
+                    <h5 class="info-title">Estacionamiento Gratuito</h5>
+                    <p class="info-desc">Disponible durante los tres días del festival</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="info-card">
+                    <div class="info-icon">
+                        <i class="fas fa-bus"></i>
+                    </div>
+                    <h5 class="info-title">Transporte Público</h5>
+                    <p class="info-desc">Operativo especial con horarios nocturnos</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="info-card">
+                    <div class="info-icon">
+                        <i class="fas fa-map-marked-alt"></i>
+                    </div>
+                    <h5 class="info-title">Parque El Campestre</h5>
+                    <p class="info-desc">Jalpa de Méndez, Tabasco</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<!-- ============ CTA FINAL ============ -->
+<section class="section-cta">
+    <div class="cta-pattern"></div>
+    <div class="container text-center position-relative">
+        <h2 class="cta-title">¿Listo para vivir el festival?</h2>
+        <p class="cta-subtitle">
+            Consulta los expositores y planea tu visita al
+            {{ festival.edicion|default:11 }}.º Festival de la Butifarra
+        </p>
+        <a href="{% url 'core:expositores_list' %}" class="btn btn-warning btn-lg">
+            <i class="fas fa-store"></i> Ver expositores
+        </a>
+    </div>
+</section>
+
+<!-- ============ MODALES DEL PROGRAMA ============ -->
+{% for dia in dias_programa %}
+{% if dia.imagen %}
+<div class="modal fade" id="programaDetalleModal{{ dia.pk }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-calendar-day"></i>
+                    Programa · {{ dia.descripcion|default:dia.dia|date:"j \d\e F" }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img src="{{ dia.imagen }}"
+                     class="img-fluid rounded"
+                     alt="Programa {{ dia.descripcion }}"
+                     loading="lazy">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endfor %}
+
+{% endblock %}
+
+
+{% block extra_css %}
+<style>
+/* ============================================================
+   ESTILOS ESPECÍFICOS DE PROGRAMA
+   ============================================================ */
+
+/* ============ TEXTO CON DEGRADADO VERTICAL ============ */
+.text-gradient {
+    background: linear-gradient(180deg, var(--amarillo) 0%, var(--naranja) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    text-shadow: none !important;
+    filter: none;
+    display: inline-block;
+}
+
+/* ============ HERO ============ */
+.programa-hero {
+    position: relative;
+    min-height: 55vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    color: #FFF;
+}
+.programa-hero-bg {
+    position: absolute;
+    inset: 0;
+    background-image: url('{% static 'core/img/hero/hero.jpg' %}');
+    background-size: cover;
+    background-position: center;
+    transform: scale(1.05);
+    animation: heroZoom 25s ease-in-out infinite alternate;
+}
+@keyframes heroZoom {
+    0%   { transform: scale(1.05); }
+    100% { transform: scale(1.15); }
+}
+.programa-hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: var(--grad-hero);
+    z-index: 1;
+}
+.programa-hero-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 4rem 1rem;
+}
+.programa-hero .hero-badge {
+    margin-bottom: 1.5rem;
+}
+.programa-hero-title {
+    font-family: var(--font-display);
+    font-size: clamp(2.25rem, 6vw, 4rem);
+    line-height: 1.05;
+    color: #FFF;
+    text-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+    margin-bottom: 1.25rem;
+    letter-spacing: 0.02em;
+}
+.programa-hero-subtitle {
+    font-family: var(--font-heading);
+    font-size: clamp(1rem, 2vw, 1.35rem);
+    color: #FFF;
+    opacity: 0.95;
+    max-width: 720px;
+    margin: 0 auto 2rem;
+    text-shadow: 0 3px 12px rgba(0, 0, 0, 0.7);
+}
+
+/* Reutilizamos hero-info del index */
+.programa-hero .hero-info {
+    display: inline-flex;
+    align-items: center;
+    gap: 1.25rem;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(253, 233, 1, 0.3);
+    border-radius: var(--radius-pill);
+    padding: 0.75rem 1.75rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+.programa-hero .hero-info-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: 0.95rem;
+    color: #FFF;
+}
+.programa-hero .hero-info-item i {
+    color: var(--amarillo);
+    font-size: 1.1rem;
+}
+.programa-hero .hero-info-sep {
+    width: 1px;
+    height: 20px;
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* ============ FORO ARTÍSTICO ============ */
+.section-foro {
+    padding: 5rem 0;
+    background: var(--bg-blanco);
+}
+
+.programa-dia-card {
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    transition: transform var(--transition-base), box-shadow var(--transition-base);
+}
+.programa-dia-card:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-lg);
+}
+
+.programa-dia-img-wrapper {
+    position: relative;
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    background: var(--bg-crema-alt);
+}
+.programa-dia-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.6s ease;
+}
+.programa-dia-card:hover .programa-dia-img {
+    transform: scale(1.05);
+}
+.programa-dia-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--grad-crema);
+    color: var(--cafe-calido);
+    font-size: 3rem;
+}
+.programa-dia-badge {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    background: var(--grad-amarillo-naranja);
+    color: var(--negro);
+    font-family: var(--font-heading);
+    font-size: 0.8rem;
+    padding: 0.45rem 1rem;
+    border-radius: var(--radius-pill);
+    box-shadow: var(--shadow-sm);
+    z-index: 2;
+    letter-spacing: 0.02em;
+}
+
+.programa-dia-body {
+    padding: 1.5rem;
+    background: #FFF;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+.programa-dia-title {
+    font-family: var(--font-display);
+    font-size: 1.4rem;
+    color: var(--cafe);
+    margin: 0 0 1rem;
+    letter-spacing: 0.02em;
+}
+
+.programa-dia-artistas {
+    border-left: 3px solid var(--naranja);
+    padding-left: 0.9rem;
+    margin-bottom: 1.25rem;
+}
+.programa-artistas-label {
+    font-family: var(--font-heading);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin: 0 0 0.5rem;
+}
+.programa-artista-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    color: var(--text-dark);
+    margin-bottom: 0.35rem;
+}
+.programa-artista-item i {
+    color: var(--amarillo);
+    font-size: 0.75rem;
+}
+
+.programa-dia-body .btn {
+    margin-top: auto;
+}
+
+/* Empty state */
+.empty-state {
+    text-align: center;
+    padding: 4rem 1rem;
+    color: var(--text-muted);
+}
+.empty-state i {
+    font-size: 3rem;
+    color: var(--cafe-calido);
+    margin-bottom: 1rem;
+}
+.empty-state p {
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    margin: 0;
+}
+
+/* ============ CARTELERA (reutilizado del index) ============ */
+.section-cartelera {
+    padding: 5rem 0;
+    background: var(--bg-crema-alt);
+}
+.artist-card {
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: transform var(--transition-base), box-shadow var(--transition-base);
+}
+.artist-card:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-lg);
+}
+.artist-img-wrapper {
+    position: relative;
+    aspect-ratio: 3 / 4;
+    overflow: hidden;
+    background: var(--negro-soft);
+}
+.artist-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.6s ease;
+}
+.artist-card:hover .artist-img {
+    transform: scale(1.08);
+}
+.artist-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 40%, rgba(0, 0, 0, 0.85) 100%);
+}
+.artist-day {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    background: var(--grad-amarillo-naranja);
+    color: var(--negro);
+    font-family: var(--font-heading);
+    font-size: 0.78rem;
+    padding: 0.4rem 0.9rem;
+    border-radius: var(--radius-pill);
+    box-shadow: var(--shadow-sm);
+    z-index: 2;
+}
+.artist-body {
+    padding: 1.25rem;
+    background: #FFF;
+    text-align: center;
+}
+.artist-name {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    color: var(--cafe);
+    margin: 0 0 0.25rem;
+    letter-spacing: 0.02em;
+}
+.artist-desc {
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+/* ============ INFO PRÁCTICA ============ */
+.section-info-practica {
+    padding: 5rem 0;
+    background: var(--bg-blanco);
+}
+.info-card {
+    background: var(--bg-crema-alt);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    text-align: center;
+    height: 100%;
+    border: 2px solid var(--cafe-calido);
+    transition: all var(--transition-base);
+}
+.info-card:hover {
+    border-color: var(--naranja);
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+}
+.info-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #FFF;
+    color: var(--cafe);
+    font-size: 2rem;
+    border: 3px solid var(--cafe-calido);
+    transition: transform var(--transition-base);
+}
+.info-card:hover .info-icon {
+    transform: scale(1.08);
+    color: var(--naranja);
+}
+.info-title {
+    font-family: var(--font-heading);
+    font-size: 1.15rem;
+    color: var(--negro);
+    margin-bottom: 0.5rem;
+}
+.info-desc {
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+/* ============ CTA FINAL ============ */
+.section-cta {
+    position: relative;
+    padding: 5rem 0;
+    background: var(--grad-oscuro);
+    overflow: hidden;
+}
+.cta-pattern {
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at 20% 30%, rgba(253, 233, 1, 0.15) 0%, transparent 40%),
+        radial-gradient(circle at 80% 70%, rgba(253, 153, 0, 0.15) 0%, transparent 40%);
+    pointer-events: none;
+}
+.cta-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.75rem, 4vw, 2.75rem);
+    color: #FFF;
+    margin-bottom: 1rem;
+    letter-spacing: 0.02em;
+}
+.cta-subtitle {
+    font-family: var(--font-body);
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.85);
+    max-width: 640px;
+    margin: 0 auto 2rem;
+}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width: 768px) {
+    .programa-hero { min-height: 50vh; }
+    .programa-hero-content { padding: 3rem 1rem; }
+    .programa-hero .hero-info {
+        flex-direction: column;
+        gap: 0.6rem;
+        padding: 0.9rem 1.2rem;
+        border-radius: var(--radius-md);
+    }
+    .programa-hero .hero-info-sep { display: none; }
+    .section-foro,
+    .section-cartelera,
+    .section-info-practica,
+    .section-cta { padding: 3rem 0; }
+    .programa-dia-body { padding: 1.25rem; }
+    .programa-dia-title { font-size: 1.2rem; }
+    .info-card { padding: 1.5rem; }
+    .info-icon { width: 65px; height: 65px; font-size: 1.6rem; }
+}
+</style>
+{% endblock %}

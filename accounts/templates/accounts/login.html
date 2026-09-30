@@ -1,0 +1,571 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Iniciar sesión · Festival de la Butifarra{% endblock %}
+
+{% block content %}
+
+<section class="auth-section">
+    <div class="auth-pattern"></div>
+
+    <!-- ===== DECORACIÓN DE FONDO ===== -->
+    <div class="auth-deco auth-deco-1"><i class="fas fa-utensils"></i></div>
+    <div class="auth-deco auth-deco-2"><i class="fas fa-pepper-hot"></i></div>
+    <div class="auth-deco auth-deco-3"><i class="fas fa-fire"></i></div>
+
+    <div class="container position-relative">
+        <div class="row justify-content-center">
+            <div class="col-lg-10 col-xl-9">
+                <div class="auth-card">
+
+                    <!-- ===== LADO IZQUIERDO: BRANDING ===== -->
+                    <aside class="auth-brand">
+                        <div class="auth-brand-pattern"></div>
+
+                        <div class="auth-brand-content">
+                            <img src="{% static 'core/img/logo/Butifarra.gif' %}"
+                                 alt="Festival de la Butifarra"
+                                 class="auth-brand-logo">
+
+                            <span class="auth-brand-tag">11.º Festival · 2026</span>
+
+                            <h2 class="auth-brand-title">
+                                Festival de la<br>
+                                <span class="text-gradient">Butifarra</span>
+                            </h2>
+
+                            <p class="auth-brand-slogan">
+                                <em>"Tradición que se disfruta,<br>orgullo que se comparte"</em>
+                            </p>
+
+                            <ul class="auth-brand-list">
+                                <li><i class="fas fa-check-circle"></i> Gestiona tus productos</li>
+                                <li><i class="fas fa-check-circle"></i> Sube fotos de tu menú</li>
+                                <li><i class="fas fa-check-circle"></i> Actualiza tu stand</li>
+                            </ul>
+                        </div>
+
+                        <div class="auth-brand-footer">
+                            <i class="fas fa-map-marker-alt"></i>
+                            Jalpa de Méndez, Tabasco
+                        </div>
+                    </aside>
+
+                    <!-- ===== LADO DERECHO: FORMULARIO ===== -->
+                    <div class="auth-form-wrap">
+
+                        <div class="auth-form-head">
+                            <div class="auth-form-icon">
+                                <i class="fas fa-sign-in-alt"></i>
+                            </div>
+                            <h1 class="auth-title">Iniciar sesión</h1>
+                            <p class="auth-subtitle">
+                                Accede a tu panel del Festival de la Butifarra
+                            </p>
+                        </div>
+
+                        {% if messages %}
+                            {% for m in messages %}
+                            <div class="alert alert-{{ m.tags|default:'info' }} auth-alert">
+                                <i class="fas fa-info-circle me-2"></i>{{ m }}
+                            </div>
+                            {% endfor %}
+                        {% endif %}
+
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger auth-alert">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <form method="post" novalidate class="auth-form">
+                            {% csrf_token %}
+
+                            <div class="auth-field">
+                                <label for="{{ form.username.id_for_label }}" class="auth-label">
+                                    <i class="fas fa-user"></i> Usuario
+                                </label>
+                                <div class="auth-input-wrap">
+                                    {{ form.username }}
+                                </div>
+                                {% if form.username.errors %}
+                                <small class="auth-error">{{ form.username.errors.0 }}</small>
+                                {% endif %}
+                            </div>
+
+                            <div class="auth-field">
+                                <label for="{{ form.password.id_for_label }}" class="auth-label">
+                                    <i class="fas fa-lock"></i> Contraseña
+                                </label>
+                                <div class="auth-input-wrap">
+                                    {{ form.password }}
+                                    <button type="button"
+                                            class="auth-toggle-pass"
+                                            onclick="togglePassword(this)"
+                                            aria-label="Mostrar contraseña">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                                {% if form.password.errors %}
+                                <small class="auth-error">{{ form.password.errors.0 }}</small>
+                                {% endif %}
+                            </div>
+
+                            <button type="submit" class="btn btn-warning auth-submit">
+                                <i class="fas fa-sign-in-alt me-2"></i> Entrar a mi panel
+                            </button>
+                        </form>
+
+                        <div class="auth-divider">
+                            <span>o</span>
+                        </div>
+
+                        <div class="auth-links">
+                            <p class="auth-footer">
+                                ¿Eres expositor y no tienes cuenta?
+                                <a href="{% url 'accounts:registro' %}">Regístrate aquí</a>
+                            </p>
+
+                            <a href="{% url 'core:index' %}" class="auth-back">
+                                <i class="fas fa-arrow-left"></i> Volver al inicio
+                            </a>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+
+
+{% block extra_css %}
+<style>
+/* ============================================================
+   AUTH · LOGIN — Estilo cálido festivalero
+   ============================================================ */
+
+/* ============ SECCIÓN ============ */
+.auth-section {
+    position: relative;
+    padding: 4rem 1rem 5rem;
+    background: linear-gradient(180deg, #FDF6E3 0%, #FAEBD5 50%, #F5E1C8 100%);
+    overflow: hidden;
+    min-height: calc(100vh - 200px);
+    display: flex;
+    align-items: center;
+}
+
+.auth-pattern {
+    position: absolute;
+    inset: 0;
+    background-image:
+        radial-gradient(circle at 10% 15%, rgba(253, 153, 0, 0.10) 0%, transparent 40%),
+        radial-gradient(circle at 90% 85%, rgba(181, 88, 38, 0.10) 0%, transparent 40%),
+        radial-gradient(rgba(181, 88, 38, 0.08) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 26px 26px;
+    pointer-events: none;
+}
+
+/* Íconos decorativos flotantes */
+.auth-deco {
+    position: absolute;
+    font-size: 5rem;
+    color: rgba(181, 88, 38, 0.07);
+    pointer-events: none;
+    user-select: none;
+    animation: authFloat 6s ease-in-out infinite;
+}
+.auth-deco-1 { top: 8%;  left: 4%;  font-size: 6rem;  animation-delay: 0s;   }
+.auth-deco-2 { bottom: 12%; right: 6%; font-size: 5.5rem; animation-delay: 1.5s; }
+.auth-deco-3 { top: 60%; left: 8%;  font-size: 4rem;   animation-delay: 3s;   }
+
+@keyframes authFloat {
+    0%, 100% { transform: translateY(0) rotate(-5deg); }
+    50%      { transform: translateY(-18px) rotate(5deg); }
+}
+
+/* ============ TARJETA PRINCIPAL ============ */
+.auth-card {
+    display: grid;
+    grid-template-columns: 1fr 1.1fr;
+    background: #FFF;
+    border-radius: var(--radius-lg);
+    border: 2px solid var(--cafe-calido);
+    box-shadow: 0 25px 70px rgba(181, 88, 38, 0.28);
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+}
+
+/* ============ LADO IZQUIERDO: BRANDING ============ */
+.auth-brand {
+    position: relative;
+    padding: 3rem 2.25rem;
+    background: linear-gradient(160deg, #1A0D00 0%, #2D1400 50%, #1A0D00 100%);
+    color: #FFF;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: hidden;
+}
+.auth-brand-pattern {
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at 15% 20%, rgba(253, 233, 1, 0.15) 0%, transparent 45%),
+        radial-gradient(circle at 85% 85%, rgba(253, 153, 0, 0.18) 0%, transparent 45%),
+        radial-gradient(rgba(253, 233, 1, 0.07) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 22px 22px;
+    pointer-events: none;
+}
+.auth-brand-content,
+.auth-brand-footer {
+    position: relative;
+    z-index: 1;
+}
+
+.auth-brand-logo {
+    width: 90px;
+    height: auto;
+    margin-bottom: 1.5rem;
+    filter: drop-shadow(0 8px 20px rgba(253, 153, 0, 0.5));
+    animation: authLogoFloat 4s ease-in-out infinite;
+}
+@keyframes authLogoFloat {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-8px); }
+}
+
+.auth-brand-tag {
+    display: inline-block;
+    font-family: var(--font-heading);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--amarillo);
+    padding: 0.35em 0.9em;
+    border: 1.5px solid rgba(253, 233, 1, 0.4);
+    border-radius: var(--radius-pill);
+    margin-bottom: 1.25rem;
+}
+
+.auth-brand-title {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 3.5vw, 2.75rem);
+    line-height: 1;
+    color: #FFF;
+    margin: 0 0 1rem;
+    letter-spacing: 0.02em;
+}
+
+.auth-brand-slogan {
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.75);
+    line-height: 1.5;
+    margin: 0 0 2rem;
+}
+
+.auth-brand-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.auth-brand-list li {
+    font-family: var(--font-body);
+    font-size: 0.92rem;
+    color: rgba(255, 255, 255, 0.85);
+    padding: 0.45rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+.auth-brand-list li i {
+    color: var(--naranja);
+    font-size: 1rem;
+}
+
+.auth-brand-footer {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(253, 233, 1, 0.2);
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.6);
+}
+.auth-brand-footer i {
+    color: var(--naranja);
+    margin-right: 0.4rem;
+}
+
+/* ============ LADO DERECHO: FORMULARIO ============ */
+.auth-form-wrap {
+    padding: 3rem 2.75rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.auth-form-head {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.auth-form-icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 1rem;
+    border-radius: 50%;
+    background: var(--grad-amarillo-naranja);
+    color: var(--negro);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    box-shadow: 0 10px 24px rgba(253, 153, 0, 0.4);
+}
+
+.auth-title {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    color: var(--cafe);
+    margin: 0 0 0.35rem;
+    letter-spacing: 0.02em;
+}
+
+.auth-subtitle {
+    font-family: var(--font-body);
+    font-size: 0.92rem;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+/* Alertas */
+.auth-alert {
+    font-family: var(--font-body);
+    font-size: 0.88rem;
+    border-radius: var(--radius-sm);
+    border: none;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1.25rem;
+}
+
+/* ============ CAMPOS ============ */
+.auth-field {
+    margin-bottom: 1.25rem;
+}
+
+.auth-label {
+    display: block;
+    font-family: var(--font-heading);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--cafe);
+    margin-bottom: 0.5rem;
+}
+.auth-label i {
+    color: var(--naranja);
+    margin-right: 0.35rem;
+}
+
+.auth-input-wrap {
+    position: relative;
+}
+
+.auth-input-wrap input {
+    width: 100%;
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    padding: 0.85rem 1rem;
+    border: 2px solid var(--border-medio);
+    border-radius: var(--radius-sm);
+    background: #FFF;
+    color: var(--negro);
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
+}
+.auth-input-wrap input:focus {
+    outline: none;
+    border-color: var(--naranja);
+    background: #FFFDF5;
+    box-shadow: 0 0 0 0.2rem rgba(253, 153, 0, 0.18);
+}
+.auth-input-wrap input::placeholder {
+    color: var(--text-muted);
+    opacity: 0.7;
+}
+
+/* Botón ojo */
+.auth-toggle-pass {
+    position: absolute;
+    top: 50%;
+    right: 12px;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: color var(--transition-fast), background var(--transition-fast);
+}
+.auth-toggle-pass:hover {
+    color: var(--naranja);
+    background: rgba(253, 153, 0, 0.08);
+}
+
+.auth-error {
+    display: block;
+    color: #DC3545;
+    font-size: 0.78rem;
+    margin-top: 0.35rem;
+}
+
+/* ============ BOTÓN SUBMIT ============ */
+.auth-submit {
+    width: 100%;
+    font-family: var(--font-body);
+    font-size: 1rem;
+    font-weight: 700;
+    padding: 0.9rem 1.5rem;
+    border-radius: var(--radius-pill);
+    background: var(--grad-amarillo-naranja);
+    color: var(--negro);
+    border: none;
+    box-shadow: 0 8px 22px rgba(253, 153, 0, 0.4);
+    transition: transform var(--transition-base), box-shadow var(--transition-base);
+    margin-top: 0.5rem;
+    letter-spacing: 0.02em;
+}
+.auth-submit:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 30px rgba(253, 153, 0, 0.5);
+    color: var(--negro);
+}
+.auth-submit:active {
+    transform: translateY(-1px);
+}
+
+/* ============ DIVIDER ============ */
+.auth-divider {
+    position: relative;
+    text-align: center;
+    margin: 1.75rem 0 1.25rem;
+}
+.auth-divider::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--cafe-calido) 50%, transparent);
+}
+.auth-divider span {
+    position: relative;
+    background: #FFF;
+    padding: 0 0.9rem;
+    font-family: var(--font-heading);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+}
+
+/* ============ LINKS ============ */
+.auth-links {
+    text-align: center;
+}
+
+.auth-footer {
+    font-family: var(--font-body);
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    margin-bottom: 0.75rem;
+}
+.auth-footer a {
+    color: var(--cafe);
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    transition: color var(--transition-fast);
+}
+.auth-footer a:hover {
+    color: var(--naranja);
+}
+
+.auth-back {
+    display: inline-block;
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color var(--transition-fast), transform var(--transition-fast);
+}
+.auth-back:hover {
+    color: var(--cafe);
+    transform: translateX(-3px);
+}
+.auth-back i {
+    margin-right: 0.35rem;
+}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width: 991px) {
+    .auth-card {
+        grid-template-columns: 1fr;
+    }
+    .auth-brand {
+        padding: 2.25rem 1.75rem 2rem;
+        text-align: center;
+    }
+    .auth-brand-logo {
+        margin-left: auto;
+        margin-right: auto;
+    }
+    .auth-brand-list li {
+        justify-content: center;
+    }
+    .auth-brand-footer {
+        text-align: center;
+    }
+    .auth-form-wrap {
+        padding: 2.5rem 2rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .auth-section { padding: 2rem 0.75rem 3rem; }
+    .auth-form-wrap { padding: 2rem 1.25rem; }
+    .auth-brand { padding: 2rem 1.25rem; }
+    .auth-brand-title { font-size: 1.75rem; }
+    .auth-form-icon { width: 54px; height: 54px; font-size: 1.35rem; }
+    .auth-title { font-size: 1.65rem; }
+    .auth-deco { display: none; }
+}
+</style>
+
+<script>
+/* Mostrar / ocultar contraseña */
+function togglePassword(btn) {
+    const wrap = btn.closest('.auth-input-wrap');
+    const input = wrap.querySelector('input');
+    const icon = btn.querySelector('i');
+
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+}
+</script>
+{% endblock %}

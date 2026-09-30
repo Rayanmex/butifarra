@@ -1,0 +1,1266 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Inicio - {{ festival.edicion|default:11 }}.º Festival de la Butifarra {{ festival.fecha_inicio|date:"Y"|default:"2026" }}{% endblock %}
+
+{% block preloader %}
+<!-- ============ PRELOADER (solo home) ============ -->
+<div id="preloader" class="preloader">
+    <div class="preloader-curtain curtain-left"></div>
+    <div class="preloader-curtain curtain-right"></div>
+
+    <div class="preloader-content">
+        <img src="{% static 'core/img/logo/Butifarra.gif' %}"
+             alt="Festival de la Butifarra"
+             class="preloader-logo">
+       
+        <div class="preloader-bar">
+            <div class="preloader-bar-fill"></div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+(function () {
+    const preloader = document.getElementById('preloader');
+    if (!preloader) return;
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        preloader.remove();
+        return;
+    }
+
+    document.body.classList.add('preloader-active');
+
+    const TIME_START_OPENING = 3500;
+    const TIME_DESTROY        = 4600;
+
+    setTimeout(() => {
+        preloader.classList.add('preloader-open');
+        document.body.classList.remove('preloader-active');
+    }, TIME_START_OPENING);
+
+    setTimeout(() => {
+        preloader.remove();
+    }, TIME_DESTROY);
+})();
+</script>
+{% endblock %}
+
+
+{% block content %}
+
+<!-- ============ HERO ============ -->
+<section class="hero-section">
+    <div class="hero-bg" style="background-image: url('{% static 'core/img/hero/hero.jpg' %}');"></div>
+    <div class="hero-overlay"></div>
+
+    <div class="container hero-content">
+        
+
+        <h1 class="hero-title hero-title-logo">
+            <img src="{% static 'core/img/logo/Butifarra.gif' %}"
+                alt="Festival de la Butifarra"
+                class="hero-logo-img">
+        </h1>
+
+        <div class="hero-info">
+            <div class="hero-info-item">
+                <i class="fas fa-calendar-alt"></i>
+                <span>
+                    {% if festival %}
+                        {{ festival.fecha_inicio|date:"j" }} al {{ festival.fecha_fin|date:"j \d\e F" }}
+                    {% else %}
+                        16 al 18 de octubre
+                    {% endif %}
+                </span>
+            </div>
+            <div class="hero-info-sep"></div>
+            <div class="hero-info-item">
+                <i class="fas fa-map-marker-alt"></i>
+                <span>Parque Recreativo «El Campestre»</span>
+            </div>
+        </div>
+
+        <div class="hero-buttons">
+            <a href="{% url 'core:expositores_list' %}" class="btn btn-warning btn-lg">
+                <i class="fas fa-store"></i> Ver expositores
+            </a>
+            <a href="{% url 'core:programa' %}" class="btn btn-hero-outline btn-lg">
+                <i class="fas fa-calendar-alt"></i> Ver programa
+            </a>
+        </div>
+    </div>
+
+    <div class="hero-scroll">
+        <i class="fas fa-chevron-down"></i>
+    </div>
+</section>
+
+<!-- ============ CIFRAS DEL FESTIVAL ============ -->
+<section class="cifras-section">
+    <div class="container">
+        <div class="row text-center g-4">
+            <div class="col-md-3 col-6">
+                <div class="cifra-item">
+                    <div class="cifra-numero">+230,000</div>
+                    <div class="cifra-label">Visitantes</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="cifra-item">
+                    <div class="cifra-numero">+63</div>
+                    <div class="cifra-label">Toneladas de butifarra</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="cifra-item">
+                    <div class="cifra-numero">+$220M</div>
+                    <div class="cifra-label">Derrama económica</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="cifra-item">
+                    <div class="cifra-numero">3</div>
+                    <div class="cifra-label">Días de festival</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============ HISTORIA ============ -->
+{% if historia %}
+<section class="section-historia">
+    <div class="container">
+        <div class="row align-items-center g-5">
+
+            <div class="col-lg-6">
+                <div class="historia-imagen-wrapper">
+                    <img src="{% static 'core/img/about/about.jpg' %}"
+                         alt="Historia del festival"
+                         class="historia-imagen">
+                    <div class="historia-imagen-deco"></div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <span class="section-tag">Nuestra tradición</span>
+                <h2 class="section-title">Historia del Festival</h2>
+
+                {% for bloque in historia %}
+                    <p class="{% if forloop.first %}lead-text{% endif %}">{{ bloque.parrafo }}</p>
+                {% endfor %}
+
+                <a href="{% url 'core:historia' %}" class="btn btn-warning mt-3">
+                    <i class="fas fa-book-open"></i> Conoce nuestra historia
+                </a>
+            </div>
+
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- ============ CARTELERA MUSICAL ============ -->
+<section class="section-cartelera">
+    <div class="container">
+
+        <div class="section-header">
+            <span class="section-tag">Tres noches inolvidables</span>
+            <h2 class="section-title">Cartelera Musical {{ festival.fecha_inicio|date:"Y"|default:"2026" }}</h2>
+            <p class="section-subtitle">Tres noches de música para toda la familia</p>
+        </div>
+
+        <div class="row g-4 justify-content-center">
+            {% for artista in artistas %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card artist-card">
+                    <div class="artist-img-wrapper">
+                        {% if artista.imagen_url %}
+                            <img src="{{ artista.imagen_url }}"
+                                 class="artist-img"
+                                 alt="{{ artista.nombre }}"
+                                 loading="lazy">
+                        {% else %}
+                            <img src="{% static 'core/img/artists/placeholder.jpg' %}"
+                                 class="artist-img"
+                                 alt="{{ artista.nombre }}">
+                        {% endif %}
+                        <div class="artist-overlay"></div>
+                        {% if artista.dia_presentacion %}
+                        <span class="artist-day">
+                            <i class="fas fa-music"></i>
+                            {{ artista.dia_presentacion|date:"l j"|capfirst }}
+                        </span>
+                        {% endif %}
+                    </div>
+                    <div class="artist-body">
+                        <h4 class="artist-name">{{ artista.nombre }}</h4>
+                        {% if artista.descripcion %}
+                            <p class="artist-desc">{{ artista.descripcion }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center">
+                <p class="text-muted">Cartelera por confirmar. Vuelve pronto.</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="text-center mt-5">
+            <a href="{% url 'core:programa' %}" class="btn btn-outline-primary btn-lg">
+                <i class="fas fa-calendar-alt"></i> Ver programa completo
+            </a>
+        </div>
+
+    </div>
+</section>
+
+<!-- ============ PROGRAMA POR DÍA ============ -->
+{% if dias_programa %}
+<section class="section-programa">
+    <div class="container">
+
+        <div class="section-header">
+            <span class="section-tag">3 días de fiesta</span>
+            <h2 class="section-title">Programa del Festival</h2>
+            <p class="section-subtitle">Consulta las actividades de cada día</p>
+        </div>
+
+        <div class="row g-4">
+            {% for dia in dias_programa %}
+            <div class="col-md-4">
+                <div class="card programa-card">
+                    {% if dia.imagen %}
+                        <img src="{{ dia.imagen }}"
+                             class="programa-img"
+                             alt="{{ dia.descripcion }}"
+                             loading="lazy">
+                    {% endif %}
+                    <div class="programa-body">
+                        <h5 class="programa-title">
+                            {{ dia.descripcion|default:dia.dia|date:"j \d\e F" }}
+                        </h5>
+                        <button type="button"
+                                class="btn btn-warning btn-sm"
+                                data-bs-toggle="modal"
+                                data-bs-target="#programaModal{{ dia.pk }}">
+                            <i class="fas fa-eye"></i> Consultar programa
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+    </div>
+</section>
+
+<!-- Modales -->
+{% for dia in dias_programa %}
+<div class="modal fade" id="programaModal{{ dia.pk }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-calendar-day"></i>
+                    Programa · {{ dia.descripcion|default:dia.dia|date:"j \d\e F" }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body text-center">
+                {% if dia.imagen %}
+                    <img src="{{ dia.imagen }}"
+                         class="img-fluid rounded"
+                         alt="Programa {{ dia.descripcion }}"
+                         loading="lazy">
+                {% else %}
+                    <p class="text-muted">Programa en preparación.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endif %}
+
+<!-- ============ ACTIVIDADES ============ -->
+<section class="section-actividades">
+    <div class="container">
+
+        <div class="section-header">
+            <span class="section-tag">Para toda la familia</span>
+            <h2 class="section-title">Actividades del Festival</h2>
+        </div>
+
+        <div class="row g-4">
+
+            <div class="col-md-4 col-6">
+                <div class="actividad-card">
+                    <div class="actividad-icon"><i class="fas fa-landmark"></i></div>
+                    <h5 class="actividad-title">Museo de la Butifarra</h5>
+                    <p class="actividad-desc">Conoce la historia y elaboración tradicional</p>
+                </div>
+            </div>
+
+            <div class="col-md-4 col-6">
+                <div class="actividad-card">
+                    <div class="actividad-icon"><i class="fas fa-utensils"></i></div>
+                    <h5 class="actividad-title">Zona Gastronómica</h5>
+                    <p class="actividad-desc">Los mejores platillos con butifarra</p>
+                </div>
+            </div>
+
+            <div class="col-md-4 col-6">
+                <div class="actividad-card">
+                    <div class="actividad-icon"><i class="fas fa-palette"></i></div>
+                    <h5 class="actividad-title">Zona Artesanal</h5>
+                    <p class="actividad-desc">Artesanos y productos locales</p>
+                </div>
+            </div>
+
+            <div class="col-md-4 col-6">
+                <div class="actividad-card">
+                    <div class="actividad-icon"><i class="fas fa-store"></i></div>
+                    <h5 class="actividad-title">Pabellón de Emprendedores</h5>
+                    <p class="actividad-desc">Negocios y emprendimientos locales</p>
+                </div>
+            </div>
+
+            <div class="col-md-4 col-6">
+                <div class="actividad-card">
+                    <div class="actividad-icon"><i class="fas fa-child"></i></div>
+                    <h5 class="actividad-title">Área Infantil</h5>
+                    <p class="actividad-desc">Diversión para los más pequeños</p>
+                </div>
+            </div>
+
+            <div class="col-md-4 col-6">
+                <div class="actividad-card">
+                    <div class="actividad-icon"><i class="fas fa-dragon"></i></div>
+                    <h5 class="actividad-title">Voladores de Papantla</h5>
+                    <p class="actividad-desc">Espectáculo cultural tradicional</p>
+                </div>
+            </div>
+
+            <div class="col-md-4 col-6">
+                <div class="actividad-card">
+                    <div class="actividad-icon"><i class="fas fa-wind"></i></div>
+                    <h5 class="actividad-title">Papalotes Monumentales</h5>
+                    <p class="actividad-desc">Espectáculo visual para toda la familia</p>
+                </div>
+            </div>
+
+            <div class="col-md-4 col-6">
+                <div class="actividad-card">
+                    <div class="actividad-icon"><i class="fas fa-mountain"></i></div>
+                    <h5 class="actividad-title">Zona Extrema</h5>
+                    <p class="actividad-desc">Adrenalina y aventura</p>
+                </div>
+            </div>
+
+            <div class="col-md-4 col-6">
+                <div class="actividad-card">
+                    <div class="actividad-icon"><i class="fas fa-trophy"></i></div>
+                    <h5 class="actividad-title">Concurso Gastronómico</h5>
+                    <p class="actividad-desc">Premio de $15,000 al primer lugar</p>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</section>
+
+<!-- ============ INFORMACIÓN PRÁCTICA ============ -->
+<section class="section-info-practica">
+    <div class="container">
+
+        <div class="section-header">
+            <span class="section-tag">Todo lo que necesitas saber</span>
+            <h2 class="section-title">Información Práctica</h2>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="info-card">
+                    <div class="info-icon">
+                        <i class="fas fa-parking"></i>
+                    </div>
+                    <h5 class="info-title">Estacionamiento Gratuito</h5>
+                    <p class="info-desc">Disponible durante los tres días del festival</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="info-card">
+                    <div class="info-icon">
+                        <i class="fas fa-bus"></i>
+                    </div>
+                    <h5 class="info-title">Transporte Público</h5>
+                    <p class="info-desc">Operativo especial con horarios nocturnos</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="info-card">
+                    <div class="info-icon">
+                        <i class="fas fa-map-marked-alt"></i>
+                    </div>
+                    <h5 class="info-title">Parque El Campestre</h5>
+                    <p class="info-desc">Jalpa de Méndez, Tabasco</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<!-- ============ DESCUBRE JALPA ============ -->
+<section class="section-descubre">
+    <div class="container">
+
+        <div class="section-header">
+            <span class="section-tag">Más allá del festival</span>
+            <h2 class="section-title">Descubre Jalpa de Méndez</h2>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="descubre-card">
+                    <div class="descubre-icon"><i class="fas fa-church"></i></div>
+                    <h5 class="descubre-title">Parroquia de San Francisco de Asís</h5>
+                    <p class="descubre-desc">
+                        Uno de los principales elementos arquitectónicos e históricos del municipio.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="descubre-card">
+                    <div class="descubre-icon"><i class="fas fa-landmark"></i></div>
+                    <h5 class="descubre-title">Museo Coronel Gregorio Méndez Magaña</h5>
+                    <p class="descubre-desc">
+                        Espacio dedicado a la historia del municipio y de Tabasco.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="descubre-card">
+                    <div class="descubre-icon"><i class="fas fa-water"></i></div>
+                    <h5 class="descubre-title">Laguna y Manglares de Pomposú</h5>
+                    <p class="descubre-desc">
+                        Zona natural con gran atractivo turístico y ecológico.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<!-- ============ GALERÍA ============ -->
+{% if galeria_fotos or galeria_videos %}
+<section class="section-galeria">
+    <div class="container">
+
+        <div class="section-header">
+            <span class="section-tag">Momentos del festival</span>
+            <h2 class="section-title">Galería de Fotos y Videos</h2>
+            <p class="section-subtitle">Revive los momentos que hacen único al Festival de la Butifarra</p>
+        </div>
+
+        {% if galeria_fotos %}
+        <div class="row g-3 mb-5">
+            {% for foto in galeria_fotos %}
+            <div class="col-6 col-md-4 col-lg-3">
+                <a href="{{ foto.imagen }}" target="_blank" rel="noopener" class="galeria-item">
+                    <img src="{{ foto.imagen }}"
+                         alt="{{ foto.descripcion|default:'Festival de la Butifarra' }}"
+                         class="galeria-img"
+                         loading="lazy">
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if galeria_videos %}
+        <div class="row g-4">
+            {% for video in galeria_videos %}
+            <div class="col-md-6 col-lg-4">
+                <div class="video-card">
+                    <video class="video-element"
+                           src="{{ video.video_url }}"
+                           {% if video.poster_url %}poster="{{ video.poster_url }}"{% endif %}
+                           controls preload="metadata">
+                        Tu navegador no soporta la etiqueta video.
+                    </video>
+                    <div class="video-body">
+                        <h6 class="video-title">{{ video.titulo }}</h6>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+    </div>
+</section>
+{% endif %}
+
+<!-- ============ PATROCINADORES ============ -->
+{% if patrocinadores %}
+<section class="section-patrocinadores">
+    <div class="container text-center">
+        <span class="section-tag">Con el apoyo de</span>
+        <h2 class="section-title">Nuestros Patrocinadores</h2>
+        <p class="section-subtitle">
+            El Festival de la Butifarra se construye con el apoyo de quienes creen en nuestra tradición.
+        </p>
+        <div class="patrocinadores-grid">
+            {% for p in patrocinadores %}
+                {% if p.logo_url %}
+                    <img src="{{ p.logo_url }}"
+                         alt="{{ p.nombre|default:'Patrocinador' }}"
+                         class="patrocinador-logo"
+                         loading="lazy">
+                {% elif p.logo_local %}
+                    <img src="{{ p.logo_local.url }}"
+                         alt="{{ p.nombre|default:'Patrocinador' }}"
+                         class="patrocinador-logo"
+                         loading="lazy">
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- ============ CTA FINAL ============ -->
+<section class="section-cta">
+    <div class="cta-pattern"></div>
+    <div class="container text-center position-relative">
+        <h2 class="cta-title">¿Quieres ser expositor?</h2>
+        <p class="cta-subtitle">
+            Únete al {{ festival.edicion|default:11 }}.º Festival de la Butifarra
+            y muestra tus productos a miles de visitantes.
+        </p>
+        <a href="{% url 'core:registrar_expositor' %}" class="btn btn-warning btn-lg">
+            <i class="fas fa-plus-circle"></i> Registrar mi exposición
+        </a>
+    </div>
+</section>
+
+{% endblock %}
+
+
+{% block extra_css %}
+<style>
+/* ============================================================
+   ESTILOS ESPECÍFICOS DEL INDEX
+   ============================================================ */
+
+/* ============ PRELOADER ============ */
+.preloader {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: transparent;
+    transition: opacity 0.6s ease;
+}
+.preloader.preloader-hidden { opacity: 0; pointer-events: none; }
+
+.preloader-curtain {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 50%;
+    background: var(--grad-oscuro);
+    transition: transform 1s cubic-bezier(0.77, 0, 0.18, 1);
+    z-index: 1;
+}
+.curtain-left  { left: 0; transform: translateX(0); }
+.curtain-right { right: 0; transform: translateX(0); }
+
+.preloader.preloader-open .curtain-left  { transform: translateX(-100%); }
+.preloader.preloader-open .curtain-right { transform: translateX(100%); }
+
+.preloader-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    opacity: 0;
+    transform: scale(0.85);
+    animation: preloaderContentIn 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.15s forwards;
+}
+.preloader.preloader-open .preloader-content {
+    opacity: 0;
+    transform: scale(1.1);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    animation: none;
+}
+@keyframes preloaderContentIn {
+    to { opacity: 1; transform: scale(1); }
+}
+
+.preloader-logo {
+    height: clamp(280px, 55vh, 720px);
+    width: auto;
+    max-width: 90vw;
+    object-fit: contain;
+    filter: drop-shadow(0 12px 30px rgba(253, 233, 1, 0.55));
+    animation: preloaderLogoPulse 1.6s ease-in-out infinite;
+}
+
+@keyframes preloaderLogoPulse {
+    0%, 100% { transform: scale(1); filter: drop-shadow(0 12px 30px rgba(253, 233, 1, 0.55)); }
+    50%      { transform: scale(1.08); filter: drop-shadow(0 16px 42px rgba(253, 153, 0, 0.85)); }
+}
+
+.preloader-text { text-align: center; color: #FFF; }
+.preloader-text span {
+    
+    font-family: var(--font-display);
+    font-size: 1.8rem;
+    color: var(--amarillo);
+    letter-spacing: 0.04em;
+}
+.preloader-text small {
+    display: block;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.75);
+    margin-top: 8px;
+    letter-spacing: 0.1em;
+}
+
+.preloader-bar {
+    width: 220px;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: var(--radius-pill);
+    overflow: hidden;
+    margin-top: 0.5rem;
+}
+.preloader-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--grad-amarillo-naranja);
+    border-radius: var(--radius-pill);
+    box-shadow: 0 0 12px rgba(253, 153, 0, 0.8);
+    animation: preloaderBarFill 3.2s cubic-bezier(0.65, 0, 0.35, 1) 0.3s forwards;
+}
+@keyframes preloaderBarFill {
+    0%   { width: 0%; }
+    40%  { width: 45%; }
+    70%  { width: 78%; }
+    100% { width: 100%; }
+}
+body.preloader-active { overflow: hidden; }
+
+/* ============ HERO ============ */
+.hero-section {
+    position: relative;
+    min-height: 88vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    color: #FFF;
+}
+.hero-bg {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    transform: scale(1.05);
+    animation: heroZoom 20s ease-in-out infinite alternate;
+}
+@keyframes heroZoom {
+    0%   { transform: scale(1.05); }
+    100% { transform: scale(1.15); }
+}
+.hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: var(--grad-hero);
+    z-index: 1;
+}
+.hero-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 4rem 1rem;
+    max-width: 900px;
+}
+.hero-badge {
+    display: inline-block;
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--amarillo);
+    padding: 0.5rem 1.2rem;
+    border: 2px solid var(--amarillo);
+    border-radius: var(--radius-pill);
+    margin-bottom: 2rem;
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(8px);
+}
+.hero-title {
+    font-family: var(--font-display);
+    font-size: clamp(2.5rem, 8vw, 5.5rem);
+    line-height: 1;
+    color: #FFF;
+    text-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+    margin-bottom: 1.5rem;
+    letter-spacing: 0.02em;
+}
+.hero-year {
+    display: block;
+    font-size: 0.55em;
+    color: var(--naranja);
+    letter-spacing: 0.15em;
+    margin-top: 0.3em;
+}
+.hero-slogan {
+    font-family: var(--font-heading);
+    font-size: clamp(1.1rem, 2.5vw, 1.5rem);
+    color: #FFF;
+    margin-bottom: 2.5rem;
+    text-shadow: 0 3px 12px rgba(0, 0, 0, 0.7);
+    opacity: 0.95;
+}
+.hero-info {
+    display: inline-flex;
+    align-items: center;
+    gap: 1.25rem;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(253, 233, 1, 0.3);
+    border-radius: var(--radius-pill);
+    padding: 0.75rem 1.75rem;
+    margin-bottom: 2.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+.hero-info-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: 0.95rem;
+    color: #FFF;
+}
+.hero-info-item i {
+    color: var(--amarillo);
+    font-size: 1.1rem;
+}
+.hero-info-sep {
+    width: 1px;
+    height: 20px;
+    background: rgba(255, 255, 255, 0.3);
+}
+.hero-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+.btn-hero-outline {
+    background: transparent;
+    color: #FFF;
+    border: 2px solid var(--amarillo);
+    border-radius: var(--radius-pill);
+    font-weight: 600;
+    padding: 0.85em 1.8em;
+    transition: all var(--transition-base);
+}
+.btn-hero-outline:hover {
+    background: var(--grad-amarillo-naranja);
+    border-color: var(--naranja);
+    color: var(--negro);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-naranja);
+}
+.hero-scroll {
+    position: absolute;
+    bottom: 25px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: var(--amarillo);
+    font-size: 1.5rem;
+    z-index: 2;
+    animation: heroScrollBounce 2s ease-in-out infinite;
+}
+@keyframes heroScrollBounce {
+    0%, 100% { transform: translateX(-50%) translateY(0); opacity: 0.7; }
+    50%      { transform: translateX(-50%) translateY(10px); opacity: 1; }
+}
+
+/* ============ CIFRAS ============ */
+.cifras-section {
+    background: var(--grad-oscuro);
+    padding: 3.5rem 0;
+    position: relative;
+    overflow: hidden;
+}
+.cifras-section::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(253, 233, 1, 0.08) 1px, transparent 1px);
+    background-size: 24px 24px;
+    pointer-events: none;
+}
+.cifra-item {
+    position: relative;
+    padding: 1rem;
+}
+.cifra-numero {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 5vw, 3rem);
+    color: var(--amarillo);
+    line-height: 1;
+    letter-spacing: 0.02em;
+    text-shadow: 0 0 30px rgba(253, 153, 0, 0.4);
+}
+.cifra-label {
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(255, 255, 255, 0.7);
+    margin-top: 0.5rem;
+}
+
+/* ============ SECCIONES GENERALES ============ */
+.section-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+.section-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.75rem, 4vw, 2.75rem);
+    color: var(--negro);
+    margin: 0.5rem 0;
+    letter-spacing: 0.02em;
+}
+.section-subtitle {
+    font-family: var(--font-body);
+    font-size: 1rem;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+.lead-text {
+    font-size: 1.15rem;
+    font-weight: 400;
+    color: var(--text-dark);
+    line-height: 1.7;
+}
+
+/* ============ HISTORIA ============ */
+.section-historia {
+    padding: 5rem 0;
+    background: var(--bg-blanco);
+}
+.historia-imagen-wrapper {
+    position: relative;
+    padding: 20px;
+}
+.historia-imagen {
+    width: 100%;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    position: relative;
+    z-index: 2;
+}
+.historia-imagen-deco {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 70%;
+    height: 70%;
+    background: var(--grad-amarillo-naranja);
+    border-radius: var(--radius-lg);
+    z-index: 1;
+    opacity: 0.9;
+}
+
+/* ============ CARTELERA ============ */
+.section-cartelera {
+    padding: 5rem 0;
+    background: var(--bg-crema-alt);
+}
+.artist-card {
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: transform var(--transition-base), box-shadow var(--transition-base);
+}
+.artist-card:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-lg);
+}
+.artist-img-wrapper {
+    position: relative;
+    aspect-ratio: 3 / 4;
+    overflow: hidden;
+    background: var(--negro-soft);
+}
+.artist-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.6s ease;
+}
+.artist-card:hover .artist-img {
+    transform: scale(1.08);
+}
+.artist-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 40%, rgba(0, 0, 0, 0.85) 100%);
+}
+.artist-day {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    background: var(--grad-amarillo-naranja);
+    color: var(--negro);
+    font-family: var(--font-heading);
+    font-size: 0.78rem;
+    padding: 0.4rem 0.9rem;
+    border-radius: var(--radius-pill);
+    box-shadow: var(--shadow-sm);
+    z-index: 2;
+}
+.artist-body {
+    padding: 1.25rem;
+    background: #FFF;
+    text-align: center;
+}
+.artist-name {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    color: var(--cafe);
+    margin: 0 0 0.25rem;
+    letter-spacing: 0.02em;
+}
+.artist-desc {
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+/* ============ PROGRAMA ============ */
+.section-programa {
+    padding: 5rem 0;
+    background: var(--bg-blanco);
+}
+.programa-card {
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    height: 100%;
+    text-align: center;
+}
+.programa-img {
+    width: 100%;
+    height: 280px;
+    object-fit: cover;
+    object-position: top;
+}
+.programa-body {
+    padding: 1.5rem;
+}
+.programa-title {
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    color: var(--cafe);
+    margin-bottom: 1rem;
+}
+
+/* ============ ACTIVIDADES ============ */
+.section-actividades {
+    padding: 5rem 0;
+    background: var(--bg-crema-alt);
+}
+.actividad-card {
+    background: #FFF;
+    border-radius: var(--radius-md);
+    padding: 1.75rem 1rem;
+    text-align: center;
+    height: 100%;
+    transition: transform var(--transition-base), box-shadow var(--transition-base);
+    border: 1px solid var(--border-light);
+}
+.actividad-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--amarillo);
+}
+.actividad-icon {
+    width: 70px;
+    height: 70px;
+    margin: 0 auto 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--grad-amarillo-naranja);
+    color: var(--negro);
+    font-size: 1.75rem;
+    transition: transform var(--transition-base);
+}
+.actividad-card:hover .actividad-icon {
+    transform: scale(1.1) rotate(-8deg);
+}
+.actividad-title {
+    font-family: var(--font-heading);
+    font-size: 1.05rem;
+    color: var(--negro);
+    margin-bottom: 0.5rem;
+}
+.actividad-desc {
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+/* ============ INFORMACIÓN PRÁCTICA ============ */
+.section-info-practica {
+    padding: 5rem 0;
+    background: var(--bg-blanco);
+}
+.info-card {
+    background: var(--bg-crema-alt);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    text-align: center;
+    height: 100%;
+    border: 2px solid var(--cafe-calido);
+    transition: all var(--transition-base);
+}
+.info-card:hover {
+    border-color: var(--naranja);
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+}
+.info-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #FFF;
+    color: var(--cafe);
+    font-size: 2rem;
+    border: 3px solid var(--cafe-calido);
+}
+.info-title {
+    font-family: var(--font-heading);
+    font-size: 1.15rem;
+    color: var(--negro);
+    margin-bottom: 0.5rem;
+}
+.info-desc {
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+/* ============ DESCUBRE ============ */
+.section-descubre {
+    padding: 5rem 0;
+    background: var(--bg-crema-alt);
+}
+.descubre-card {
+    background: #FFF;
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    height: 100%;
+    border-left: 5px solid var(--naranja);
+    transition: all var(--transition-base);
+}
+.descubre-card:hover {
+    transform: translateX(6px);
+    box-shadow: var(--shadow-md);
+}
+.descubre-icon {
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    background: var(--grad-amarillo-naranja);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--negro);
+    font-size: 1.4rem;
+    margin-bottom: 1rem;
+}
+.descubre-title {
+    font-family: var(--font-heading);
+    font-size: 1.1rem;
+    color: var(--negro);
+    margin-bottom: 0.5rem;
+}
+.descubre-desc {
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+/* ============ GALERÍA ============ */
+.section-galeria {
+    padding: 5rem 0;
+    background: var(--bg-blanco);
+}
+.galeria-item {
+    display: block;
+    overflow: hidden;
+    border-radius: var(--radius-md);
+    aspect-ratio: 1;
+}
+.galeria-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+}
+.galeria-item:hover .galeria-img {
+    transform: scale(1.1);
+}
+.video-card {
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background: #FFF;
+    box-shadow: var(--shadow-sm);
+}
+.video-element {
+    width: 100%;
+    display: block;
+}
+.video-body {
+    padding: 1rem;
+}
+.video-title {
+    font-family: var(--font-heading);
+    font-size: 0.95rem;
+    color: var(--negro);
+    margin: 0;
+}
+
+/* ============ PATROCINADORES ============ */
+.section-patrocinadores {
+    padding: 5rem 0;
+    background: var(--bg-crema-alt);
+}
+.patrocinadores-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 2.5rem;
+    margin-top: 2rem;
+}
+.patrocinador-logo {
+    max-height: 80px;
+    max-width: 100%;
+    object-fit: contain;
+    filter: grayscale(0.3);
+    transition: filter var(--transition-base), transform var(--transition-base);
+}
+.patrocinador-logo:hover {
+    filter: grayscale(0);
+    transform: scale(1.05);
+}
+
+/* ============ CTA FINAL ============ */
+.section-cta {
+    position: relative;
+    padding: 5rem 0;
+    background: var(--grad-oscuro);
+    overflow: hidden;
+}
+.cta-pattern {
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at 20% 30%, rgba(253, 233, 1, 0.15) 0%, transparent 40%),
+        radial-gradient(circle at 80% 70%, rgba(253, 153, 0, 0.15) 0%, transparent 40%);
+    pointer-events: none;
+}
+.cta-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.75rem, 4vw, 2.75rem);
+    color: #FFF;
+    margin-bottom: 1rem;
+    letter-spacing: 0.02em;
+}
+.cta-subtitle {
+    font-family: var(--font-body);
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.85);
+    max-width: 640px;
+    margin: 0 auto 2rem;
+}
+
+/* ============ TEXTO CON DEGRADADO VERTICAL ============ */
+/* Reemplaza la definición anterior para quitar la sombra negra */
+.text-gradient {
+    background: linear-gradient(180deg, var(--amarillo) 0%, var(--naranja) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    text-shadow: none !important;
+    filter: none;
+    display: inline-block;
+}
+/* Quitar sombra heredada del .hero-title solo al span con degradado */
+.hero-title .text-gradient {
+    text-shadow: none !important;
+}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width: 768px) {
+    .hero-info {
+        flex-direction: column;
+        gap: 0.6rem;
+        padding: 0.9rem 1.2rem;
+        border-radius: var(--radius-md);
+    }
+    .hero-info-sep { display: none; }
+    .preloader-logo { height: 120px; }
+    .preloader-text span { font-size: 1.3rem; }
+    .preloader-text small { font-size: 0.75rem; }
+    .preloader-bar { width: 160px; }
+    .section-historia,
+    .section-cartelera,
+    .section-programa,
+    .section-actividades,
+    .section-info-practica,
+    .section-descubre,
+    .section-galeria,
+    .section-patrocinadores,
+    .section-cta { padding: 3rem 0; }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,543 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Editar · {{ expositor.nombre_empresa }}{% endblock %}
+
+{% block content %}
+
+<section class="panel-section">
+    <div class="panel-pattern"></div>
+
+    <div class="container position-relative py-5">
+
+        <!-- ============ BREADCRUMB ============ -->
+        <nav class="panel-breadcrumb">
+            <a href="{% url 'core:panel_dashboard' %}">Panel</a>
+            <i class="fas fa-chevron-right"></i>
+            <a href="{% url 'core:panel_expositores' %}">Expositores</a>
+            <i class="fas fa-chevron-right"></i>
+            <a href="{% url 'core:panel_expositor_detail' expositor.pk %}">{{ expositor.nombre_empresa }}</a>
+            <i class="fas fa-chevron-right"></i>
+            <span>Editar</span>
+        </nav>
+
+        <!-- ============ HEADER ============ -->
+        <div class="panel-header">
+            <div>
+                <h1 class="panel-title">
+                    Editar expositor
+                </h1>
+                <p class="panel-subtitle">
+                    {{ expositor.nombre_empresa }}
+                </p>
+            </div>
+
+            <div class="panel-actions">
+                <a href="{% url 'core:panel_expositor_detail' expositor.pk %}" class="btn btn-outline-warning">
+                    <i class="fas fa-times"></i> Cancelar
+                </a>
+            </div>
+        </div>
+
+        {% if messages %}
+        <div class="mb-4">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="post" enctype="multipart/form-data" class="edit-form">
+            {% csrf_token %}
+
+            <div class="row g-4">
+
+                <!-- ============ COLUMNA IZQUIERDA ============ -->
+                <div class="col-lg-6">
+
+                    <div class="form-card">
+                        <div class="form-card-header">
+                            <i class="fas fa-store"></i>
+                            <span>Información principal</span>
+                        </div>
+
+                        <div class="form-card-body">
+
+                            <div class="form-field">
+                                <label class="form-field-label">Nombre del expositor</label>
+                                {{ form.nombre_expositor }}
+                                {% if form.nombre_expositor.errors %}
+                                <small class="form-field-error">{{ form.nombre_expositor.errors.0 }}</small>
+                                {% endif %}
+                            </div>
+
+                            <div class="form-field">
+                                <label class="form-field-label">Marca o nombre de la empresa</label>
+                                {{ form.nombre_empresa }}
+                                {% if form.nombre_empresa.errors %}
+                                <small class="form-field-error">{{ form.nombre_empresa.errors.0 }}</small>
+                                {% endif %}
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-field">
+                                    <label class="form-field-label">Categoría</label>
+                                    {{ form.categoria }}
+                                </div>
+                                <div class="form-field">
+                                    <label class="form-field-label">Número de stand</label>
+                                    {{ form.numero_stand }}
+                                </div>
+                            </div>
+
+                            <div class="form-field">
+                                <label class="form-field-label">Descripción</label>
+                                {{ form.descripcion }}
+                            </div>
+
+                            <div class="form-field">
+                                <label class="form-field-label">Logo</label>
+                                {% if expositor.logo %}
+                                <div class="logo-preview">
+                                    <img src="{{ expositor.logo.url }}" alt="{{ expositor.nombre_empresa }}">
+                                    <span>Logo actual</span>
+                                </div>
+                                {% endif %}
+                                {{ form.logo }}
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- ============ COLUMNA DERECHA ============ -->
+                <div class="col-lg-6">
+
+                    <div class="form-card">
+                        <div class="form-card-header">
+                            <i class="fas fa-address-card"></i>
+                            <span>Contacto</span>
+                        </div>
+
+                        <div class="form-card-body">
+
+                            <div class="form-field">
+                                <label class="form-field-label">Email</label>
+                                {{ form.email_contacto }}
+                            </div>
+
+                            <div class="form-field">
+                                <label class="form-field-label">Teléfono</label>
+                                {{ form.numero_contacto }}
+                            </div>
+
+                            <div class="form-field">
+                                <label class="form-field-label">Red social principal</label>
+                                {{ form.enlace_red_social_1 }}
+                            </div>
+
+                            <div class="form-field">
+                                <label class="form-field-label">Red social adicional</label>
+                                {{ form.enlace_red_social_2 }}
+                            </div>
+
+                            <div class="form-field">
+                                <label class="form-field-label">Redes sociales (texto)</label>
+                                {{ form.redes_sociales_texto }}
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- ============ MENÚ ============ -->
+                <div class="col-12">
+
+                    <div class="form-card">
+                        <div class="form-card-header">
+                            <i class="fas fa-utensils"></i>
+                            <span>Menú completo</span>
+                        </div>
+
+                        <div class="form-card-body">
+                            {{ form.menu_completo }}
+                            <div class="form-hint">
+                                Un producto por línea. Ej: "1 kilo de butifarra tradicional - $350"
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- ============ OPCIONES ============ -->
+                <div class="col-12">
+
+                    <div class="form-card">
+                        <div class="form-card-header">
+                            <i class="fas fa-cog"></i>
+                            <span>Opciones</span>
+                        </div>
+
+                        <div class="form-card-body">
+
+                            <div class="form-row">
+                                <div class="form-field">
+                                    <div class="check-line">
+                                        {{ form.acepta_tarjeta }}
+                                        <label>Acepta tarjeta</label>
+                                    </div>
+                                </div>
+                                <div class="form-field">
+                                    <div class="check-line">
+                                        {{ form.acepta_efectivo }}
+                                        <label>Acepta efectivo</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-field">
+                                    <label class="form-field-label">Google Maps (URL)</label>
+                                    {{ form.link_google_maps }}
+                                </div>
+                                <div class="form-field">
+                                    <label class="form-field-label">Dirección del negocio</label>
+                                    {{ form.direccion_negocio }}
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- ============ BOTONES ============ -->
+            <div class="form-actions">
+                <a href="{% url 'core:panel_expositor_detail' expositor.pk %}" class="btn btn-outline-warning">
+                    Cancelar
+                </a>
+                <button type="submit" class="btn btn-warning fw-bold">
+                    <i class="fas fa-save"></i> Guardar cambios
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+</section>
+
+{% endblock %}
+
+
+{% block extra_css %}
+<style>
+/* ============================================================
+   PANEL ADMIN · EDITAR EXPOSITOR — Oscuro minimalista
+   ============================================================ */
+
+/* ============ SECCIÓN ============ */
+.panel-section {
+    position: relative;
+    padding: 3rem 0;
+    background: #0A0A0A;
+    min-height: calc(100vh - 200px);
+    overflow: hidden;
+}
+.panel-pattern {
+    position: absolute;
+    inset: 0;
+    background-image:
+        radial-gradient(circle at 10% 10%, rgba(253, 153, 0, 0.08) 0%, transparent 45%),
+        radial-gradient(circle at 90% 90%, rgba(181, 88, 38, 0.08) 0%, transparent 45%),
+        radial-gradient(rgba(253, 233, 1, 0.05) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 28px 28px;
+    pointer-events: none;
+}
+
+/* ============ BREADCRUMB ============ */
+.panel-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.4);
+    margin-bottom: 1.5rem;
+}
+.panel-breadcrumb a {
+    color: rgba(255, 255, 255, 0.55);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+}
+.panel-breadcrumb a:hover {
+    color: var(--amarillo);
+}
+.panel-breadcrumb i {
+    font-size: 0.6rem;
+    color: rgba(255, 255, 255, 0.25);
+}
+.panel-breadcrumb span {
+    color: var(--amarillo);
+    font-weight: 600;
+}
+
+/* ============ HEADER ============ */
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+}
+.panel-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+    color: #FFF;
+    margin: 0 0 0.35rem;
+    letter-spacing: 0.02em;
+    line-height: 1.1;
+}
+.panel-subtitle {
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    color: var(--amarillo);
+    margin: 0;
+    letter-spacing: 0.02em;
+}
+.panel-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+.panel-actions .btn {
+    font-size: 0.88rem;
+    padding: 0.6em 1.1em;
+}
+
+/* ============ FORM CARDS ============ */
+.form-card {
+    background: #141414;
+    border: 1.5px solid rgba(253, 233, 1, 0.12);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+.form-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 1.1rem 1.5rem;
+    background: #0F0F0F;
+    border-bottom: 1.5px solid rgba(253, 233, 1, 0.12);
+    font-family: var(--font-heading);
+    font-size: 0.95rem;
+    color: var(--amarillo);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+.form-card-header i {
+    color: var(--naranja);
+    font-size: 1rem;
+}
+
+.form-card-body {
+    padding: 1.5rem;
+    flex-grow: 1;
+}
+
+/* ============ FIELDS ============ */
+.form-field {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1.1rem;
+}
+.form-field:last-child { margin-bottom: 0; }
+
+.form-field-label {
+    font-family: var(--font-heading);
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--amarillo);
+    margin-bottom: 0.45rem;
+}
+
+.form-field-error {
+    display: block;
+    color: #FF8A80;
+    font-size: 0.75rem;
+    margin-top: 0.35rem;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.form-hint {
+    font-family: var(--font-body);
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.4);
+    margin-top: 0.5rem;
+    font-style: italic;
+}
+
+/* Inputs globales dentro del form */
+.form-card-body input[type="text"],
+.form-card-body input[type="email"],
+.form-card-body input[type="url"],
+.form-card-body input[type="number"],
+.form-card-body input[type="file"],
+.form-card-body select,
+.form-card-body textarea {
+    width: 100%;
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    padding: 0.65rem 0.9rem;
+    background: #1A1A1A;
+    border: 1.5px solid rgba(253, 233, 1, 0.15);
+    border-radius: var(--radius-sm);
+    color: #FFF;
+    transition: border-color var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.form-card-body input:focus,
+.form-card-body select:focus,
+.form-card-body textarea:focus {
+    outline: none;
+    border-color: var(--naranja);
+    background: #1F1F1F;
+    box-shadow: 0 0 0 0.15rem rgba(253, 153, 0, 0.2);
+}
+
+.form-card-body input::placeholder,
+.form-card-body textarea::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+.form-card-body select option {
+    background: #1A1A1A;
+    color: #FFF;
+}
+
+.form-card-body textarea {
+    min-height: 100px;
+    resize: vertical;
+    line-height: 1.5;
+}
+
+/* File input */
+.form-card-body input[type="file"] {
+    padding: 0.5rem;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.6);
+}
+.form-card-body input[type="file"]::file-selector-button {
+    background: var(--grad-amarillo-naranja);
+    color: var(--negro);
+    border: none;
+    padding: 0.5em 1em;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-body);
+    font-weight: 700;
+    cursor: pointer;
+    margin-right: 0.75rem;
+    transition: filter var(--transition-fast);
+}
+.form-card-body input[type="file"]::file-selector-button:hover {
+    filter: brightness(1.1);
+}
+
+/* Checkboxes */
+.check-line {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.75rem 1rem;
+    background: #1A1A1A;
+    border: 1.5px solid rgba(253, 233, 1, 0.15);
+    border-radius: var(--radius-sm);
+}
+.check-line input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--naranja);
+    cursor: pointer;
+    flex-shrink: 0;
+}
+.check-line label {
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.85);
+    cursor: pointer;
+    margin: 0;
+}
+
+/* ============ LOGO PREVIEW ============ */
+.logo-preview {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.75rem 1rem;
+    background: #1A1A1A;
+    border: 1.5px solid rgba(253, 233, 1, 0.15);
+    border-radius: var(--radius-sm);
+    margin-bottom: 0.75rem;
+}
+.logo-preview img {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+    background: #141414;
+    padding: 4px;
+    border-radius: var(--radius-sm);
+}
+.logo-preview span {
+    font-family: var(--font-heading);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* ============ ACCIONES FINALES ============ */
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.6rem;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1.5px dashed rgba(253, 233, 1, 0.15);
+    flex-wrap: wrap;
+}
+.form-actions .btn {
+    font-size: 0.9rem;
+    padding: 0.7em 1.5em;
+}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width: 768px) {
+    .panel-section { padding: 2rem 0; }
+    .panel-header { align-items: flex-start; }
+    .panel-actions { width: 100%; }
+    .panel-actions .btn { flex-grow: 1; }
+    .form-row { grid-template-columns: 1fr; gap: 0.85rem; }
+    .form-card-body { padding: 1.15rem; }
+    .form-card-header { padding: 0.95rem 1.15rem; font-size: 0.85rem; }
+    .form-actions { justify-content: stretch; }
+    .form-actions .btn { flex-grow: 1; }
+}
+</style>
+{% endblock %}

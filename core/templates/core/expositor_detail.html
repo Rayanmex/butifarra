@@ -1,0 +1,1206 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}{{ expositor.nombre_empresa }} - Festival de la Butifarra{% endblock %}
+
+{% block content %}
+
+<!-- ============ HERO DEL EXPOSITOR ============ -->
+<section class="expositor-hero">
+    <div class="expositor-hero-bg"></div>
+    <div class="expositor-hero-overlay"></div>
+
+    <div class="container expositor-hero-content position-relative">
+        <div class="row align-items-center g-4">
+
+            <!-- Logo -->
+            <div class="col-md-3 text-center">
+                <div class="expositor-hero-logo">
+                    {% if expositor.logo %}
+                        <img src="{{ expositor.logo.url }}"
+                             alt="{{ expositor.nombre_empresa }}"
+                             class="expositor-hero-logo-img">
+                    {% else %}
+                        <div class="expositor-hero-logo-placeholder">
+                            <i class="fas fa-store"></i>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Info principal -->
+            <div class="col-md-9 text-white">
+                <div class="expositor-hero-badges">
+                    <span class="badge-categoria-hero">{{ expositor.get_categoria_display_corta }}</span>
+
+                    {% if expositor.es_destacado %}
+                    <span class="badge-destacado-hero">
+                        <i class="fas fa-star"></i> Destacado
+                    </span>
+                    {% endif %}
+
+                    {% if expositor.numero_stand and expositor.numero_stand|lower not in "todavía está pendiente.,ninguno,0" %}
+                    <span class="badge-stand-hero">
+                        <i class="fas fa-map-pin"></i> {{ expositor.get_stand_display }}
+                    </span>
+                    {% endif %}
+                </div>
+
+                <h1 class="expositor-hero-nombre">{{ expositor.nombre_empresa }}</h1>
+
+                <p class="expositor-hero-persona">
+                    <i class="fas fa-user"></i> {{ expositor.nombre_expositor }}
+                </p>
+
+                {% if expositor.descripcion %}
+                <p class="expositor-hero-desc">{{ expositor.descripcion }}</p>
+                {% endif %}
+
+                {% if expositor.get_especialidades_list %}
+                <div class="expositor-hero-especialidades">
+                    {% for esp in expositor.get_especialidades_list %}
+                    <span class="badge-especialidad-hero">{{ esp }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- CTAs -->
+                <div class="expositor-hero-buttons">
+                    {% if expositor.numero_contacto %}
+                    <a href="https://wa.me/52{{ expositor.numero_contacto|cut:' '|cut:'-'|cut:'('|cut:')'|cut:'.' }}?text=Hola%2C%20vi%20tu%20exposici%C3%B3n%20en%20el%20Festival%20de%20la%20Butifarra"
+                       target="_blank" rel="noopener"
+                       class="btn-whatsapp">
+                        <i class="fab fa-whatsapp"></i> WhatsApp
+                    </a>
+                    {% endif %}
+
+                    {% if expositor.link_google_maps %}
+                    <a href="{{ expositor.link_google_maps }}"
+                       target="_blank" rel="noopener"
+                       class="btn-hero-outline">
+                        <i class="fas fa-map-marker-alt"></i> Ubicación
+                    </a>
+                    {% endif %}
+
+                    <a href="{% url 'core:expositores_list' %}" class="btn-hero-outline">
+                        <i class="fas fa-arrow-left"></i> Volver al catálogo
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============ CONTENIDO PRINCIPAL ============ -->
+<section class="expositor-contenido">
+    <div class="expositor-contenido-pattern"></div>
+
+    <div class="container position-relative py-5">
+
+        <!-- ========== ROW 1: INFO + PRODUCTOS ========== -->
+        <div class="row g-4">
+
+            <!-- COLUMNA IZQUIERDA: INFO -->
+            <div class="col-lg-4">
+
+                <!-- Info de contacto -->
+                <div class="panel-card mb-4">
+                    <div class="panel-card-header">
+                        <i class="fas fa-address-card"></i>
+                        <h5>Información</h5>
+                    </div>
+                    <div class="panel-card-body">
+                        <ul class="lista-info">
+                            {% if expositor.email_contacto %}
+                            <li>
+                                <div class="lista-info-icon">
+                                    <i class="fas fa-envelope"></i>
+                                </div>
+                                <div class="lista-info-content">
+                                    <small>Correo</small>
+                                    <a href="mailto:{{ expositor.email_contacto }}">{{ expositor.email_contacto }}</a>
+                                </div>
+                            </li>
+                            {% endif %}
+
+                            {% if expositor.numero_contacto %}
+                            <li>
+                                <div class="lista-info-icon">
+                                    <i class="fas fa-phone"></i>
+                                </div>
+                                <div class="lista-info-content">
+                                    <small>Teléfono</small>
+                                    <span>{{ expositor.numero_contacto }}</span>
+                                </div>
+                            </li>
+                            {% endif %}
+
+                            {% if expositor.direccion_negocio %}
+                            <li>
+                                <div class="lista-info-icon">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                </div>
+                                <div class="lista-info-content">
+                                    <small>Dirección</small>
+                                    <span>{{ expositor.direccion_negocio }}</span>
+                                </div>
+                            </li>
+                            {% endif %}
+
+                            {% if expositor.precio_desde %}
+                            <li>
+                                <div class="lista-info-icon">
+                                    <i class="fas fa-tag"></i>
+                                </div>
+                                <div class="lista-info-content">
+                                    <small>Precio desde</small>
+                                    <strong class="precio-destacado">${{ expositor.precio_desde|floatformat:0 }}</strong>
+                                </div>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Métodos de pago -->
+                <div class="panel-card mb-4">
+                    <div class="panel-card-header">
+                        <i class="fas fa-credit-card"></i>
+                        <h5>Métodos de pago</h5>
+                    </div>
+                    <div class="panel-card-body">
+                        <div class="pagos-grid">
+                            {% if expositor.acepta_efectivo %}
+                            <div class="pago-badge">
+                                <i class="fas fa-money-bill-wave"></i>
+                                <span>Efectivo</span>
+                            </div>
+                            {% endif %}
+                            {% if expositor.acepta_tarjeta %}
+                            <div class="pago-badge">
+                                <i class="fas fa-credit-card"></i>
+                                <span>Tarjeta</span>
+                            </div>
+                            {% else %}
+                            <p class="pago-vacio">
+                                <i class="fas fa-info-circle"></i>
+                                Solo efectivo
+                            </p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Redes sociales -->
+                {% if expositor.enlace_red_social_1 or expositor.enlace_red_social_2 or expositor.redes_sociales_texto %}
+                <div class="panel-card">
+                    <div class="panel-card-header">
+                        <i class="fas fa-share-alt"></i>
+                        <h5>Redes sociales</h5>
+                    </div>
+                    <div class="panel-card-body">
+                        {% if expositor.enlace_red_social_1 %}
+                        <a href="{{ expositor.enlace_red_social_1 }}"
+                           target="_blank" rel="noopener"
+                           class="btn-red-social">
+                            <i class="fas fa-external-link-alt"></i> Red principal
+                        </a>
+                        {% endif %}
+
+                        {% if expositor.enlace_red_social_2 %}
+                        <a href="{{ expositor.enlace_red_social_2 }}"
+                           target="_blank" rel="noopener"
+                           class="btn-red-social">
+                            <i class="fas fa-external-link-alt"></i> Red adicional
+                        </a>
+                        {% endif %}
+
+                        {% if expositor.redes_sociales_texto %}
+                        <p class="redes-texto">{{ expositor.redes_sociales_texto }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
+            </div>
+
+            <!-- COLUMNA DERECHA: MENÚ -->
+            <div class="col-lg-8">
+
+                {% if productos_por_categoria %}
+                    {% for categoria, prods in productos_por_categoria.items %}
+                    <div class="productos-categoria-card mb-4">
+
+                        <div class="productos-categoria-header">
+                            <h4>
+                                <i class="fas fa-utensils"></i>
+                                {{ categoria }}
+                            </h4>
+                            <span class="productos-count">{{ prods|length }}</span>
+                        </div>
+
+                        <div class="productos-lista">
+                            {% for prod in prods %}
+                            <div class="producto-item">
+                                <div class="producto-item-info">
+                                    <h6 class="producto-item-nombre">{{ prod.nombre }}</h6>
+                                    {% if prod.descripcion and prod.descripcion|lower != prod.nombre|lower %}
+                                    <p class="producto-item-desc">{{ prod.descripcion }}</p>
+                                    {% endif %}
+                                </div>
+                                <div class="producto-item-detalle">
+                                    <span class="producto-item-unidad">{{ prod.get_unidad_display }}</span>
+                                    <span class="producto-item-precio">{{ prod.get_precio_display }}</span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                    </div>
+                    {% endfor %}
+
+                {% elif expositor.get_menu_list %}
+                    <div class="productos-categoria-card mb-4">
+                        <div class="productos-categoria-header">
+                            <h4>
+                                <i class="fas fa-utensils"></i>
+                                Menú
+                            </h4>
+                        </div>
+                        <div class="productos-lista">
+                            {% for item in expositor.get_menu_list %}
+                            <div class="producto-item">
+                                <div class="producto-item-info">
+                                    <h6 class="producto-item-nombre">{{ item }}</h6>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                {% else %}
+                    <div class="empty-menu">
+                        <i class="fas fa-utensils"></i>
+                        <h4>Menú próximamente</h4>
+                        <p>Este expositor aún no ha publicado su menú.</p>
+                    </div>
+                {% endif %}
+
+                <!-- CTA de contacto -->
+                <div class="cta-expositor">
+                    <div class="row align-items-center g-3">
+                        <div class="col-md-8">
+                            <h5 class="cta-expositor-title">¿Te interesa este expositor?</h5>
+                            <p class="cta-expositor-desc">
+                                Contáctalo directamente para hacer tu pedido o consultar más información.
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            {% if expositor.numero_contacto %}
+                            <a href="https://wa.me/52{{ expositor.numero_contacto|cut:' '|cut:'-'|cut:'('|cut:')'|cut:'.' }}"
+                               target="_blank" rel="noopener"
+                               class="btn-whatsapp">
+                                <i class="fab fa-whatsapp"></i> Contactar
+                            </a>
+                            {% elif expositor.email_contacto %}
+                            <a href="mailto:{{ expositor.email_contacto }}"
+                               class="btn btn-warning">
+                                <i class="fas fa-envelope"></i> Enviar correo
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ========== ROW 2: GALERÍA FULL-WIDTH ========== -->
+        {% if fotos %}
+        <div class="galeria-fullwidth mt-5">
+            <div class="galeria-header">
+                <div class="galeria-header-left">
+                    <i class="fas fa-camera"></i>
+                    <h3>Fotos de productos</h3>
+                </div>
+                <span class="galeria-count">{{ fotos|length }} foto{{ fotos|length|pluralize:"s" }}</span>
+            </div>
+
+            <div class="galeria-grid">
+                {% for foto in fotos %}
+                <a href="{{ foto.imagen.url }}"
+                   target="_blank"
+                   rel="noopener"
+                   class="galeria-foto-item"
+                   {% if foto.descripcion %}title="{{ foto.descripcion }}"{% endif %}>
+                    <img src="{{ foto.imagen.url }}"
+                         alt="{{ foto.descripcion|default:expositor.nombre_empresa }}"
+                         class="galeria-foto-img"
+                         loading="lazy">
+                    <span class="galeria-foto-overlay">
+                        <i class="fas fa-search-plus"></i>
+                        {% if foto.descripcion %}
+                        <span class="galeria-foto-desc">{{ foto.descripcion|truncatechars:40 }}</span>
+                        {% endif %}
+                    </span>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- ========== ROW 3: EXPOSITORES RELACIONADOS ========== -->
+        {% if relacionados %}
+        <div class="row mt-5">
+            <div class="col-12">
+                <div class="section-header-relacionados">
+                    <span class="section-tag">También te puede interesar</span>
+                    <h2 class="section-title-relacionados">Otros expositores</h2>
+                </div>
+
+                <div class="row g-4">
+                    {% for rel in relacionados %}
+                    <div class="col-md-4">
+                        <div class="expositor-rel-card">
+                            <div class="rel-logo-wrapper">
+                                {% if rel.logo %}
+                                    <img src="{{ rel.logo.url }}"
+                                         alt="{{ rel.nombre_empresa }}"
+                                         class="rel-logo"
+                                         loading="lazy">
+                                {% else %}
+                                    <div class="rel-logo-placeholder">
+                                        <i class="fas fa-store"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="rel-body">
+                                <h5 class="rel-nombre">{{ rel.nombre_empresa }}</h5>
+                                <p class="rel-categoria">{{ rel.get_categoria_display_corta }}</p>
+                                <a href="{% url 'core:expositor_detail' rel.pk %}"
+                                   class="btn btn-warning btn-sm w-100">
+                                    Ver detalle
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+</section>
+
+{% endblock %}
+
+
+{% block extra_css %}
+<style>
+/* ============================================================
+   EXPOSITOR DETAIL — Estilo cálido
+   ============================================================ */
+
+/* ============ TEXTO CON DEGRADADO VERTICAL ============ */
+.text-gradient {
+    background: linear-gradient(180deg, var(--amarillo) 0%, var(--naranja) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    text-shadow: none !important;
+    filter: none;
+    display: inline-block;
+}
+
+/* ============ HERO ============ */
+.expositor-hero {
+    position: relative;
+    padding: 4rem 0;
+    overflow: hidden;
+    background: linear-gradient(135deg, #1A0D00 0%, #2D1400 50%, #1A0D00 100%);
+}
+.expositor-hero-bg {
+    position: absolute;
+    inset: 0;
+    background-image: url('{% static 'core/img/about/about.jpg' %}');
+    background-size: cover;
+    background-position: center;
+    opacity: 0.15;
+    transform: scale(1.05);
+    animation: heroZoom 30s ease-in-out infinite alternate;
+}
+@keyframes heroZoom {
+    0%   { transform: scale(1.05); }
+    100% { transform: scale(1.15); }
+}
+.expositor-hero-overlay {
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at 20% 20%, rgba(253, 233, 1, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(253, 153, 0, 0.12) 0%, transparent 50%);
+    pointer-events: none;
+}
+.expositor-hero-content {
+    z-index: 1;
+}
+
+.expositor-hero-logo {
+    width: 200px;
+    height: 200px;
+    border-radius: var(--radius-lg);
+    background: #FFF;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    box-shadow:
+        0 12px 30px rgba(0, 0, 0, 0.5),
+        0 0 0 4px rgba(253, 153, 0, 0.4);
+    border: 3px solid var(--naranja);
+    transition: transform var(--transition-base);
+}
+.expositor-hero-logo:hover {
+    transform: scale(1.03);
+}
+.expositor-hero-logo-img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+.expositor-hero-logo-placeholder {
+    font-size: 4rem;
+    color: var(--cafe-calido);
+}
+
+.expositor-hero-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+.badge-categoria-hero {
+    display: inline-block;
+    background: var(--grad-amarillo-naranja);
+    color: var(--negro);
+    font-family: var(--font-heading);
+    font-size: 0.75rem;
+    padding: 0.4rem 0.9rem;
+    border-radius: var(--radius-pill);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+.badge-destacado-hero {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: rgba(0, 0, 0, 0.5);
+    color: var(--amarillo);
+    font-family: var(--font-heading);
+    font-size: 0.75rem;
+    padding: 0.4rem 0.9rem;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--naranja);
+    letter-spacing: 0.04em;
+}
+.badge-stand-hero {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(8px);
+    color: #FFF;
+    font-family: var(--font-heading);
+    font-size: 0.75rem;
+    padding: 0.4rem 0.9rem;
+    border-radius: var(--radius-pill);
+    border: 1px solid rgba(253, 233, 1, 0.4);
+    letter-spacing: 0.04em;
+}
+.badge-stand-hero i {
+    color: var(--amarillo);
+}
+
+.expositor-hero-nombre {
+    font-family: var(--font-display);
+    font-size: clamp(1.75rem, 4vw, 2.75rem);
+    color: #FFF;
+    margin: 0 0 0.5rem;
+    letter-spacing: 0.02em;
+    line-height: 1.1;
+    text-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+}
+.expositor-hero-persona {
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 1rem;
+}
+.expositor-hero-persona i {
+    color: var(--naranja);
+    margin-right: 0.35rem;
+}
+.expositor-hero-desc {
+    font-family: var(--font-body);
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.9);
+    line-height: 1.6;
+    max-width: 720px;
+    margin-bottom: 1rem;
+}
+.expositor-hero-especialidades {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 1.5rem;
+}
+.badge-especialidad-hero {
+    display: inline-block;
+    background: rgba(253, 233, 1, 0.15);
+    border: 1px solid rgba(253, 233, 1, 0.5);
+    color: var(--amarillo);
+    font-family: var(--font-body);
+    font-size: 0.78rem;
+    font-weight: 500;
+    padding: 0.35rem 0.8rem;
+    border-radius: var(--radius-pill);
+}
+
+.expositor-hero-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+}
+.btn-whatsapp {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #25D366;
+    color: #FFF;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding: 0.7em 1.4em;
+    border-radius: var(--radius-pill);
+    text-decoration: none;
+    transition: all var(--transition-base);
+    border: none;
+    cursor: pointer;
+    letter-spacing: 0.02em;
+}
+.btn-whatsapp:hover {
+    background: #128C7E;
+    color: #FFF;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(37, 211, 102, 0.4);
+}
+.btn-hero-outline {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: transparent;
+    color: #FFF;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding: 0.7em 1.4em;
+    border-radius: var(--radius-pill);
+    border: 2px solid rgba(253, 233, 1, 0.6);
+    text-decoration: none;
+    transition: all var(--transition-base);
+    cursor: pointer;
+    letter-spacing: 0.02em;
+}
+.btn-hero-outline:hover {
+    background: var(--grad-amarillo-naranja);
+    color: var(--negro);
+    border-color: var(--naranja);
+    transform: translateY(-2px);
+}
+
+/* ============ CONTENIDO PRINCIPAL ============ */
+.expositor-contenido {
+    position: relative;
+    background: linear-gradient(180deg, #FDF6E3 0%, #FAEBD5 50%, #F5E1C8 100%);
+    overflow: hidden;
+}
+.expositor-contenido-pattern {
+    position: absolute;
+    inset: 0;
+    background-image:
+        radial-gradient(circle at 10% 15%, rgba(253, 153, 0, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 90% 85%, rgba(181, 88, 38, 0.08) 0%, transparent 40%),
+        radial-gradient(rgba(181, 88, 38, 0.06) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 26px 26px;
+    pointer-events: none;
+}
+
+/* ============ PANEL CARD ============ */
+.panel-card {
+    background: #2A1500;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    border: 2px solid var(--cafe);
+    box-shadow: 0 12px 40px rgba(60, 30, 0, 0.35);
+}
+.panel-card-header {
+    padding: 1.25rem 1.5rem;
+    background: linear-gradient(135deg, #1A0D00 0%, #2D1400 100%);
+    border-bottom: 2px solid var(--naranja);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+.panel-card-header i {
+    color: var(--naranja);
+    font-size: 1.25rem;
+}
+.panel-card-header h5 {
+    font-family: var(--font-heading);
+    font-size: 1.05rem;
+    color: #FFF;
+    margin: 0;
+    letter-spacing: 0.02em;
+}
+.badge-count {
+    display: inline-block;
+    background: var(--grad-amarillo-naranja);
+    color: var(--negro);
+    font-family: var(--font-display);
+    font-size: 0.75rem;
+    padding: 0.15rem 0.55rem;
+    border-radius: var(--radius-pill);
+    margin-left: 0.4rem;
+    letter-spacing: 0.02em;
+}
+.panel-card-body {
+    padding: 1.25rem 1.5rem;
+}
+
+.lista-info {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.lista-info li {
+    display: flex;
+    gap: 0.9rem;
+    padding: 0.85rem 0;
+    border-bottom: 1px solid rgba(253, 233, 1, 0.1);
+}
+.lista-info li:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+.lista-info li:first-child {
+    padding-top: 0;
+}
+.lista-info-icon {
+    flex-shrink: 0;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--grad-amarillo-naranja);
+    color: var(--negro);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+}
+.lista-info-content {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    word-break: break-word;
+}
+.lista-info-content small {
+    font-family: var(--font-heading);
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--amarillo);
+    margin-bottom: 0.15rem;
+}
+.lista-info-content span,
+.lista-info-content a {
+    font-family: var(--font-body);
+    font-size: 0.88rem;
+    color: rgba(255, 255, 255, 0.85);
+    text-decoration: none;
+    line-height: 1.4;
+}
+.lista-info-content a {
+    color: var(--amarillo);
+    transition: color var(--transition-fast);
+}
+.lista-info-content a:hover {
+    color: var(--naranja);
+}
+.precio-destacado {
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    color: var(--amarillo);
+    line-height: 1;
+    letter-spacing: 0.02em;
+}
+
+.pagos-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+.pago-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(253, 233, 1, 0.08);
+    border: 1px solid rgba(253, 233, 1, 0.25);
+    color: rgba(255, 255, 255, 0.9);
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    padding: 0.5rem 0.9rem;
+    border-radius: var(--radius-pill);
+}
+.pago-badge i {
+    color: var(--amarillo);
+    font-size: 0.85rem;
+}
+.pago-vacio {
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin: 0;
+}
+.pago-vacio i {
+    color: var(--naranja);
+    margin-right: 0.35rem;
+}
+
+.btn-red-social {
+    display: block;
+    width: 100%;
+    text-align: center;
+    background: rgba(253, 233, 1, 0.08);
+    color: #FFF;
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    font-weight: 500;
+    padding: 0.65rem 1rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(253, 233, 1, 0.25);
+    text-decoration: none;
+    margin-bottom: 0.5rem;
+    transition: all var(--transition-fast);
+}
+.btn-red-social:last-child {
+    margin-bottom: 0;
+}
+.btn-red-social:hover {
+    background: var(--grad-amarillo-naranja);
+    color: var(--negro);
+    border-color: var(--naranja);
+    transform: translateX(4px);
+}
+.btn-red-social i {
+    margin-right: 0.4rem;
+}
+.redes-texto {
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin: 0.5rem 0 0;
+    line-height: 1.5;
+}
+
+/* ============ PRODUCTOS ============ */
+.productos-categoria-card {
+    background: #FFF;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: 0 6px 24px rgba(181, 88, 38, 0.15);
+    border-left: 6px solid var(--naranja);
+    transition: box-shadow var(--transition-base);
+}
+.productos-categoria-card:hover {
+    box-shadow: 0 12px 40px rgba(181, 88, 38, 0.22);
+}
+.productos-categoria-header {
+    padding: 1.25rem 1.5rem;
+    background: var(--bg-crema-alt);
+    border-bottom: 2px solid var(--cafe-calido);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.productos-categoria-header h4 {
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    color: var(--cafe);
+    margin: 0;
+    letter-spacing: 0.02em;
+}
+.productos-categoria-header i {
+    color: var(--naranja);
+    margin-right: 0.5rem;
+}
+.productos-count {
+    display: inline-block;
+    background: linear-gradient(135deg, #1A0D00 0%, #2D1400 100%);
+    color: var(--amarillo);
+    font-family: var(--font-display);
+    font-size: 0.9rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius-pill);
+    letter-spacing: 0.02em;
+}
+.productos-lista {
+    padding: 0;
+}
+.producto-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border-light);
+    transition: background var(--transition-fast);
+}
+.producto-item:last-child {
+    border-bottom: none;
+}
+.producto-item:hover {
+    background: var(--bg-crema-alt);
+}
+.producto-item-info {
+    flex: 1;
+    min-width: 0;
+}
+.producto-item-nombre {
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    color: var(--negro);
+    margin: 0 0 0.15rem;
+    letter-spacing: 0.01em;
+    line-height: 1.3;
+}
+.producto-item-desc {
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin: 0;
+    line-height: 1.4;
+}
+.producto-item-detalle {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-shrink: 0;
+}
+.producto-item-unidad {
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    color: var(--cafe);
+    background: var(--cafe-calido);
+    padding: 0.25rem 0.65rem;
+    border-radius: var(--radius-pill);
+    white-space: nowrap;
+    font-weight: 600;
+}
+.producto-item-precio {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    color: var(--cafe);
+    line-height: 1;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+}
+
+.empty-menu {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: #FFF;
+    border-radius: var(--radius-lg);
+    border: 2px dashed var(--cafe-calido);
+    box-shadow: 0 6px 20px rgba(181, 88, 38, 0.1);
+}
+.empty-menu i {
+    font-size: 3rem;
+    color: var(--cafe-calido);
+    margin-bottom: 1rem;
+}
+.empty-menu h4 {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    color: var(--cafe);
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.02em;
+}
+.empty-menu p {
+    font-family: var(--font-body);
+    color: var(--text-muted);
+    margin: 0;
+}
+
+/* CTA Expositor */
+.cta-expositor {
+    background: linear-gradient(135deg, #1A0D00 0%, #2D1400 100%);
+    padding: 1.75rem;
+    border-radius: var(--radius-lg);
+    border: 2px solid var(--naranja);
+    box-shadow: 0 12px 40px rgba(60, 30, 0, 0.35);
+    position: relative;
+    overflow: hidden;
+}
+.cta-expositor::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(253, 233, 1, 0.15) 0%, transparent 70%);
+    pointer-events: none;
+}
+.cta-expositor .row {
+    position: relative;
+    z-index: 1;
+}
+.cta-expositor-title {
+    font-family: var(--font-display);
+    font-size: 1.4rem;
+    color: var(--amarillo);
+    margin: 0 0 0.4rem;
+    letter-spacing: 0.02em;
+}
+.cta-expositor-desc {
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.85);
+    margin: 0;
+}
+
+/* ============ GALERÍA FULL-WIDTH ============ */
+.galeria-fullwidth {
+    background: #FFF;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    border: 2px solid var(--cafe-calido);
+    box-shadow: 0 12px 40px rgba(181, 88, 38, 0.15);
+}
+.galeria-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 2rem;
+    background: linear-gradient(135deg, #1A0D00 0%, #2D1400 100%);
+    border-bottom: 2px solid var(--naranja);
+}
+.galeria-header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+}
+.galeria-header-left i {
+    color: var(--naranja);
+    font-size: 1.5rem;
+}
+.galeria-header-left h3 {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    color: #FFF;
+    margin: 0;
+    letter-spacing: 0.02em;
+}
+.galeria-count {
+    display: inline-block;
+    background: var(--grad-amarillo-naranja);
+    color: var(--negro);
+    font-family: var(--font-display);
+    font-size: 0.85rem;
+    padding: 0.35rem 0.9rem;
+    border-radius: var(--radius-pill);
+    letter-spacing: 0.02em;
+}
+
+.galeria-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    padding: 1.5rem 2rem 2rem;
+}
+
+.galeria-foto-item {
+    position: relative;
+    display: block;
+    aspect-ratio: 1;
+    overflow: hidden;
+    border-radius: var(--radius-md);
+    background: var(--bg-crema-alt);
+    border: 2px solid transparent;
+    transition: all var(--transition-base);
+}
+.galeria-foto-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--transition-base);
+}
+.galeria-foto-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(26, 13, 0, 0.8);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    color: var(--amarillo);
+    font-size: 1.75rem;
+    opacity: 0;
+    transition: opacity var(--transition-base);
+    padding: 1rem;
+    text-align: center;
+}
+.galeria-foto-desc {
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.95);
+    line-height: 1.4;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+}
+.galeria-foto-item:hover {
+    border-color: var(--naranja);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(253, 153, 0, 0.3);
+}
+.galeria-foto-item:hover .galeria-foto-img {
+    transform: scale(1.08);
+}
+.galeria-foto-item:hover .galeria-foto-overlay {
+    opacity: 1;
+}
+
+/* ============ RELACIONADOS ============ */
+.section-header-relacionados {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+.section-title-relacionados {
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    color: var(--cafe);
+    margin: 0.5rem 0 0;
+    letter-spacing: 0.02em;
+}
+.expositor-rel-card {
+    background: #FFF;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: 0 6px 24px rgba(181, 88, 38, 0.12);
+    transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
+    border: 2px solid transparent;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+.expositor-rel-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 16px 40px rgba(253, 153, 0, 0.25);
+    border-color: var(--naranja);
+}
+.rel-logo-wrapper {
+    height: 160px;
+    background: var(--bg-crema-alt);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-bottom: 2px solid var(--cafe-calido);
+}
+.rel-logo {
+    max-width: 70%;
+    max-height: 70%;
+    object-fit: contain;
+    transition: transform var(--transition-base);
+}
+.expositor-rel-card:hover .rel-logo {
+    transform: scale(1.06);
+}
+.rel-logo-placeholder {
+    color: var(--cafe-calido);
+    font-size: 3rem;
+}
+.rel-body {
+    padding: 1.25rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+.rel-nombre {
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    color: var(--cafe);
+    margin: 0 0 0.35rem;
+    letter-spacing: 0.02em;
+    line-height: 1.2;
+}
+.rel-categoria {
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin: 0 0 1rem;
+}
+.rel-body .btn {
+    margin-top: auto;
+}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width: 768px) {
+    .expositor-hero { padding: 3rem 0; }
+    .expositor-hero-logo { width: 140px; height: 140px; padding: 12px; }
+    .expositor-hero-logo-placeholder { font-size: 3rem; }
+    .expositor-hero-nombre { font-size: 1.75rem; }
+    .expositor-hero-persona { font-size: 0.85rem; }
+    .expositor-hero-desc { font-size: 0.9rem; }
+    .producto-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.6rem;
+    }
+    .producto-item-detalle {
+        width: 100%;
+        justify-content: space-between;
+    }
+    .cta-expositor { padding: 1.5rem; }
+    .cta-expositor-title { font-size: 1.15rem; }
+
+    .galeria-header {
+        padding: 1.25rem 1.25rem;
+    }
+    .galeria-header-left h3 { font-size: 1.15rem; }
+    .galeria-header-left i { font-size: 1.25rem; }
+    .galeria-count { font-size: 0.75rem; padding: 0.25rem 0.65rem; }
+
+    .galeria-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 0.75rem;
+        padding: 1.25rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .galeria-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,508 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Panel · Editar logos{% endblock %}
+
+{% block content %}
+
+<section class="panel-section">
+    <div class="panel-pattern"></div>
+
+    <div class="container position-relative py-5">
+
+        <!-- ============ BREADCRUMB ============ -->
+        <nav class="panel-breadcrumb">
+            <a href="{% url 'core:panel_dashboard' %}">Panel</a>
+            <i class="fas fa-chevron-right"></i>
+            <a href="{% url 'core:panel_expositores' %}">Expositores</a>
+            <i class="fas fa-chevron-right"></i>
+            <span>Editar logos</span>
+        </nav>
+
+        <!-- ============ HEADER ============ -->
+        <div class="panel-header">
+            <div>
+                <h1 class="panel-title">Editar logos en lote</h1>
+                <p class="panel-subtitle">
+                    Cambia varios logos a la vez y guarda todo con un solo clic.
+                </p>
+            </div>
+
+            <div class="panel-actions">
+                <a href="{% url 'core:panel_expositores' %}" class="btn btn-outline-warning">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </a>
+            </div>
+        </div>
+
+        {% if messages %}
+        <div class="mb-4">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- ============ AVISO ============ -->
+        <div class="info-banner">
+            <i class="fas fa-info-circle"></i>
+            <div>
+                <strong>Instrucciones:</strong>
+                sube los logos que quieras reemplazar. Los que dejes vacíos se mantienen igual.
+                Al final, pulsa <strong>Guardar todos los logos</strong>.
+            </div>
+        </div>
+
+        <!-- ============ FORMULARIO ============ -->
+        <form method="post" enctype="multipart/form-data" id="formLogos">
+            {% csrf_token %}
+
+            <div class="table-card">
+                <div class="table-responsive">
+                    <table class="panel-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 70px;">ID</th>
+                                <th style="width: 160px;">Logo actual</th>
+                                <th>Expositor</th>
+                                <th style="width: 380px;">Nuevo logo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for exp in expositores %}
+                            <tr>
+                                <td class="row-id">#{{ exp.pk }}</td>
+                                <td>
+                                    {% if exp.logo %}
+                                        <img src="{{ exp.logo.url }}"
+                                             class="logo-preview"
+                                             alt="{{ exp.nombre_empresa }}"
+                                             data-pk="{{ exp.pk }}">
+                                    {% else %}
+                                        <div class="logo-empty" data-pk="{{ exp.pk }}">
+                                            <i class="fas fa-image"></i>
+                                        </div>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <strong class="row-empresa">{{ exp.nombre_empresa }}</strong>
+                                    <div class="row-categoria">{{ exp.nombre_expositor }}</div>
+                                </td>
+                                <td>
+                                    <input type="file"
+                                           name="logo_{{ exp.pk }}"
+                                           class="filter-input input-logo"
+                                           accept="image/*"
+                                           data-pk="{{ exp.pk }}"
+                                           data-empresa="{{ exp.nombre_empresa }}">
+                                    <div class="input-hint" data-pk="{{ exp.pk }}"></div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="empty-row">
+                                    <i class="fas fa-store"></i>
+                                    <p>No hay expositores registrados.</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ============ BARRA INFERIOR FIJA ============ -->
+            <div class="save-bar">
+                <div class="container">
+                    <div class="save-bar-inner">
+                        <div class="save-info">
+                            <i class="fas fa-check-circle"></i>
+                            <span id="contadorCambios">0</span>
+                            <span>logos listos para guardar</span>
+                        </div>
+                        <button type="submit" class="btn btn-warning fw-bold" id="btnGuardar">
+                            <i class="fas fa-save"></i> Guardar todos los logos
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </form>
+
+    </div>
+</section>
+
+{% endblock %}
+
+
+{% block extra_css %}
+<style>
+/* ============================================================
+   PANEL ADMIN · EDITAR LOGOS EN LOTE — Oscuro minimalista
+   ============================================================ */
+
+/* ============ SECCIÓN ============ */
+.panel-section {
+    position: relative;
+    padding: 3rem 0 6rem;
+    background: #0A0A0A;
+    min-height: calc(100vh - 200px);
+    overflow: hidden;
+}
+.panel-pattern {
+    position: absolute;
+    inset: 0;
+    background-image:
+        radial-gradient(circle at 10% 10%, rgba(253, 153, 0, 0.08) 0%, transparent 45%),
+        radial-gradient(circle at 90% 90%, rgba(181, 88, 38, 0.08) 0%, transparent 45%),
+        radial-gradient(rgba(253, 233, 1, 0.05) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 28px 28px;
+    pointer-events: none;
+}
+
+/* ============ BREADCRUMB ============ */
+.panel-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.4);
+    margin-bottom: 1.5rem;
+}
+.panel-breadcrumb a {
+    color: rgba(255, 255, 255, 0.55);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+}
+.panel-breadcrumb a:hover { color: var(--amarillo); }
+.panel-breadcrumb i { font-size: 0.6rem; color: rgba(255, 255, 255, 0.25); }
+.panel-breadcrumb span { color: var(--amarillo); font-weight: 600; }
+
+/* ============ HEADER ============ */
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+    margin-bottom: 1.75rem;
+}
+.panel-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+    color: #FFF;
+    margin: 0 0 0.35rem;
+    letter-spacing: 0.02em;
+    line-height: 1.1;
+}
+.panel-subtitle {
+    font-family: var(--font-body);
+    font-size: 0.92rem;
+    color: rgba(255, 255, 255, 0.55);
+    margin: 0;
+}
+.panel-actions .btn {
+    font-size: 0.88rem;
+    padding: 0.6em 1.1em;
+}
+
+/* ============ AVISO ============ */
+.info-banner {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 1rem 1.25rem;
+    background: rgba(253, 233, 1, 0.06);
+    border: 1.5px solid rgba(253, 233, 1, 0.2);
+    border-left: 4px solid var(--amarillo);
+    border-radius: var(--radius-md);
+    margin-bottom: 1.5rem;
+    font-family: var(--font-body);
+    font-size: 0.88rem;
+    color: rgba(255, 255, 255, 0.75);
+}
+.info-banner i {
+    color: var(--amarillo);
+    font-size: 1.15rem;
+    flex-shrink: 0;
+}
+.info-banner strong { color: var(--amarillo); }
+
+/* ============ TABLA ============ */
+.table-card {
+    background: #141414;
+    border: 1.5px solid rgba(253, 233, 1, 0.12);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+.table-responsive { overflow-x: auto; }
+
+.panel-table {
+    width: 100%;
+    border-collapse: collapse;
+    color: #FFF;
+    font-family: var(--font-body);
+}
+.panel-table thead {
+    background: #0F0F0F;
+    border-bottom: 1.5px solid rgba(253, 233, 1, 0.12);
+}
+.panel-table thead th {
+    font-family: var(--font-heading);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--amarillo);
+    padding: 1rem 1rem;
+    text-align: left;
+    font-weight: 400;
+}
+.panel-table tbody tr {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    transition: background var(--transition-fast);
+}
+.panel-table tbody tr:last-child { border-bottom: none; }
+.panel-table tbody tr:hover { background: rgba(253, 233, 1, 0.035); }
+.panel-table td {
+    padding: 1rem;
+    vertical-align: middle;
+    font-size: 0.9rem;
+}
+
+.row-id {
+    font-family: var(--font-heading);
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.4);
+    letter-spacing: 0.02em;
+}
+.row-empresa {
+    font-family: var(--font-heading);
+    font-size: 0.95rem;
+    color: #FFF;
+    letter-spacing: 0.02em;
+}
+.row-categoria {
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.45);
+    margin-top: 0.15rem;
+}
+
+/* ============ LOGO PREVIEW ============ */
+.logo-preview {
+    width: 100px;
+    height: 100px;
+    object-fit: contain;
+    background: #1A1A1A;
+    padding: 6px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid rgba(253, 233, 1, 0.15);
+    transition: border-color var(--transition-fast);
+}
+.logo-empty {
+    width: 100px;
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #1A1A1A;
+    border-radius: var(--radius-sm);
+    border: 1.5px dashed rgba(253, 233, 1, 0.2);
+    color: rgba(253, 233, 1, 0.3);
+    font-size: 1.6rem;
+}
+
+/* ============ INPUTS ============ */
+.filter-input {
+    width: 100%;
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    padding: 0.55rem 0.8rem;
+    background: #1A1A1A;
+    border: 1.5px solid rgba(253, 233, 1, 0.15);
+    border-radius: var(--radius-sm);
+    color: #FFF;
+    transition: border-color var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast);
+}
+.filter-input:focus {
+    outline: none;
+    border-color: var(--naranja);
+    background: #1F1F1F;
+    box-shadow: 0 0 0 0.15rem rgba(253, 153, 0, 0.2);
+}
+.filter-input::file-selector-button {
+    background: var(--grad-amarillo-naranja);
+    color: var(--negro);
+    border: none;
+    padding: 0.4em 0.9em;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-body);
+    font-weight: 700;
+    cursor: pointer;
+    margin-right: 0.75rem;
+    font-size: 0.82rem;
+    transition: filter var(--transition-fast);
+}
+.filter-input::file-selector-button:hover { filter: brightness(1.1); }
+
+.input-hint {
+    font-family: var(--font-body);
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.5);
+    margin-top: 0.4rem;
+    min-height: 1.1em;
+}
+.input-hint i { color: #7EEBAE; margin-right: 0.25rem; }
+
+/* ============ EMPTY ============ */
+.empty-row {
+    text-align: center;
+    padding: 4rem 1rem !important;
+    color: rgba(255, 255, 255, 0.4);
+}
+.empty-row i {
+    font-size: 2.5rem;
+    color: rgba(253, 233, 1, 0.25);
+    display: block;
+    margin-bottom: 0.75rem;
+}
+.empty-row p { font-family: var(--font-body); margin: 0; }
+
+/* ============ SAVE BAR FIJA ============ */
+.save-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #0F0F0F;
+    border-top: 2px solid var(--naranja);
+    padding: 0.9rem 0;
+    box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.5);
+    z-index: 1030;
+}
+.save-bar .container { max-width: 1140px; }
+
+.save-bar-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+.save-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.75);
+}
+.save-info i { color: #7EEBAE; font-size: 1.1rem; }
+.save-info #contadorCambios {
+    font-family: var(--font-display);
+    font-size: 1.4rem;
+    color: var(--amarillo);
+    line-height: 1;
+}
+.save-bar .btn {
+    font-size: 0.95rem;
+    padding: 0.7em 1.5em;
+}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width: 768px) {
+    .panel-section { padding: 2rem 0 6rem; }
+    .panel-header { align-items: flex-start; }
+    .panel-actions { width: 100%; }
+    .panel-actions .btn { flex-grow: 1; }
+    .panel-table td,
+    .panel-table thead th {
+        padding: 0.75rem 0.6rem;
+        font-size: 0.82rem;
+    }
+    .logo-preview,
+    .logo-empty { width: 70px; height: 70px; font-size: 1.3rem; }
+    .save-bar-inner { justify-content: center; text-align: center; }
+    .save-bar .btn { width: 100%; }
+}
+</style>
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+(function () {
+    const inputs = document.querySelectorAll('.input-logo');
+    const contador = document.getElementById('contadorCambios');
+
+    function actualizarContador() {
+        let n = 0;
+        inputs.forEach(inp => {
+            if (inp.files && inp.files.length > 0) n++;
+        });
+        contador.textContent = n;
+    }
+
+    inputs.forEach(inp => {
+        inp.addEventListener('change', function () {
+            const pk = this.dataset.pk;
+            const hint = document.querySelector(`.input-hint[data-pk="${pk}"]`);
+
+            if (this.files && this.files.length > 0) {
+                const file = this.files[0];
+                const kb = (file.size / 1024).toFixed(0);
+                hint.innerHTML = `<i class="fas fa-file-image"></i> ${file.name} (${kb} KB)`;
+
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const preview = document.querySelector(`.logo-preview[data-pk="${pk}"]`);
+                    const empty = document.querySelector(`.logo-empty[data-pk="${pk}"]`);
+
+                    if (preview) {
+                        preview.src = e.target.result;
+                        preview.style.borderColor = 'var(--amarillo)';
+                        preview.style.borderWidth = '2px';
+                    } else if (empty) {
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.className = 'logo-preview';
+                        img.dataset.pk = pk;
+                        img.style.borderColor = 'var(--amarillo)';
+                        img.style.borderWidth = '2px';
+                        empty.parentNode.replaceChild(img, empty);
+                    }
+                };
+                reader.readAsDataURL(file);
+            } else {
+                hint.textContent = '';
+            }
+
+            actualizarContador();
+        });
+    });
+
+    let formEnviado = false;
+    document.getElementById('formLogos').addEventListener('submit', function () {
+        formEnviado = true;
+        const btn = document.getElementById('btnGuardar');
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+        btn.disabled = true;
+    });
+
+    window.addEventListener('beforeunload', function (e) {
+        if (!formEnviado) {
+            let n = 0;
+            inputs.forEach(inp => { if (inp.files && inp.files.length > 0) n++; });
+            if (n > 0) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        }
+    });
+})();
+</script>
+{% endblock %}

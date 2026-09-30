@@ -1,0 +1,704 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Contacto - Festival de la Butifarra{% endblock %}
+
+{% block content %}
+
+<!-- ============ HERO CONTACTO ============ -->
+<section class="contacto-hero">
+    <div class="contacto-hero-bg"></div>
+    <div class="contacto-hero-overlay"></div>
+
+    <div class="container contacto-hero-content">
+        <span class="hero-badge">Estamos para ayudarte</span>
+        <h1 class="contacto-hero-title">
+            <span class="text-gradient">Contáctanos</span>
+        </h1>
+        <p class="contacto-hero-subtitle">
+            ¿Tienes dudas sobre el Festival de la Butifarra 2026?
+            Escríbenos y te responderemos pronto.
+        </p>
+    </div>
+</section>
+
+<!-- ============ CONTENIDO PRINCIPAL ============ -->
+<section class="section-contacto">
+    <div class="contacto-pattern"></div>
+
+    <div class="container position-relative">
+        <div class="row g-4">
+
+            <!-- ========== COLUMNA IZQUIERDA: INFO ========== -->
+            <div class="col-lg-5">
+
+                <div class="info-contacto-card">
+                    <div class="info-contacto-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-info-circle"></i> Información de contacto
+                        </h5>
+                    </div>
+
+                    <div class="info-contacto-body">
+
+                        <div class="contacto-item">
+                            <div class="contacto-item-icon">
+                                <i class="fas fa-building"></i>
+                            </div>
+                            <div class="contacto-item-info">
+                                <strong>H. Ayuntamiento de Jalpa de Méndez</strong>
+                                <p>Dirección de Fomento Económico y Turismo</p>
+                            </div>
+                        </div>
+
+                        <div class="contacto-item">
+                            <div class="contacto-item-icon">
+                                <i class="fas fa-user-tie"></i>
+                            </div>
+                            <div class="contacto-item-info">
+                                <strong>Jonathan de Jesús Jiménez Ricardez</strong>
+                                <p>Director de Fomento Económico y Turismo</p>
+                            </div>
+                        </div>
+
+                        <div class="contacto-item">
+                            <div class="contacto-item-icon">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </div>
+                            <div class="contacto-item-info">
+                                <strong>Ubicación</strong>
+                                <p>Palacio Municipal, Plaza Hidalgo #1,<br>
+                                   Col. Centro, Jalpa de Méndez, Tabasco</p>
+                            </div>
+                        </div>
+
+                        <div class="contacto-item">
+                            <div class="contacto-item-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="contacto-item-info">
+                                <strong>Horario de atención</strong>
+                                <p>Lunes a Viernes · 9:00 AM – 3:00 PM</p>
+                            </div>
+                        </div>
+
+                        <div class="contacto-item">
+                            <div class="contacto-item-icon">
+                                <i class="fas fa-globe"></i>
+                            </div>
+                            <div class="contacto-item-info">
+                                <strong>Sitio oficial</strong>
+                                <a href="https://jalpademendez.gob.mx"
+                                   target="_blank" rel="noopener">
+                                    jalpademendez.gob.mx
+                                </a>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="info-contacto-footer">
+                        <h6><i class="fas fa-store"></i> ¿Quieres ser expositor?</h6>
+                        <p>Regístrate en línea y participa en el {{ festival.edicion|default:11 }}.º Festival de la Butifarra.</p>
+                        <a href="{% url 'core:registrar_expositor' %}" class="btn btn-warning w-100 fw-bold">
+                            <i class="fas fa-plus-circle"></i> Registrar mi exposición
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- ========== COLUMNA DERECHA: FORMULARIO ========== -->
+            <div class="col-lg-7">
+                <div class="form-contacto-card">
+
+                    <div class="form-contacto-header">
+                        <div class="form-contacto-icon">
+                            <i class="fas fa-paper-plane"></i>
+                        </div>
+                        <div>
+                            <h4>Envíanos un mensaje</h4>
+                            <p>Completa el formulario y te responderemos a la brevedad.</p>
+                        </div>
+                    </div>
+
+                    <form method="post" action="{% url 'core:contacto' %}" novalidate class="form-contacto-body">
+                        {% csrf_token %}
+
+                        <div class="row g-3">
+
+                            <div class="col-md-6">
+                                <label for="id_nombre" class="form-label-custom">
+                                    Nombre completo <span>*</span>
+                                </label>
+                                <input type="text"
+                                       id="id_nombre"
+                                       name="nombre"
+                                       class="form-input-custom"
+                                       placeholder="Ej: María Pérez"
+                                       required
+                                       maxlength="120">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="id_email" class="form-label-custom">
+                                    Correo electrónico <span>*</span>
+                                </label>
+                                <input type="email"
+                                       id="id_email"
+                                       name="email"
+                                       class="form-input-custom"
+                                       placeholder="ejemplo@correo.com"
+                                       required
+                                       maxlength="120">
+                            </div>
+
+                            <div class="col-12">
+                                <label for="id_asunto" class="form-label-custom">
+                                    Asunto <span>*</span>
+                                </label>
+                                <input type="text"
+                                       id="id_asunto"
+                                       name="asunto"
+                                       class="form-input-custom"
+                                       placeholder="Ej: Información sobre expositores"
+                                       required
+                                       maxlength="200">
+                            </div>
+
+                            <div class="col-12">
+                                <label for="id_mensaje" class="form-label-custom">
+                                    Mensaje <span>*</span>
+                                </label>
+                                <textarea id="id_mensaje"
+                                          name="mensaje"
+                                          class="form-input-custom form-textarea-custom"
+                                          rows="6"
+                                          placeholder="Escribe tu mensaje aquí..."
+                                          required
+                                          maxlength="2000"></textarea>
+                                <div class="form-hint">Máximo 2000 caracteres.</div>
+                            </div>
+
+                            <div class="col-12">
+                                <div class="form-check-custom">
+                                    <input class="form-check-input-custom"
+                                           type="checkbox"
+                                           id="id_acepto"
+                                           name="acepto"
+                                           required>
+                                    <label for="id_acepto">
+                                        Acepto que mis datos sean utilizados para responder a mi consulta.
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-warning btn-lg w-100 fw-bold">
+                                    <i class="fas fa-paper-plane"></i> Enviar mensaje
+                                </button>
+                            </div>
+
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ============ UBICACIÓN / SEDE ============ -->
+        <div class="sede-card mt-5">
+            <div class="row align-items-center g-4">
+                <div class="col-md-3 text-center">
+                    <div class="sede-icon">
+                        <i class="fas fa-map-marked-alt"></i>
+                    </div>
+                </div>
+                <div class="col-md-9 text-md-start text-center">
+                    <span class="section-tag">Sede del Festival</span>
+                    <h3 class="sede-title">Parque Recreativo «El Campestre»</h3>
+                    <p class="sede-ubicacion">
+                        <i class="fas fa-map-marker-alt"></i> Jalpa de Méndez, Tabasco
+                    </p>
+                    <p class="sede-fecha">
+                        <i class="fas fa-calendar-alt"></i>
+                        {% if festival %}
+                            {{ festival.fecha_inicio|date:"j" }} al {{ festival.fecha_fin|date:"j \d\e F \d\e Y" }}
+                        {% else %}
+                            Del 16 al 18 de octubre de 2026
+                        {% endif %}
+                    </p>
+                    <a href="https://www.google.com/maps?q=Parque+Recreativo+El+Campestre+Jalpa+de+Mendez+Tabasco"
+                       target="_blank" rel="noopener"
+                       class="btn btn-outline-warning">
+                        <i class="fas fa-map-marker-alt"></i> Ver en Google Maps
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<!-- ============ CTA FINAL ============ -->
+<section class="section-cta">
+    <div class="cta-pattern"></div>
+    <div class="container text-center position-relative">
+        <h2 class="cta-title">"Tradición que se disfruta, orgullo que se comparte"</h2>
+        <p class="cta-subtitle">
+            Nos vemos en el {{ festival.edicion|default:11 }}.º Festival de la Butifarra
+        </p>
+        <a href="{% url 'core:programa' %}" class="btn btn-warning btn-lg">
+            <i class="fas fa-calendar-alt"></i> Ver programa
+        </a>
+    </div>
+</section>
+
+{% endblock %}
+
+
+{% block extra_css %}
+<style>
+/* ============================================================
+   CONTACTO — Mismo lenguaje visual que Expositores
+   Fondo cálido, tarjetas oscuras con acentos naranja/amarillo
+   ============================================================ */
+
+/* ============ HERO ============ */
+
+/* ============ TEXTO CON DEGRADADO VERTICAL ============ */
+.text-gradient {
+    background: linear-gradient(180deg, var(--amarillo) 0%, var(--naranja) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    text-shadow: none !important;
+    filter: none;
+    display: inline-block;
+}
+.contacto-hero-title .text-gradient {
+    text-shadow: none !important;
+}
+.contacto-hero {
+    position: relative;
+    min-height: 45vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    color: #FFF;
+}
+.contacto-hero-bg {
+    position: absolute;
+    inset: 0;
+    background-image: url('{% static 'core/img/about/about.jpg' %}');
+    background-size: cover;
+    background-position: center;
+    transform: scale(1.05);
+    animation: heroZoom 25s ease-in-out infinite alternate;
+}
+@keyframes heroZoom {
+    0%   { transform: scale(1.05); }
+    100% { transform: scale(1.15); }
+}
+.contacto-hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg,
+        rgba(30, 15, 0, 0.75) 0%,
+        rgba(60, 30, 0, 0.55) 50%,
+        rgba(30, 15, 0, 0.85) 100%);
+    z-index: 1;
+}
+.contacto-hero-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 3.5rem 1rem;
+}
+.contacto-hero .hero-badge {
+    margin-bottom: 1.25rem;
+}
+.contacto-hero-title {
+    font-family: var(--font-display);
+    font-size: clamp(2.25rem, 6vw, 4rem);
+    line-height: 1.05;
+    color: #FFF;
+    text-shadow: 0 6px 20px rgba(0, 0, 0, 0.8);
+    margin-bottom: 1rem;
+    letter-spacing: 0.02em;
+}
+.contacto-hero-subtitle {
+    font-family: var(--font-heading);
+    font-size: clamp(1rem, 2vw, 1.25rem);
+    color: rgba(255, 255, 255, 0.9);
+    max-width: 620px;
+    margin: 0 auto;
+    text-shadow: 0 3px 12px rgba(0, 0, 0, 0.7);
+}
+
+/* ============ SECCIÓN PRINCIPAL (FONDO CÁLIDO) ============ */
+.section-contacto {
+    position: relative;
+    padding: 4rem 0;
+    background: linear-gradient(180deg, #FDF6E3 0%, #FAEBD5 50%, #F5E1C8 100%);
+    overflow: hidden;
+}
+.contacto-pattern {
+    position: absolute;
+    inset: 0;
+    background-image:
+        radial-gradient(circle at 10% 15%, rgba(253, 153, 0, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 90% 85%, rgba(181, 88, 38, 0.08) 0%, transparent 40%),
+        radial-gradient(rgba(181, 88, 38, 0.06) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 26px 26px;
+    pointer-events: none;
+}
+
+/* ============ INFO CARD (oscura con borde café) ============ */
+.info-contacto-card {
+    background: #2A1500;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    border: 2px solid var(--cafe);
+    box-shadow: 0 12px 40px rgba(60, 30, 0, 0.35);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+.info-contacto-header {
+    padding: 1.25rem 1.5rem;
+    background: linear-gradient(135deg, #1A0D00 0%, #2D1400 100%);
+    border-bottom: 2px solid var(--naranja);
+}
+.info-contacto-header h5 {
+    font-family: var(--font-heading);
+    font-size: 1.05rem;
+    color: #FFF;
+    margin: 0;
+    letter-spacing: 0.02em;
+}
+.info-contacto-header i {
+    color: var(--naranja);
+    margin-right: 0.4rem;
+}
+.info-contacto-body {
+    padding: 1.25rem 1.5rem;
+    flex-grow: 1;
+}
+.contacto-item {
+    display: flex;
+    gap: 0.9rem;
+    padding: 0.85rem 0;
+    border-bottom: 1px solid rgba(253, 233, 1, 0.1);
+}
+.contacto-item:last-child {
+    border-bottom: none;
+}
+.contacto-item-icon {
+    flex-shrink: 0;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: var(--grad-amarillo-naranja);
+    color: var(--negro);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    box-shadow: 0 4px 12px rgba(253, 153, 0, 0.35);
+}
+.contacto-item-info strong {
+    display: block;
+    font-family: var(--font-heading);
+    color: #FFF;
+    font-size: 0.95rem;
+    margin-bottom: 0.2rem;
+    letter-spacing: 0.02em;
+}
+.contacto-item-info p,
+.contacto-item-info a {
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.65);
+    margin: 0;
+    line-height: 1.5;
+}
+.contacto-item-info a {
+    color: var(--amarillo);
+    transition: color var(--transition-fast);
+}
+.contacto-item-info a:hover {
+    color: var(--naranja);
+}
+
+.info-contacto-footer {
+    padding: 1.25rem 1.5rem 1.5rem;
+    border-top: 1px solid rgba(253, 233, 1, 0.15);
+    background: rgba(253, 233, 1, 0.03);
+}
+.info-contacto-footer h6 {
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    color: var(--amarillo);
+    margin: 0 0 0.5rem;
+    letter-spacing: 0.02em;
+}
+.info-contacto-footer h6 i {
+    margin-right: 0.35rem;
+    color: var(--naranja);
+}
+.info-contacto-footer p {
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 1rem;
+    line-height: 1.5;
+}
+
+/* ============ FORM CARD (blanca sobre fondo cálido) ============ */
+.form-contacto-card {
+    background: #FFF;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    border: 2px solid var(--cafe-calido);
+    box-shadow: 0 12px 40px rgba(181, 88, 38, 0.18);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    transition: border-color var(--transition-base), box-shadow var(--transition-base);
+}
+.form-contacto-card:hover {
+    border-color: var(--naranja);
+    box-shadow: 0 20px 50px rgba(181, 88, 38, 0.25);
+}
+.form-contacto-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.5rem 1.75rem;
+    background: var(--bg-crema-alt);
+    border-bottom: 2px solid var(--cafe-calido);
+}
+.form-contacto-icon {
+    flex-shrink: 0;
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    background: var(--grad-amarillo-naranja);
+    color: var(--negro);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+    box-shadow: 0 6px 18px rgba(253, 153, 0, 0.4);
+}
+.form-contacto-header h4 {
+    font-family: var(--font-display);
+    font-size: 1.4rem;
+    color: var(--cafe);
+    margin: 0 0 0.2rem;
+    letter-spacing: 0.02em;
+}
+.form-contacto-header p {
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+.form-contacto-body {
+    padding: 1.75rem;
+    flex-grow: 1;
+}
+
+.form-label-custom {
+    display: block;
+    font-family: var(--font-heading);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--cafe);
+    margin-bottom: 0.5rem;
+}
+.form-label-custom span {
+    color: var(--naranja);
+}
+
+.form-input-custom {
+    width: 100%;
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    padding: 0.75rem 1rem;
+    border: 1.5px solid var(--cafe-calido);
+    border-radius: var(--radius-sm);
+    background: #FFF;
+    color: var(--negro);
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
+}
+.form-input-custom:focus {
+    outline: none;
+    border-color: var(--naranja);
+    background: #FFFDF5;
+    box-shadow: 0 0 0 0.2rem rgba(253, 153, 0, 0.18);
+}
+.form-input-custom::placeholder {
+    color: var(--text-muted);
+    opacity: 0.7;
+}
+.form-textarea-custom {
+    resize: vertical;
+    min-height: 130px;
+    line-height: 1.6;
+}
+.form-hint {
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 0.35rem;
+}
+
+.form-check-custom {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    padding: 0.75rem 1rem;
+    background: var(--bg-crema-alt);
+    border-radius: var(--radius-sm);
+    border: 1px dashed var(--cafe-calido);
+}
+.form-check-input-custom {
+    width: 18px;
+    height: 18px;
+    margin-top: 3px;
+    accent-color: var(--naranja);
+    cursor: pointer;
+    flex-shrink: 0;
+}
+.form-check-custom label {
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    color: var(--text-dark);
+    cursor: pointer;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.form-contacto-body .btn-lg {
+    padding: 0.9em 1.5em;
+    font-size: 1rem;
+    margin-top: 0.5rem;
+}
+
+/* ============ SEDE CARD (oscura con borde café) ============ */
+.sede-card {
+    background: #2A1500;
+    border-radius: var(--radius-lg);
+    padding: 2.5rem;
+    border: 2px solid var(--cafe);
+    box-shadow: 0 12px 40px rgba(60, 30, 0, 0.35);
+    position: relative;
+    overflow: hidden;
+}
+.sede-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at 15% 20%, rgba(253, 233, 1, 0.08) 0%, transparent 45%),
+        radial-gradient(circle at 85% 80%, rgba(253, 153, 0, 0.1) 0%, transparent 45%),
+        radial-gradient(rgba(253, 233, 1, 0.06) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 24px 24px;
+    pointer-events: none;
+}
+.sede-card > * {
+    position: relative;
+    z-index: 1;
+}
+.sede-icon {
+    width: 100px;
+    height: 100px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--grad-amarillo-naranja);
+    color: var(--negro);
+    font-size: 2.5rem;
+    box-shadow: 0 8px 24px rgba(253, 153, 0, 0.5);
+}
+.sede-card .section-tag {
+    margin-bottom: 1rem;
+}
+.sede-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    color: #FFF;
+    margin: 0.5rem 0 1rem;
+    letter-spacing: 0.02em;
+}
+.sede-ubicacion,
+.sede-fecha {
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.78);
+    margin: 0 0 0.5rem;
+}
+.sede-ubicacion i,
+.sede-fecha i {
+    color: var(--amarillo);
+    margin-right: 0.5rem;
+    width: 16px;
+}
+
+/* ============ CTA FINAL ============ */
+.section-cta {
+    position: relative;
+    padding: 5rem 0;
+    background: linear-gradient(135deg, #1A0D00 0%, #2D1400 50%, #1A0D00 100%);
+    overflow: hidden;
+}
+.cta-pattern {
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at 20% 30%, rgba(253, 233, 1, 0.15) 0%, transparent 40%),
+        radial-gradient(circle at 80% 70%, rgba(253, 153, 0, 0.15) 0%, transparent 40%);
+    pointer-events: none;
+}
+.cta-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 3.5vw, 2.5rem);
+    color: #FFF;
+    margin-bottom: 1rem;
+    letter-spacing: 0.02em;
+}
+.cta-subtitle {
+    font-family: var(--font-body);
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.85);
+    max-width: 640px;
+    margin: 0 auto 2rem;
+}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width: 768px) {
+    .contacto-hero { min-height: 40vh; }
+    .contacto-hero-content { padding: 3rem 1rem; }
+    .section-contacto { padding: 3rem 0; }
+    .form-contacto-body { padding: 1.25rem; }
+    .info-contacto-body { padding: 1.25rem; }
+    .info-contacto-header { padding: 1.25rem; }
+    .sede-card { padding: 1.75rem 1.25rem; }
+    .sede-icon { width: 80px; height: 80px; font-size: 2rem; }
+    .contacto-item { padding: 0.75rem 0; }
+    .contacto-item-icon { width: 36px; height: 36px; font-size: 0.9rem; }
+    .form-contacto-header { padding: 1.25rem; }
+    .form-contacto-icon { width: 46px; height: 46px; font-size: 1.15rem; }
+    .form-contacto-header h4 { font-size: 1.2rem; }
+}
+</style>
+{% endblock %}

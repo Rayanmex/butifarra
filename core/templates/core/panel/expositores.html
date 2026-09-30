@@ -1,0 +1,579 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Panel · Expositores{% endblock %}
+
+{% block content %}
+
+<section class="panel-section">
+    <div class="panel-pattern"></div>
+
+    <div class="container position-relative py-5">
+
+        <!-- ============ HEADER ============ -->
+        <div class="panel-header">
+            <div>
+                <a href="{% url 'core:panel_dashboard' %}" class="panel-back">
+                    <i class="fas fa-arrow-left"></i> Volver al panel
+                </a>
+                <h1 class="panel-title">
+                    Expositores
+                    <span class="panel-count">{{ total }}</span>
+                </h1>
+                <p class="panel-subtitle">Gestiona, edita y activa los expositores registrados.</p>
+            </div>
+
+            <div class="panel-actions">
+                <a href="{% url 'core:panel_logos_bulk' %}" class="btn btn-outline-warning">
+                    <i class="fas fa-images"></i> Logos en lote
+                </a>
+                <a href="/admin/core/expositor/add/" target="_blank" class="btn btn-warning fw-bold">
+                    <i class="fas fa-plus"></i> Nuevo
+                </a>
+            </div>
+        </div>
+
+        <!-- ============ FILTROS ============ -->
+        <div class="filter-card">
+            <form method="get" class="filter-grid">
+
+                <div class="filter-field filter-search">
+                    <label class="filter-label">Buscar</label>
+                    <input type="text"
+                           name="q"
+                           class="filter-input"
+                           placeholder="Nombre, email, stand..."
+                           value="{{ filtros.q }}">
+                </div>
+
+                <div class="filter-field">
+                    <label class="filter-label">Estado</label>
+                    <select name="estado" class="filter-input">
+                        <option value="">Todos</option>
+                        <option value="activo" {% if filtros.estado == 'activo' %}selected{% endif %}>Activos</option>
+                        <option value="inactivo" {% if filtros.estado == 'inactivo' %}selected{% endif %}>Inactivos</option>
+                    </select>
+                </div>
+
+                <div class="filter-field">
+                    <label class="filter-label">Categoría</label>
+                    <select name="categoria" class="filter-input">
+                        <option value="">Todas</option>
+                        {% for val, label in categorias %}
+                        <option value="{{ val }}" {% if filtros.categoria == val %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="filter-field">
+                    <label class="filter-label">Logo</label>
+                    <select name="logo" class="filter-input">
+                        <option value="">Todos</option>
+                        <option value="si" {% if filtros.logo == 'si' %}selected{% endif %}>Con logo</option>
+                        <option value="no" {% if filtros.logo == 'no' %}selected{% endif %}>Sin logo</option>
+                    </select>
+                </div>
+
+                <div class="filter-field">
+                    <label class="filter-label">Fotos</label>
+                    <select name="fotos" class="filter-input">
+                        <option value="">Todos</option>
+                        <option value="si" {% if filtros.fotos == 'si' %}selected{% endif %}>Con fotos</option>
+                        <option value="no" {% if filtros.fotos == 'no' %}selected{% endif %}>Sin fotos</option>
+                    </select>
+                </div>
+
+                <div class="filter-actions">
+                    <button class="btn btn-warning fw-bold" type="submit">
+                        <i class="fas fa-filter"></i> Filtrar
+                    </button>
+                    <a href="{% url 'core:panel_expositores' %}" class="btn btn-outline-warning">
+                        Limpiar
+                    </a>
+                </div>
+
+            </form>
+        </div>
+
+        <!-- ============ TABLA ============ -->
+        <div class="table-card">
+            <div class="table-responsive">
+                <table class="panel-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 70px;">Logo</th>
+                            <th>Empresa</th>
+                            <th>Expositor</th>
+                            <th>Stand</th>
+                            <th class="text-center">Fotos</th>
+                            <th>Estado</th>
+                            <th class="text-end">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for exp in expositores %}
+                        <tr>
+                            <td>
+                                {% if exp.logo %}
+                                    <img src="{{ exp.logo.url }}"
+                                         alt="{{ exp.nombre_empresa }}"
+                                         class="row-logo">
+                                {% else %}
+                                    <div class="row-logo-placeholder">
+                                        <i class="fas fa-store"></i>
+                                    </div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <strong class="row-empresa">
+                                    {{ exp.nombre_empresa }}
+                                    {% if exp.es_destacado %}
+                                        <i class="fas fa-star row-star" title="Destacado"></i>
+                                    {% endif %}
+                                </strong>
+                                <div class="row-categoria">{{ exp.get_categoria_display_corta }}</div>
+                            </td>
+                            <td class="row-expositor">{{ exp.nombre_expositor }}</td>
+                            <td>
+                                {% if exp.numero_stand %}
+                                    <span class="badge-stand">#{{ exp.numero_stand }}</span>
+                                {% else %}
+                                    <span class="text-muted-sm">—</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <span class="badge-count">{{ exp.n_fotos }}</span>
+                            </td>
+                            <td>
+                                {% if exp.activo %}
+                                    <span class="status-badge status-active">Activo</span>
+                                {% else %}
+                                    <span class="status-badge status-inactive">Inactivo</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                <div class="row-actions">
+                                    <a href="{% url 'core:panel_expositor_detail' exp.pk %}"
+                                       class="action-btn action-view" title="Ver detalle">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'core:panel_toggle_destacado' exp.pk %}"
+                                       class="action-btn action-star" title="Destacar">
+                                        <i class="fas fa-star"></i>
+                                    </a>
+                                    <a href="{% url 'core:panel_toggle_activo' exp.pk %}"
+                                       class="action-btn action-power" title="Activar/Desactivar">
+                                        <i class="fas fa-power-off"></i>
+                                    </a>
+                                    <a href="{% url 'core:panel_expositor_edit' exp.pk %}"
+                                       class="action-btn action-edit" title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="empty-row">
+                                <i class="fas fa-search"></i>
+                                <p>No hay expositores que coincidan con los filtros.</p>
+                                <a href="{% url 'core:panel_expositores' %}" class="btn btn-outline-warning btn-sm">
+                                    Limpiar filtros
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+{% endblock %}
+
+
+{% block extra_css %}
+<style>
+/* ============================================================
+   PANEL ADMIN · EXPOSITORES — Oscuro + contraste fuerte
+   ============================================================ */
+
+/* ============ SECCIÓN ============ */
+.panel-section {
+    position: relative;
+    padding: 3rem 0;
+    background: #0A0A0A;
+    min-height: calc(100vh - 200px);
+    overflow: hidden;
+}
+.panel-pattern {
+    position: absolute;
+    inset: 0;
+    background-image:
+        radial-gradient(circle at 10% 10%, rgba(253, 153, 0, 0.08) 0%, transparent 45%),
+        radial-gradient(circle at 90% 90%, rgba(181, 88, 38, 0.08) 0%, transparent 45%),
+        radial-gradient(rgba(253, 233, 1, 0.05) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 28px 28px;
+    pointer-events: none;
+}
+
+/* ============ HEADER ============ */
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+}
+.panel-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.55);
+    text-decoration: none;
+    margin-bottom: 0.75rem;
+    transition: color var(--transition-fast), transform var(--transition-fast);
+}
+.panel-back:hover {
+    color: var(--amarillo);
+    transform: translateX(-3px);
+}
+.panel-back i { font-size: 0.75rem; }
+
+.panel-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+    color: #FFF;
+    margin: 0 0 0.35rem;
+    letter-spacing: 0.02em;
+    line-height: 1.1;
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    flex-wrap: wrap;
+}
+.panel-count {
+    font-family: var(--font-heading);
+    font-size: 0.95rem;
+    background: var(--grad-amarillo-naranja);
+    color: var(--negro);
+    padding: 0.3em 0.9em;
+    border-radius: var(--radius-pill);
+    letter-spacing: 0.02em;
+    line-height: 1;
+}
+.panel-subtitle {
+    font-family: var(--font-body);
+    font-size: 0.92rem;
+    color: rgba(255, 255, 255, 0.55);
+    margin: 0;
+}
+.panel-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+.panel-actions .btn {
+    font-size: 0.88rem;
+    padding: 0.6em 1.1em;
+}
+
+/* ============ FILTROS ============ */
+.filter-card {
+    background: #141414;
+    border: 1.5px solid rgba(253, 233, 1, 0.12);
+    border-radius: var(--radius-md);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.5rem;
+}
+.filter-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr auto;
+    gap: 0.85rem;
+    align-items: end;
+}
+.filter-field {
+    display: flex;
+    flex-direction: column;
+}
+.filter-label {
+    font-family: var(--font-heading);
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--amarillo);
+    margin-bottom: 0.4rem;
+}
+.filter-input {
+    width: 100%;
+    font-family: var(--font-body);
+    font-size: 0.88rem;
+    padding: 0.6rem 0.85rem;
+    background: #1A1A1A;
+    border: 1.5px solid rgba(253, 233, 1, 0.15);
+    border-radius: var(--radius-sm);
+    color: #FFF;
+    transition: border-color var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast);
+}
+.filter-input:focus {
+    outline: none;
+    border-color: var(--naranja);
+    background: #1F1F1F;
+    box-shadow: 0 0 0 0.15rem rgba(253, 153, 0, 0.2);
+}
+.filter-input::placeholder {
+    color: rgba(255, 255, 255, 0.35);
+}
+.filter-input option {
+    background: #1A1A1A;
+    color: #FFF;
+}
+.filter-actions {
+    display: flex;
+    gap: 0.4rem;
+}
+.filter-actions .btn {
+    font-size: 0.85rem;
+    padding: 0.6em 1em;
+    white-space: nowrap;
+}
+
+/* ============ TABLA ============ */
+.table-card {
+    background: #141414;
+    border: 1.5px solid rgba(253, 233, 1, 0.12);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+.table-responsive {
+    overflow-x: auto;
+}
+.panel-table {
+    width: 100%;
+    border-collapse: collapse;
+    color: #FFF;
+    font-family: var(--font-body);
+}
+.panel-table thead {
+    background: #0F0F0F;
+    border-bottom: 1.5px solid rgba(253, 233, 1, 0.12);
+}
+.panel-table thead th {
+    font-family: var(--font-heading);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--amarillo);
+    padding: 1rem 1rem;
+    text-align: left;
+    font-weight: 400;
+}
+.panel-table thead th.text-center { text-align: center; }
+.panel-table thead th.text-end { text-align: right; }
+
+.panel-table tbody tr {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    transition: background var(--transition-fast);
+}
+.panel-table tbody tr:last-child { border-bottom: none; }
+.panel-table tbody tr:hover {
+    background: rgba(253, 233, 1, 0.035);
+}
+.panel-table td {
+    padding: 0.9rem 1rem;
+    vertical-align: middle;
+    font-size: 0.9rem;
+}
+
+/* Logos */
+.row-logo {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+    background: #1A1A1A;
+    padding: 4px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid rgba(253, 233, 1, 0.15);
+}
+.row-logo-placeholder {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #1A1A1A;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid rgba(253, 233, 1, 0.15);
+    color: rgba(253, 233, 1, 0.4);
+    font-size: 1rem;
+}
+
+/* Empresa */
+.row-empresa {
+    font-family: var(--font-heading);
+    font-size: 0.95rem;
+    color: #FFF;
+    letter-spacing: 0.02em;
+}
+.row-star {
+    color: var(--amarillo);
+    font-size: 0.75rem;
+    margin-left: 0.35rem;
+}
+.row-categoria {
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.45);
+    margin-top: 0.15rem;
+}
+.row-expositor {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.75);
+}
+
+/* Badges */
+.badge-stand {
+    font-family: var(--font-body);
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.3em 0.7em;
+    background: var(--grad-amarillo-naranja);
+    color: var(--negro);
+    border-radius: var(--radius-pill);
+    letter-spacing: 0.02em;
+}
+.badge-count {
+    display: inline-block;
+    min-width: 32px;
+    font-family: var(--font-heading);
+    font-size: 0.78rem;
+    padding: 0.25em 0.6em;
+    background: rgba(253, 233, 1, 0.1);
+    color: var(--amarillo);
+    border-radius: var(--radius-pill);
+    text-align: center;
+    border: 1px solid rgba(253, 233, 1, 0.2);
+}
+
+/* Status */
+.status-badge {
+    font-family: var(--font-body);
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.4em 0.85em;
+    border-radius: var(--radius-pill);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+.status-active {
+    background: rgba(46, 204, 113, 0.15);
+    color: #7EEBAE;
+}
+.status-inactive {
+    background: rgba(231, 76, 60, 0.15);
+    color: #FF8A80;
+}
+
+.text-muted-sm {
+    color: rgba(255, 255, 255, 0.3);
+    font-size: 0.85rem;
+}
+
+/* Acciones */
+.row-actions {
+    display: inline-flex;
+    gap: 0.3rem;
+}
+.action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: var(--radius-sm);
+    background: #1A1A1A;
+    border: 1.5px solid rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.55);
+    font-size: 0.82rem;
+    text-decoration: none;
+    transition: all var(--transition-fast);
+}
+.action-btn:hover {
+    transform: translateY(-2px);
+    color: #FFF;
+}
+.action-view:hover {
+    background: rgba(13, 110, 253, 0.15);
+    border-color: #0d6efd;
+    color: #6ea8fe;
+}
+.action-star:hover {
+    background: rgba(253, 233, 1, 0.12);
+    border-color: var(--amarillo);
+    color: var(--amarillo);
+}
+.action-power:hover {
+    background: rgba(253, 153, 0, 0.12);
+    border-color: var(--naranja);
+    color: var(--naranja);
+}
+.action-edit:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.25);
+    color: #FFF;
+}
+
+/* Empty */
+.empty-row {
+    text-align: center;
+    padding: 4rem 1rem !important;
+    color: rgba(255, 255, 255, 0.4);
+}
+.empty-row i {
+    font-size: 2.5rem;
+    color: rgba(253, 233, 1, 0.25);
+    display: block;
+    margin-bottom: 0.75rem;
+}
+.empty-row p {
+    font-family: var(--font-body);
+    margin-bottom: 1rem;
+}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width: 1200px) {
+    .filter-grid {
+        grid-template-columns: 2fr 1fr 1fr 1fr;
+    }
+    .filter-search { grid-column: 1 / -1; }
+    .filter-actions {
+        grid-column: 1 / -1;
+        justify-content: flex-end;
+    }
+}
+@media (max-width: 768px) {
+    .panel-section { padding: 2rem 0; }
+    .panel-header { align-items: flex-start; }
+    .panel-actions { width: 100%; }
+    .panel-actions .btn { flex-grow: 1; }
+    .filter-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    .filter-search { grid-column: 1 / -1; }
+    .filter-actions { grid-column: 1 / -1; }
+    .filter-actions .btn { flex-grow: 1; }
+    .panel-table td,
+    .panel-table thead th {
+        padding: 0.75rem 0.6rem;
+        font-size: 0.82rem;
+    }
+    .row-logo,
+    .row-logo-placeholder { width: 40px; height: 40px; }
+    .action-btn { width: 30px; height: 30px; font-size: 0.75rem; }
+}
+</style>
+{% endblock %}
