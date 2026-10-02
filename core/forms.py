@@ -3,6 +3,64 @@ from .models import Expositor, Producto, FotoProducto
 
 
 class ExpositorForm(forms.ModelForm):
+    """
+    Formulario del EXPOSITOR (panel propio).
+    NO incluye 'menu_completo' (se quitó del form porque el menú
+    ahora se gestiona como Productos individuales).
+    NO incluye 'es_destacado' ni 'activo' — esos los controla el admin.
+    """
+    class Meta:
+        model = Expositor
+        fields = [
+            'nombre_expositor', 'nombre_empresa', 'logo',
+            'email_contacto', 'numero_contacto', 'numero_stand',
+            'categoria', 'descripcion', 'especialidades',
+            'enlace_red_social_1', 'enlace_red_social_2', 'redes_sociales_texto',
+            'acepta_tarjeta', 'acepta_efectivo',
+            'link_google_maps', 'direccion_negocio',
+        ]
+        widgets = {
+            'descripcion': forms.Textarea(attrs={
+                'rows': 3, 'class': 'form-control',
+                'placeholder': 'Ej: Butifarras artesanales de la familia Pérez, desde 1985.'
+            }),
+            'especialidades': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'crema de ajo, mango habanero, BBQ'
+            }),
+            'categoria': forms.Select(attrs={'class': 'form-select'}),
+            'nombre_expositor': forms.TextInput(attrs={'class': 'form-control'}),
+            'nombre_empresa': forms.TextInput(attrs={'class': 'form-control'}),
+            'email_contacto': forms.EmailInput(attrs={'class': 'form-control'}),
+            'numero_contacto': forms.TextInput(attrs={'class': 'form-control'}),
+            'numero_stand': forms.TextInput(attrs={'class': 'form-control'}),
+            'enlace_red_social_1': forms.URLInput(attrs={'class': 'form-control'}),
+            'enlace_red_social_2': forms.URLInput(attrs={'class': 'form-control'}),
+            'redes_sociales_texto': forms.TextInput(attrs={'class': 'form-control'}),
+            'link_google_maps': forms.URLInput(attrs={'class': 'form-control'}),
+            'direccion_negocio': forms.TextInput(attrs={'class': 'form-control'}),
+            'logo': forms.FileInput(attrs={'class': 'form-control'}),
+            'acepta_tarjeta': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'acepta_efectivo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+
+    def clean(self):
+        """Bloquea edición si el estado no lo permite (defensa en profundidad)."""
+        cleaned = super().clean()
+        if self.instance and self.instance.pk and not self.instance.puede_editar:
+            raise forms.ValidationError(
+                'Esta solicitud ya fue enviada y no puede editarse en su estado actual.'
+            )
+        return cleaned
+
+
+class ExpositorAdminForm(forms.ModelForm):
+    """
+    Formulario del ADMIN (panel de administración).
+    SÍ incluye 'menu_completo' (para que el admin vea/edite el menú de texto
+    de los expositores viejos que aún no se han migrado a Producto).
+    SÍ incluye 'es_destacado' y 'activo'.
+    """
     class Meta:
         model = Expositor
         fields = [
@@ -94,3 +152,41 @@ class FotoProductoForm(forms.ModelForm):
                 'placeholder': 'Ej: Butifarra tradicional en exhibición'
             }),
         }
+
+
+class RevisionSolicitudForm(forms.Form):
+    """
+    Formulario exclusivo del ADMIN para revisar una solicitud.
+    Acciones: aprobar / observar / rechazar.
+    """
+    ACCIONES = [
+        ('aprobar', 'Aprobar y publicar'),
+        ('observar', 'Hacer observaciones'),
+        ('rechazar', 'Rechazar'),
+    ]
+
+    accion = forms.ChoiceField(
+        choices=ACCIONES,
+        widget=forms.RadioSelect(attrs={'class': 'form-check-input'}),
+        label='Decisión'
+    )
+    comentario = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'rows': 4,
+            'placeholder': 'Explica brevemente tu decisión. El expositor verá este texto.'
+        }),
+        label='Comentario / Observaciones'
+    )
+
+    def clean(self):
+        cleaned = super().clean()
+        accion = cleaned.get('accion')
+        comentario = (cleaned.get('comentario') or '').strip()
+
+        if accion in ('observar', 'rechazar') and not comentario:
+            raise forms.ValidationError(
+                'Debes escribir un comentario si vas a observar o rechazar la solicitud.'
+            )
+        return cleaned

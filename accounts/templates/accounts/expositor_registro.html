@@ -93,6 +93,12 @@
                             </div>
 
                             <div class="expo-field">
+                                <label class="expo-label">Especialidades</label>
+                                {{ form.especialidades }}
+                                <div class="expo-hint">Separa con comas: crema de ajo, mango habanero, BBQ</div>
+                            </div>
+
+                            <div class="expo-field">
                                 <label class="expo-label">Logo del negocio</label>
                                 {% if expositor.logo %}
                                 <div class="expo-logo-preview">
@@ -209,25 +215,6 @@
                                 </label>
                             </div>
 
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ============ MENÚ ============ -->
-                <div class="col-12">
-                    <div class="expo-card">
-                        <div class="expo-card-header">
-                            <i class="fas fa-utensils"></i>
-                            <span>Menú completo *</span>
-                        </div>
-                        <div class="expo-card-body">
-                            {{ form.menu_completo }}
-                            <div class="expo-hint">
-                                Un producto por línea. Ej: "1 kilo de butifarra tradicional - $350"
-                            </div>
-                            {% if form.menu_completo.errors %}
-                            <small class="expo-error">{{ form.menu_completo.errors.0 }}</small>
-                            {% endif %}
                         </div>
                     </div>
                 </div>

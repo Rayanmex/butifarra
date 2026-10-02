@@ -14,6 +14,11 @@ html {
     scroll-behavior: smooth;
 }
 
+html, body {
+    overflow-x: hidden;
+    max-width: 100%;
+}
+
 body {
     font-family: var(--font-body);
     font-size: var(--fs-base);
@@ -48,7 +53,7 @@ h1, h2, h3, h4, h5, h6 {
     letter-spacing: 0.02em;
     line-height: 1.15;
     margin: 0 0 var(--space-md);
-    font-weight: 400; /* Anton ya es bold por defecto */
+    font-weight: 400;
 }
 
 h1 { font-size: var(--fs-3xl); }
@@ -149,14 +154,14 @@ p {
 }
 
 .btn-warning {
-    background: var(--grad-amarillo-naranja);
+    background: linear-gradient(180deg, var(--amarillo) 0%, var(--naranja) 100%) !important;
     color: var(--negro) !important;
     font-weight: 700;
     box-shadow: var(--shadow-amarillo);
 }
 
 .btn-warning:hover {
-    background: var(--grad-amarillo-naranja);
+    background: linear-gradient(180deg, var(--amarillo) 0%, var(--naranja-dark) 100%) !important;
     transform: translateY(-2px);
     box-shadow: var(--shadow-naranja), 0 10px 30px rgba(253, 153, 0, 0.4);
     color: var(--negro);
@@ -181,8 +186,9 @@ p {
 }
 
 .btn-outline-warning:hover {
-    background: var(--amarillo);
+    background: linear-gradient(180deg, var(--amarillo) 0%, var(--naranja) 100%);
     color: var(--negro);
+    border-color: var(--naranja);
     transform: translateY(-2px);
 }
 
@@ -344,8 +350,8 @@ p {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 400px;
-    height: 400px;
+    width: 180px;
+    height: 180px;
     text-decoration: none;
     animation: mascotaFlotar 3s ease-in-out infinite;
     transition: transform var(--transition-base);
@@ -384,12 +390,10 @@ p {
     50%      { opacity: 1;   transform: scale(1.15); }
 }
 
-@media (max-width: 768px) {
+/* Ocultar mascota en tablet y móvil para evitar scroll lateral */
+@media (max-width: 1024px) {
     .mascota-flotante {
-        width: 80px;
-        height: 80px;
-        right: 12px;
-        bottom: 12px;
+        display: none !important;
     }
 }
 
@@ -433,10 +437,12 @@ p {
 
 /* ============ UTILIDADES ============ */
 .text-gradient {
-    background: var(--grad-amarillo-naranja);
+    background: linear-gradient(180deg, var(--amarillo) 0%, var(--naranja) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    color: transparent;
+    display: inline-block;
 }
 
 .bg-gradient-festival {
@@ -478,80 +484,8 @@ p {
     .brand-text {
         font-size: 1.1rem;
     }
-}
 
-/* Botones con degradado vertical reforzado */
-.btn-warning {
-    background: linear-gradient(180deg, var(--amarillo) 0%, var(--naranja) 100%) !important;
-    color: var(--negro) !important;
-    font-weight: 700;
-}
-.btn-warning:hover {
-    background: linear-gradient(180deg, var(--amarillo) 0%, var(--naranja-dark) 100%) !important;
-    transform: translateY(-2px);
-}
-.btn-outline-warning:hover {
-    background: linear-gradient(180deg, var(--amarillo) 0%, var(--naranja) 100%);
-    color: var(--negro);
-    border-color: var(--naranja);
-}
-
-
-/* ============ LOGO PRINCIPAL DEL HERO ============ */
-.hero-title-logo {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 1.5rem;
-}
-
-.hero-logo-img {
-    width: clamp(900px, 55vw, 900px);
-    height: auto;
-    object-fit: contain;
-    filter: drop-shadow(0 12px 40px rgba(253, 153, 0, 0.5))
-            drop-shadow(0 4px 16px rgba(0, 0, 0, 0.6));
-    animation: heroLogoFloat 4s ease-in-out infinite;
-}
-
-@keyframes heroLogoFloat {
-    0%, 100% { transform: translateY(0) scale(1); }
-    50%      { transform: translateY(-10px) scale(1.02); }
-}
-
-/* El año queda debajo del logo */
-.hero-title-logo .hero-year {
-    font-family: var(--font-display);
-    font-size: clamp(1.5rem, 3vw, 2.25rem);
-    color: var(--naranja);
-    letter-spacing: 0.15em;
-    margin-top: 0.25rem;
-    text-shadow: 0 4px 16px rgba(0, 0, 0, 0.7);
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .hero-logo-img {
-        width: clamp(220px, 75vw, 380px);
+    .footer-logo {
+        height: 50px;
     }
-    .hero-title-logo .hero-year {
-        font-size: 1.35rem;
-        letter-spacing: 0.1em;
-    }
-}
-
-/* Título del preloader con degradado vertical */
-.preloader-title-gradient {
-    background: linear-gradient(180deg, var(--amarillo) 0%, var(--naranja) 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    color: transparent;
-    text-shadow: none !important;
-    filter: none;
-    display: block;
-    font-family: var(--font-display);
-    font-size: 1.8rem;
-    letter-spacing: 0.04em;
 }

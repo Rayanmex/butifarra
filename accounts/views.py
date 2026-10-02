@@ -3,11 +3,9 @@ from django.contrib.auth import login, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
-from django.db.models import Count
 
 from .forms import LoginForm, RegistroExpositorForm
-from core.forms import ExpositorForm, ProductoForm, FotoProductoForm
-
+from core.forms import ExpositorForm, ProductoForm
 from .decorators import admin_requerido, expositor_requerido
 from .models import PerfilUsuario
 from core.models import Expositor, Producto, FotoProducto
@@ -25,7 +23,6 @@ def login_view(request):
         if form.is_valid():
             user = form.get_user()
             login(request, user)
-            messages.success(request, f'Bienvenido, {user.get_full_name() or user.username}.')
 
             perfil = getattr(user, 'perfil', None)
             if user.is_superuser or (perfil and perfil.rol == 'admin'):
@@ -47,7 +44,6 @@ def login_view(request):
 # ============================================================
 def logout_view(request):
     logout(request)
-    messages.info(request, 'Has cerrado sesión.')
     return redirect('accounts:login')
 
 
@@ -63,7 +59,6 @@ def registro_view(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
-            messages.success(request, '¡Registro exitoso! Bienvenido al panel de expositores.')
             return redirect('accounts:panel_expositor')
         else:
             messages.error(request, 'Revisa los errores del formulario.')
@@ -98,24 +93,18 @@ def panel_expositor(request):
     expositor = perfil.expositor
 
     if not expositor:
-        messages.error(request, 'Tu cuenta no tiene un expositor vinculado. Contacta al administrador.')
+        messages.error(
+            request,
+            'Tu cuenta no tiene un expositor vinculado. Contacta al administrador.'
+        )
         return redirect('core:index')
 
-    # ¿Perfil incompleto?
-    campos_requeridos = [
-        expositor.nombre_empresa and expositor.nombre_empresa != 'Por definir',
-        expositor.nombre_expositor,
-        expositor.email_contacto,
-        expositor.numero_contacto,
-        expositor.descripcion,
-        expositor.menu_completo,
-        expositor.categoria,
-    ]
-    perfil_incompleto = not all(campos_requeridos)
+    perfil_incompleto = not expositor.campos_requeridos_completos
 
     contexto = {
         'expositor': expositor,
         'perfil_incompleto': perfil_incompleto,
+        'puede_editar': expositor.puede_editar,
         'n_productos': expositor.productos.count(),
         'n_fotos': expositor.fotos.count(),
         'n_activos': expositor.productos.filter(disponible=True).count(),
@@ -133,6 +122,14 @@ def expositor_registro_completo(request):
     if not expositor:
         messages.error(request, 'Tu cuenta no tiene un expositor vinculado.')
         return redirect('core:index')
+
+    if not expositor.puede_editar:
+        messages.warning(
+            request,
+            'No puedes editar tu solicitud en este momento. '
+            'Solo se permite cuando está en borrador o con observaciones.'
+        )
+        return redirect('accounts:panel_expositor')
 
     if request.method == 'POST':
         form = ExpositorForm(request.POST, request.FILES, instance=expositor)
@@ -161,23 +158,28 @@ def expositor_enviar_solicitud(request):
 
     expositor = request.user.perfil.expositor
 
-    # Validar que esté completo
-    if not all([
-        expositor.nombre_empresa and expositor.nombre_empresa != 'Por definir',
-        expositor.nombre_expositor,
-        expositor.email_contacto,
-        expositor.numero_contacto,
-        expositor.descripcion,
-        expositor.menu_completo,
-        expositor.categoria,
-    ]):
-        messages.error(request, 'Completa todos los datos requeridos antes de enviar tu solicitud.')
+    if not expositor:
+        messages.error(request, 'Tu cuenta no tiene un expositor vinculado.')
+        return redirect('core:index')
+
+    if not expositor.puede_editar:
+        messages.warning(
+            request,
+            'Tu solicitud ya fue enviada y está en revisión o aprobada.'
+        )
+        return redirect('accounts:panel_expositor')
+
+    if not expositor.campos_requeridos_completos:
+        messages.error(
+            request,
+            'Completa todos los datos requeridos antes de enviar tu solicitud.'
+        )
         return redirect('accounts:expositor_registro_completo')
 
     expositor.estado_solicitud = 'pendiente'
     expositor.fecha_envio = timezone.now()
-    expositor.activo = False
-    expositor.save(update_fields=['estado_solicitud', 'fecha_envio', 'activo'])
+    expositor.nota_admin = ''
+    expositor.save(update_fields=['estado_solicitud', 'fecha_envio', 'nota_admin'])
 
     messages.success(
         request,
@@ -187,7 +189,7 @@ def expositor_enviar_solicitud(request):
 
 
 # ============================================================
-#  PRODUCTOS DEL EXPOSITOR
+#  PRODUCTOS DEL EXPOSITOR — LISTA + CREAR
 # ============================================================
 @expositor_requerido
 def expositor_productos(request):
@@ -195,6 +197,13 @@ def expositor_productos(request):
     productos = expositor.productos.all().order_by('categoria', 'nombre')
 
     if request.method == 'POST':
+        if not expositor.puede_editar:
+            messages.warning(
+                request,
+                'No puedes modificar productos mientras tu solicitud está en revisión o aprobada.'
+            )
+            return redirect('accounts:panel_expositor')
+
         form = ProductoForm(request.POST)
         if form.is_valid():
             producto = form.save(commit=False)
@@ -212,12 +221,60 @@ def expositor_productos(request):
         'expositor': expositor,
         'productos': productos,
         'form': form,
+        'puede_editar': expositor.puede_editar,
     })
 
 
+# ============================================================
+#  PRODUCTOS DEL EXPOSITOR — EDITAR
+# ============================================================
+@expositor_requerido
+def expositor_producto_edit(request, prod_pk):
+    expositor = request.user.perfil.expositor
+
+    if not expositor.puede_editar:
+        messages.warning(
+            request,
+            'No puedes editar productos mientras tu solicitud está en revisión o aprobada.'
+        )
+        return redirect('accounts:panel_expositor')
+
+    producto = get_object_or_404(Producto, pk=prod_pk, expositor=expositor)
+
+    if request.method == 'POST':
+        form = ProductoForm(request.POST, instance=producto)
+        if form.is_valid():
+            form.save()
+            expositor.recalcular_precio_desde()
+            messages.success(request, f'Producto "{producto.nombre}" actualizado.')
+            return redirect('accounts:expositor_productos')
+        else:
+            messages.error(request, 'Revisa los errores del formulario.')
+    else:
+        form = ProductoForm(instance=producto)
+
+    return render(request, 'accounts/expositor_producto_form.html', {
+        'expositor': expositor,
+        'producto': producto,
+        'form': form,
+        'modo': 'editar',
+    })
+
+
+# ============================================================
+#  PRODUCTOS DEL EXPOSITOR — ELIMINAR
+# ============================================================
 @expositor_requerido
 def expositor_producto_delete(request, prod_pk):
     expositor = request.user.perfil.expositor
+
+    if not expositor.puede_editar:
+        messages.warning(
+            request,
+            'No puedes eliminar productos mientras tu solicitud está en revisión o aprobada.'
+        )
+        return redirect('accounts:panel_expositor')
+
     producto = get_object_or_404(Producto, pk=prod_pk, expositor=expositor)
     nombre = producto.nombre
     producto.delete()
@@ -235,6 +292,13 @@ def expositor_fotos(request):
     fotos = expositor.fotos.all()
 
     if request.method == 'POST':
+        if not expositor.puede_editar:
+            messages.warning(
+                request,
+                'No puedes subir fotos mientras tu solicitud está en revisión o aprobada.'
+            )
+            return redirect('accounts:panel_expositor')
+
         files = request.FILES.getlist('imagen')
         descripcion = request.POST.get('descripcion', '').strip()
 
@@ -256,21 +320,41 @@ def expositor_fotos(request):
     return render(request, 'accounts/expositor_fotos.html', {
         'expositor': expositor,
         'fotos': fotos,
+        'puede_editar': expositor.puede_editar,
     })
 
 
 @expositor_requerido
 def expositor_foto_delete(request, foto_pk):
     expositor = request.user.perfil.expositor
+
+    if not expositor.puede_editar:
+        messages.warning(
+            request,
+            'No puedes eliminar fotos mientras tu solicitud está en revisión o aprobada.'
+        )
+        return redirect('accounts:panel_expositor')
+
     foto = get_object_or_404(FotoProducto, pk=foto_pk, expositor=expositor)
     foto.delete()
     messages.success(request, 'Foto eliminada.')
     return redirect('accounts:expositor_fotos')
 
 
+# ============================================================
+#  LOGO DEL EXPOSITOR
+# ============================================================
 @expositor_requerido
 def expositor_logo_delete(request):
     expositor = request.user.perfil.expositor
+
+    if not expositor.puede_editar:
+        messages.warning(
+            request,
+            'No puedes modificar tu logo mientras tu solicitud está en revisión o aprobada.'
+        )
+        return redirect('accounts:panel_expositor')
+
     if expositor.logo:
         expositor.logo.delete(save=True)
         messages.success(request, 'Logo eliminado.')

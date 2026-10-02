@@ -1,5 +1,4 @@
 from django.db import models
-from django.core.validators import URLValidator
 
 
 class Expositor(models.Model):
@@ -12,18 +11,48 @@ class Expositor(models.Model):
         ('bebidas', 'Bebidas y Postres'),
     ]
 
-    # Información básica
-    nombre_expositor = models.CharField(max_length=200, verbose_name="Nombre del expositor")
-    nombre_empresa = models.CharField(max_length=200, verbose_name="Marca o nombre de la empresa")
-    logo = models.ImageField(upload_to='expositores/logos/', verbose_name="Logo de la marca o negocio",
-                             null=True, blank=True)
+    ESTADO_SOLICITUD_CHOICES = [
+        ('borrador', 'Borrador'),
+        ('pendiente', 'Pendiente de revisión'),
+        ('observado', 'Con observaciones'),
+        ('aprobado', 'Aprobado y publicado'),
+        ('rechazado', 'Rechazado'),
+    ]
 
-    # Contacto
-    email_contacto = models.EmailField(verbose_name="Correo electrónico de contacto")
-    numero_contacto = models.CharField(max_length=50, verbose_name="Número de contacto",
-                                       help_text="Formato: 914 123 4567")
+    # ============ Información básica ============
+    nombre_expositor = models.CharField(
+        max_length=200,
+        verbose_name="Nombre del expositor",
+        blank=True,
+        null=True,
+    )
+    nombre_empresa = models.CharField(
+        max_length=200,
+        verbose_name="Marca o nombre de la empresa",
+        default='Por definir',
+    )
+    logo = models.ImageField(
+        upload_to='expositores/logos/',
+        verbose_name="Logo de la marca o negocio",
+        null=True,
+        blank=True,
+    )
 
-    # Ubicación en el festival
+    # ============ Contacto ============
+    email_contacto = models.EmailField(
+        verbose_name="Correo electrónico de contacto",
+        blank=True,
+        null=True,
+    )
+    numero_contacto = models.CharField(
+        max_length=50,
+        verbose_name="Número de contacto",
+        help_text="Formato: 914 123 4567",
+        blank=True,
+        null=True,
+    )
+
+    # ============ Ubicación en el festival ============
     numero_stand = models.CharField(
         max_length=50,
         verbose_name="Número de stand",
@@ -32,7 +61,7 @@ class Expositor(models.Model):
         help_text="Número del stand en el festival. Puede dejarse pendiente."
     )
 
-    # Redes sociales — AHORA SON CharField (aceptan texto libre)
+    # ============ Redes sociales ============
     enlace_red_social_1 = models.CharField(
         max_length=500,
         verbose_name="Red social principal",
@@ -55,22 +84,30 @@ class Expositor(models.Model):
         help_text="Si no tienes URLs completas, escribe los nombres de usuario aquí"
     )
 
-    # Menú
+    # ============ Menú ============
     menu_completo = models.TextField(
         verbose_name="Menú completo (Lista de productos y precios)",
-        help_text="Ingresa cada producto con su precio."
+        help_text="Ingresa cada producto con su precio.",
+        blank=True,
+        null=True,
     )
 
-    # Pagos
-    acepta_tarjeta = models.BooleanField(default=False, verbose_name="¿Aceptan pago con tarjeta?")
-    acepta_efectivo = models.BooleanField(default=True, verbose_name="¿Acepta efectivo?")
+    # ============ Pagos ============
+    acepta_tarjeta = models.BooleanField(
+        default=False,
+        verbose_name="¿Aceptan pago con tarjeta?"
+    )
+    acepta_efectivo = models.BooleanField(
+        default=True,
+        verbose_name="¿Acepta efectivo?"
+    )
 
-    # Ubicación del negocio
+    # ============ Ubicación del negocio ============
     link_google_maps = models.URLField(
         max_length=500,
         verbose_name="Link de Google Maps de la ubicación del negocio",
         blank=True,
-        null=True
+        null=True,
     )
     direccion_negocio = models.CharField(
         max_length=300,
@@ -80,11 +117,11 @@ class Expositor(models.Model):
         help_text="Escribe la dirección si no tienes link de Google Maps"
     )
 
-    # Enriquecimiento
+    # ============ Enriquecimiento ============
     descripcion = models.TextField(
         verbose_name="Descripción corta del negocio",
         blank=True,
-        null=True
+        null=True,
     )
     categoria = models.CharField(
         max_length=20,
@@ -96,23 +133,53 @@ class Expositor(models.Model):
         max_length=300,
         verbose_name="Especialidades",
         blank=True,
-        null=True
+        null=True,
     )
     precio_desde = models.DecimalField(
         max_digits=8,
         decimal_places=2,
         verbose_name="Precio desde",
         blank=True,
-        null=True
+        null=True,
     )
     es_destacado = models.BooleanField(
         default=False,
         verbose_name="¿Expositor destacado?"
     )
 
-    # Administración
-    fecha_registro = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de registro")
-    activo = models.BooleanField(default=True, verbose_name="Activo")
+    # ============ Administración ============
+    fecha_registro = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Fecha de registro"
+    )
+    activo = models.BooleanField(
+        default=True,
+        verbose_name="Activo"
+    )
+
+    # ============ Solicitud ============
+    estado_solicitud = models.CharField(
+        max_length=20,
+        choices=ESTADO_SOLICITUD_CHOICES,
+        default='borrador',
+        verbose_name="Estado de solicitud"
+    )
+    fecha_envio = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="Fecha de envío de solicitud"
+    )
+    fecha_revision = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="Fecha de revisión por admin"
+    )
+    nota_admin = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name="Nota del administrador",
+        help_text="Explicación de aprobación, observaciones o rechazo (visible para el expositor)."
+    )
 
     class Meta:
         verbose_name = "Expositor"
@@ -123,6 +190,45 @@ class Expositor(models.Model):
         stand = self.numero_stand if self.numero_stand else "Sin asignar"
         return f"{self.nombre_empresa} - Stand #{stand}"
 
+    # ============ Propiedades de estado ============
+    @property
+    def puede_editar(self):
+        """El expositor solo puede editar en borrador u observado."""
+        return self.estado_solicitud in ('borrador', 'observado')
+
+    @property
+    def esta_pendiente(self):
+        return self.estado_solicitud == 'pendiente'
+
+    @property
+    def esta_aprobado(self):
+        return self.estado_solicitud == 'aprobado'
+
+    @property
+    def esta_rechazado(self):
+        return self.estado_solicitud == 'rechazado'
+
+    @property
+    def esta_observado(self):
+        return self.estado_solicitud == 'observado'
+
+    @property
+    def campos_requeridos_completos(self):
+        """
+        Campos mínimos para poder enviar la solicitud:
+        datos básicos + al menos 1 producto registrado.
+        """
+        datos_basicos_ok = all([
+            self.nombre_empresa and self.nombre_empresa != 'Por definir',
+            self.nombre_expositor,
+            self.email_contacto,
+            self.numero_contacto,
+            self.descripcion,
+            self.categoria,
+        ])
+        return datos_basicos_ok and self.productos.exists()
+
+    # ============ Helpers de presentación ============
     def get_menu_list(self):
         if not self.menu_completo:
             return []
@@ -162,40 +268,25 @@ class Expositor(models.Model):
         self.precio_desde = minimo
         self.save(update_fields=['precio_desde'])
 
-    ESTADO_SOLICITUD_CHOICES = [
-        ('borrador', 'Borrador'),
-        ('pendiente', 'Pendiente de revisión'),
-        ('aprobado', 'Aprobado y publicado'),
-        ('rechazado', 'Rechazado'),
-    ]
-
-    estado_solicitud = models.CharField(
-        max_length=20,
-        choices=ESTADO_SOLICITUD_CHOICES,
-        default='borrador',
-        verbose_name="Estado de solicitud"
-    )
-    fecha_envio = models.DateTimeField(
-        null=True, blank=True,
-        verbose_name="Fecha de envío de solicitud"
-    )
-    nota_admin = models.TextField(
-        blank=True, null=True,
-        verbose_name="Nota del administrador",
-        help_text="Explicación de aprobación o rechazo (visible para el expositor)."
-    )
-
 
 class FotoProducto(models.Model):
-    """Fotos de productos de cada expositor"""
+    """Fotos de productos de cada expositor."""
     expositor = models.ForeignKey(
         Expositor,
         on_delete=models.CASCADE,
         related_name='fotos',
         verbose_name="Expositor"
     )
-    imagen = models.ImageField(upload_to='expositores/productos/', verbose_name="Foto del producto")
-    descripcion = models.CharField(max_length=200, blank=True, null=True, verbose_name="Descripción")
+    imagen = models.ImageField(
+        upload_to='expositores/productos/',
+        verbose_name="Foto del producto"
+    )
+    descripcion = models.CharField(
+        max_length=200,
+        blank=True,
+        null=True,
+        verbose_name="Descripción"
+    )
     fecha_subida = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -208,7 +299,7 @@ class FotoProducto(models.Model):
 
 
 class Producto(models.Model):
-    """Producto individual de un expositor, extraído del menú o agregado a mano."""
+    """Producto individual de un expositor."""
 
     CATEGORIA_CHOICES = [
         ('butifarra_tradicional', 'Butifarra Tradicional'),
@@ -246,7 +337,10 @@ class Producto(models.Model):
         related_name='productos',
         verbose_name="Expositor"
     )
-    nombre = models.CharField(max_length=200, verbose_name="Nombre del producto")
+    nombre = models.CharField(
+        max_length=200,
+        verbose_name="Nombre del producto"
+    )
     categoria = models.CharField(
         max_length=30,
         choices=CATEGORIA_CHOICES,
@@ -264,16 +358,18 @@ class Producto(models.Model):
         decimal_places=2,
         verbose_name="Precio",
         blank=True,
-        null=True
+        null=True,
     )
     descripcion = models.CharField(
         max_length=300,
         verbose_name="Descripción corta",
         blank=True,
-        null=True
+        null=True,
     )
-    disponible = models.BooleanField(default=True, verbose_name="Disponible en el festival")
-
+    disponible = models.BooleanField(
+        default=True,
+        verbose_name="Disponible en el festival"
+    )
     fecha_creacion = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -294,7 +390,6 @@ class Producto(models.Model):
         if self.precio == int(self.precio):
             return f"${int(self.precio)}"
         return f"${self.precio:.2f}"
-
 
 
 # =============================================================
@@ -325,7 +420,11 @@ class Festival(models.Model):
 
 class HistoriaFestival(models.Model):
     """Bloques de historia (aparecen en el index)."""
-    festival = models.ForeignKey(Festival, on_delete=models.CASCADE, related_name='historia')
+    festival = models.ForeignKey(
+        Festival,
+        on_delete=models.CASCADE,
+        related_name='historia'
+    )
     titulo = models.CharField(max_length=200)
     subtitulo = models.CharField(max_length=300, blank=True)
     parrafo = models.TextField(blank=True)
@@ -341,11 +440,19 @@ class HistoriaFestival(models.Model):
 
 
 class Artista(models.Model):
-    festival = models.ForeignKey(Festival, on_delete=models.CASCADE, related_name='artistas')
+    festival = models.ForeignKey(
+        Festival,
+        on_delete=models.CASCADE,
+        related_name='artistas'
+    )
     nombre = models.CharField(max_length=200)
     descripcion = models.CharField(max_length=300, blank=True)
     cartel_url = models.CharField(max_length=500, blank=True)
-    imagen_local = models.ImageField(upload_to='festival/artistas/', blank=True, null=True)
+    imagen_local = models.ImageField(
+        upload_to='festival/artistas/',
+        blank=True,
+        null=True
+    )
     dia_presentacion = models.DateField(blank=True, null=True)
     orden = models.PositiveIntegerField(default=0)
 
@@ -365,10 +472,18 @@ class Artista(models.Model):
 
 
 class ProgramaDia(models.Model):
-    festival = models.ForeignKey(Festival, on_delete=models.CASCADE, related_name='programa')
+    festival = models.ForeignKey(
+        Festival,
+        on_delete=models.CASCADE,
+        related_name='programa'
+    )
     dia = models.DateField()
     imagen_url = models.CharField(max_length=500, blank=True)
-    imagen_local = models.ImageField(upload_to='festival/programa/', blank=True, null=True)
+    imagen_local = models.ImageField(
+        upload_to='festival/programa/',
+        blank=True,
+        null=True
+    )
     descripcion = models.TextField(blank=True)
     orden = models.PositiveIntegerField(default=0)
 
@@ -388,9 +503,17 @@ class ProgramaDia(models.Model):
 
 
 class FotoGaleria(models.Model):
-    festival = models.ForeignKey(Festival, on_delete=models.CASCADE, related_name='galeria_fotos')
+    festival = models.ForeignKey(
+        Festival,
+        on_delete=models.CASCADE,
+        related_name='galeria_fotos'
+    )
     imagen_url = models.CharField(max_length=500, blank=True)
-    imagen_local = models.ImageField(upload_to='festival/galeria/', blank=True, null=True)
+    imagen_local = models.ImageField(
+        upload_to='festival/galeria/',
+        blank=True,
+        null=True
+    )
     descripcion = models.CharField(max_length=200, blank=True)
     orden = models.PositiveIntegerField(default=0)
 
@@ -410,7 +533,11 @@ class FotoGaleria(models.Model):
 
 
 class VideoGaleria(models.Model):
-    festival = models.ForeignKey(Festival, on_delete=models.CASCADE, related_name='galeria_videos')
+    festival = models.ForeignKey(
+        Festival,
+        on_delete=models.CASCADE,
+        related_name='galeria_videos'
+    )
     titulo = models.CharField(max_length=200)
     video_url = models.CharField(max_length=500)
     poster_url = models.CharField(max_length=500, blank=True)
@@ -427,10 +554,18 @@ class VideoGaleria(models.Model):
 
 
 class Patrocinador(models.Model):
-    festival = models.ForeignKey(Festival, on_delete=models.CASCADE, related_name='patrocinadores')
+    festival = models.ForeignKey(
+        Festival,
+        on_delete=models.CASCADE,
+        related_name='patrocinadores'
+    )
     nombre = models.CharField(max_length=200, blank=True)
     logo_url = models.CharField(max_length=500, blank=True)
-    logo_local = models.ImageField(upload_to='festival/patrocinadores/', blank=True, null=True)
+    logo_local = models.ImageField(
+        upload_to='festival/patrocinadores/',
+        blank=True,
+        null=True
+    )
     orden = models.PositiveIntegerField(default=0)
 
     class Meta:

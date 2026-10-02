@@ -13,7 +13,7 @@
         <img src="{% static 'core/img/logo/Butifarra.gif' %}"
              alt="Festival de la Butifarra"
              class="preloader-logo">
-       
+
         <div class="preloader-bar">
             <div class="preloader-bar-fill"></div>
         </div>
@@ -57,13 +57,16 @@
     <div class="hero-overlay"></div>
 
     <div class="container hero-content">
-        
 
         <h1 class="hero-title hero-title-logo">
             <img src="{% static 'core/img/logo/Butifarra.gif' %}"
-                alt="Festival de la Butifarra"
-                class="hero-logo-img">
+                 alt="Festival de la Butifarra"
+                 class="hero-logo-img">
         </h1>
+
+        <p class="hero-slogan">
+            {% if festival.slogan %}"{{ festival.slogan }}"{% else %}"Tradición que se disfruta, orgullo que se comparte"{% endif %}
+        </p>
 
         <div class="hero-info">
             <div class="hero-info-item">
@@ -547,7 +550,7 @@
             Únete al {{ festival.edicion|default:11 }}.º Festival de la Butifarra
             y muestra tus productos a miles de visitantes.
         </p>
-        <a href="{% url 'core:registrar_expositor' %}" class="btn btn-warning btn-lg">
+        <a href="{% url 'accounts:registro' %}" class="btn btn-warning btn-lg">
             <i class="fas fa-plus-circle"></i> Registrar mi exposición
         </a>
     </div>
@@ -563,6 +566,7 @@
    ============================================================ */
 
 /* ============ PRELOADER ============ */
+/* ============ PRELOADER ============ */
 .preloader {
     position: fixed;
     inset: 0;
@@ -576,21 +580,30 @@
 }
 .preloader.preloader-hidden { opacity: 0; pointer-events: none; }
 
+/* ---------- CORTINILLAS (cafés oscurecidos) ---------- */
 .preloader-curtain {
     position: absolute;
     top: 0;
     bottom: 0;
     width: 50%;
-    background: var(--grad-oscuro);
     transition: transform 1s cubic-bezier(0.77, 0, 0.18, 1);
     z-index: 1;
 }
-.curtain-left  { left: 0; transform: translateX(0); }
-.curtain-right { right: 0; transform: translateX(0); }
+.curtain-left {
+    left: 0;
+    background: linear-gradient(135deg, #5A240E 0%, #7A3416 100%);
+    transform: translateX(0);
+}
+.curtain-right {
+    right: 0;
+    background: linear-gradient(135deg, #7A3416 0%, #B5895A 100%);
+    transform: translateX(0);
+}
 
 .preloader.preloader-open .curtain-left  { transform: translateX(-100%); }
 .preloader.preloader-open .curtain-right { transform: translateX(100%); }
 
+/* ---------- LOGO ---------- */
 .preloader-content {
     position: relative;
     z-index: 2;
@@ -613,40 +626,31 @@
 }
 
 .preloader-logo {
-    height: clamp(280px, 55vh, 720px);
+    height: clamp(220px, 45vh, 500px);
     width: auto;
-    max-width: 90vw;
+    max-width: 85vw;
     object-fit: contain;
-    filter: drop-shadow(0 12px 30px rgba(253, 233, 1, 0.55));
+    filter: drop-shadow(0 12px 30px rgba(253, 233, 1, 0.45));
     animation: preloaderLogoPulse 1.6s ease-in-out infinite;
 }
 
 @keyframes preloaderLogoPulse {
-    0%, 100% { transform: scale(1); filter: drop-shadow(0 12px 30px rgba(253, 233, 1, 0.55)); }
-    50%      { transform: scale(1.08); filter: drop-shadow(0 16px 42px rgba(253, 153, 0, 0.85)); }
+    0%, 100% {
+        transform: scale(1);
+        filter: drop-shadow(0 12px 30px rgba(253, 233, 1, 0.45));
+    }
+    50% {
+        transform: scale(1.08);
+        filter: drop-shadow(0 16px 42px rgba(253, 153, 0, 0.75));
+    }
 }
 
-.preloader-text { text-align: center; color: #FFF; }
-.preloader-text span {
-    
-    font-family: var(--font-display);
-    font-size: 1.8rem;
-    color: var(--amarillo);
-    letter-spacing: 0.04em;
-}
-.preloader-text small {
-    display: block;
-    font-size: 0.9rem;
-    text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.75);
-    margin-top: 8px;
-    letter-spacing: 0.1em;
-}
-
+/* ---------- BARRA DE PROGRESO ---------- */
 .preloader-bar {
     width: 220px;
+    max-width: 70vw;
     height: 5px;
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.20);
     border-radius: var(--radius-pill);
     overflow: hidden;
     margin-top: 0.5rem;
@@ -654,7 +658,7 @@
 .preloader-bar-fill {
     height: 100%;
     width: 0%;
-    background: var(--grad-amarillo-naranja);
+    background: linear-gradient(180deg, var(--amarillo) 0%, var(--naranja) 100%);
     border-radius: var(--radius-pill);
     box-shadow: 0 0 12px rgba(253, 153, 0, 0.8);
     animation: preloaderBarFill 3.2s cubic-bezier(0.65, 0, 0.35, 1) 0.3s forwards;
@@ -676,6 +680,7 @@ body.preloader-active { overflow: hidden; }
     justify-content: center;
     overflow: hidden;
     color: #FFF;
+    padding: 2rem 0;
 }
 .hero-bg {
     position: absolute;
@@ -699,48 +704,51 @@ body.preloader-active { overflow: hidden; }
     position: relative;
     z-index: 2;
     text-align: center;
-    padding: 4rem 1rem;
+    padding: 3rem 1rem;
     max-width: 900px;
+    width: 100%;
 }
-.hero-badge {
-    display: inline-block;
-    font-family: var(--font-body);
-    font-size: 0.85rem;
-    font-weight: 600;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--amarillo);
-    padding: 0.5rem 1.2rem;
-    border: 2px solid var(--amarillo);
-    border-radius: var(--radius-pill);
-    margin-bottom: 2rem;
-    background: rgba(0, 0, 0, 0.3);
-    backdrop-filter: blur(8px);
-}
-.hero-title {
-    font-family: var(--font-display);
-    font-size: clamp(2.5rem, 8vw, 5.5rem);
+
+/* ---------- LOGO PRINCIPAL ---------- */
+.hero-title-logo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0 0 1rem;
     line-height: 1;
-    color: #FFF;
-    text-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
-    margin-bottom: 1.5rem;
-    letter-spacing: 0.02em;
 }
-.hero-year {
-    display: block;
-    font-size: 0.55em;
-    color: var(--naranja);
-    letter-spacing: 0.15em;
-    margin-top: 0.3em;
+
+.hero-logo-img {
+    width: clamp(280px, 55vw, 700px);
+    max-width: 90vw;
+    height: auto;
+    object-fit: contain;
+    filter: drop-shadow(0 12px 40px rgba(253, 153, 0, 0.5))
+            drop-shadow(0 4px 16px rgba(0, 0, 0, 0.6));
+    animation: heroLogoFloat 4s ease-in-out infinite;
 }
+
+@keyframes heroLogoFloat {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50%      { transform: translateY(-10px) scale(1.02); }
+}
+
+/* ---------- LEMA ---------- */
 .hero-slogan {
-    font-family: var(--font-heading);
-    font-size: clamp(1.1rem, 2.5vw, 1.5rem);
-    color: #FFF;
-    margin-bottom: 2.5rem;
+    font-family: var(--font-body);       /* ← Fredoka, igual que el menú */
+    font-weight: 500;                    /* ← añade esto, Fredoka tiene varios pesos */
+    font-size: clamp(1rem, 2.5vw, 1.5rem);
+    color: var(--amarillo);
+    letter-spacing: 0.05em;
+    margin: 0 auto 2rem;
     text-shadow: 0 3px 12px rgba(0, 0, 0, 0.7);
-    opacity: 0.95;
+    line-height: 1.4;
+    padding: 0 1rem;
+    max-width: 800px;
 }
+
+/* ---------- INFO (fecha + lugar) ---------- */
 .hero-info {
     display: inline-flex;
     align-items: center;
@@ -753,6 +761,7 @@ body.preloader-active { overflow: hidden; }
     margin-bottom: 2.5rem;
     flex-wrap: wrap;
     justify-content: center;
+    max-width: 100%;
 }
 .hero-info-item {
     display: flex;
@@ -772,6 +781,8 @@ body.preloader-active { overflow: hidden; }
     height: 20px;
     background: rgba(255, 255, 255, 0.3);
 }
+
+/* ---------- BOTONES ---------- */
 .hero-buttons {
     display: flex;
     justify-content: center;
@@ -788,12 +799,14 @@ body.preloader-active { overflow: hidden; }
     transition: all var(--transition-base);
 }
 .btn-hero-outline:hover {
-    background: var(--grad-amarillo-naranja);
+    background: linear-gradient(180deg, var(--amarillo) 0%, var(--naranja) 100%);
     border-color: var(--naranja);
     color: var(--negro);
     transform: translateY(-2px);
     box-shadow: var(--shadow-naranja);
 }
+
+/* ---------- SCROLL ---------- */
 .hero-scroll {
     position: absolute;
     bottom: 25px;
@@ -1222,36 +1235,58 @@ body.preloader-active { overflow: hidden; }
     margin: 0 auto 2rem;
 }
 
-/* ============ TEXTO CON DEGRADADO VERTICAL ============ */
-/* Reemplaza la definición anterior para quitar la sombra negra */
-.text-gradient {
-    background: linear-gradient(180deg, var(--amarillo) 0%, var(--naranja) 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    color: transparent;
-    text-shadow: none !important;
-    filter: none;
-    display: inline-block;
-}
-/* Quitar sombra heredada del .hero-title solo al span con degradado */
-.hero-title .text-gradient {
-    text-shadow: none !important;
+/* ============================================================
+   RESPONSIVE INDEX
+   ============================================================ */
+@media (max-width: 991px) {
+    .hero-section {
+        min-height: 80vh;
+    }
 }
 
-/* ============ RESPONSIVE ============ */
 @media (max-width: 768px) {
+    /* Hero */
+    .hero-section {
+        min-height: 75vh;
+        padding: 1.5rem 0;
+    }
+    .hero-content {
+        padding: 2rem 1rem;
+    }
+    .hero-title-logo {
+        margin-bottom: 0.75rem;
+    }
+    .hero-logo-img {
+        width: clamp(220px, 75vw, 380px);
+    }
+    .hero-slogan {
+        font-size: 1rem;
+        margin-bottom: 1.5rem;
+        padding: 0 0.75rem;
+    }
     .hero-info {
         flex-direction: column;
         gap: 0.6rem;
         padding: 0.9rem 1.2rem;
         border-radius: var(--radius-md);
+        margin-bottom: 1.75rem;
     }
     .hero-info-sep { display: none; }
-    .preloader-logo { height: 120px; }
-    .preloader-text span { font-size: 1.3rem; }
-    .preloader-text small { font-size: 0.75rem; }
-    .preloader-bar { width: 160px; }
+    .hero-info-item {
+        font-size: 0.85rem;
+        text-align: center;
+    }
+    .hero-buttons {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.75rem;
+    }
+    .hero-buttons .btn {
+        width: 100%;
+    }
+    .hero-scroll { display: none; }
+
+    /* Secciones */
     .section-historia,
     .section-cartelera,
     .section-programa,
@@ -1260,7 +1295,50 @@ body.preloader-active { overflow: hidden; }
     .section-descubre,
     .section-galeria,
     .section-patrocinadores,
-    .section-cta { padding: 3rem 0; }
+    .section-cta {
+        padding: 3rem 0;
+    }
+    .section-header {
+        margin-bottom: 2rem;
+    }
+
+    /* Preloader */
+    .preloader-logo {
+        height: clamp(180px, 40vh, 320px);
+    }
+    .preloader-bar { width: 160px; }
+
+    /* Cards internas */
+    .info-card { padding: 1.5rem; }
+    .info-icon { width: 65px; height: 65px; font-size: 1.6rem; }
+    .actividad-card { padding: 1.5rem 0.75rem; }
+    .actividad-icon { width: 60px; height: 60px; font-size: 1.5rem; }
+    .descubre-card { padding: 1.5rem; }
+    .programa-img { height: 200px; }
+    .historia-imagen-wrapper { padding: 10px; }
+
+    /* Patrocinadores */
+    .patrocinadores-grid {
+        gap: 1.5rem;
+    }
+    .patrocinador-logo {
+        max-height: 55px;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-logo-img {
+        width: clamp(200px, 85vw, 300px);
+    }
+    .hero-slogan {
+        font-size: 0.95rem;
+    }
+    .cifra-numero {
+        font-size: 1.75rem;
+    }
+    .cifra-label {
+        font-size: 0.7rem;
+    }
 }
 </style>
 {% endblock %}

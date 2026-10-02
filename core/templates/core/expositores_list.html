@@ -422,7 +422,7 @@
         <p class="cta-subtitle">
             Regístrate para participar en el {{ festival.edicion|default:11 }}.º Festival de la Butifarra
         </p>
-        <a href="{% url 'core:registrar_expositor' %}" class="btn btn-warning btn-lg">
+        <a href="{% url 'accounts:registro' %}" class="btn btn-warning btn-lg">
             <i class="fas fa-plus-circle"></i> Registrar mi exposición
         </a>
     </div>
@@ -478,7 +478,7 @@
 .expositores-hero-overlay {
     position: absolute;
     inset: 0;
-    background: linear-gradient(180deg, rgba(30, 15, 0, 0.75) 0%, rgba(60, 30, 0, 0.55) 50%, rgba(30, 15, 0, 0.85) 100%);
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.40) 0%, rgba(0, 0, 0, 0.20) 50%, rgba(0, 0, 0, 0.55) 100%);
     z-index: 1;
 }
 .expositores-hero-content {

@@ -1,0 +1,428 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Editar producto · {{ expositor.nombre_empresa }}{% endblock %}
+
+{% block content %}
+
+<section class="expo-panel">
+    <div class="expo-pattern"></div>
+
+    <div class="container position-relative py-5">
+
+        <!-- ============ BREADCRUMB ============ -->
+        <nav class="expo-breadcrumb">
+            <a href="{% url 'accounts:panel_expositor' %}">Mi panel</a>
+            <i class="fas fa-chevron-right"></i>
+            <a href="{% url 'accounts:expositor_productos' %}">Mis productos</a>
+            <i class="fas fa-chevron-right"></i>
+            <span>Editar producto</span>
+        </nav>
+
+        <!-- ============ HEADER ============ -->
+        <div class="expo-header">
+            <div>
+                <span class="section-tag">Editar producto</span>
+                <h1 class="expo-title">
+                    {{ producto.nombre }}
+                </h1>
+                <p class="expo-subtitle">
+                    Modifica los datos del producto. Los cambios se verán en tu catálogo cuando tu solicitud sea aprobada.
+                </p>
+            </div>
+            <a href="{% url 'accounts:expositor_productos' %}" class="btn btn-outline-warning">
+                <i class="fas fa-arrow-left"></i> Volver a productos
+            </a>
+        </div>
+
+        {% if messages %}
+        <div class="mb-4">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- ============ FORM ============ -->
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="expo-card">
+                    <div class="expo-card-header">
+                        <i class="fas fa-utensils"></i>
+                        <span>Datos del producto</span>
+                    </div>
+                    <div class="expo-card-body">
+
+                        <form method="post">
+                            {% csrf_token %}
+
+                            <div class="expo-field">
+                                <label class="expo-label">Nombre del producto *</label>
+                                {{ form.nombre }}
+                                {% if form.nombre.errors %}
+                                <small class="expo-error">{{ form.nombre.errors.0 }}</small>
+                                {% endif %}
+                            </div>
+
+                            <div class="expo-row">
+                                <div class="expo-field">
+                                    <label class="expo-label">Categoría *</label>
+                                    {{ form.categoria }}
+                                    {% if form.categoria.errors %}
+                                    <small class="expo-error">{{ form.categoria.errors.0 }}</small>
+                                    {% endif %}
+                                </div>
+                                <div class="expo-field">
+                                    <label class="expo-label">Unidad de venta *</label>
+                                    {{ form.unidad }}
+                                    {% if form.unidad.errors %}
+                                    <small class="expo-error">{{ form.unidad.errors.0 }}</small>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="expo-row">
+                                <div class="expo-field">
+                                    <label class="expo-label">Precio ($)</label>
+                                    {{ form.precio }}
+                                    {% if form.precio.errors %}
+                                    <small class="expo-error">{{ form.precio.errors.0 }}</small>
+                                    {% endif %}
+                                </div>
+                                <div class="expo-field">
+                                    <label class="expo-label">Disponible</label>
+                                    <div class="expo-check-line">
+                                        {{ form.disponible }}
+                                        <label for="{{ form.disponible.id_for_label }}">
+                                            Disponible en el festival
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="expo-field">
+                                <label class="expo-label">Descripción corta</label>
+                                {{ form.descripcion }}
+                                <div class="expo-hint">Opcional. Aparecerá bajo el nombre en el catálogo.</div>
+                                {% if form.descripcion.errors %}
+                                <small class="expo-error">{{ form.descripcion.errors.0 }}</small>
+                                {% endif %}
+                            </div>
+
+                            <div class="expo-actions">
+                                <a href="{% url 'accounts:expositor_productos' %}" class="btn btn-outline-warning">
+                                    Cancelar
+                                </a>
+                                <button type="submit" class="btn btn-warning fw-bold">
+                                    <i class="fas fa-save"></i> Guardar cambios
+                                </button>
+                            </div>
+
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============ PANEL LATERAL INFORMATIVO ============ -->
+            <div class="col-lg-4">
+                <div class="expo-card">
+                    <div class="expo-card-header">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Información</span>
+                    </div>
+                    <div class="expo-card-body">
+
+                        <p class="info-line">
+                            <strong>Categoría actual:</strong><br>
+                            {{ producto.get_categoria_display }}
+                        </p>
+                        <p class="info-line">
+                            <strong>Unidad:</strong><br>
+                            {{ producto.get_unidad_display }}
+                        </p>
+                        <p class="info-line">
+                            <strong>Precio actual:</strong><br>
+                            <span class="price-cell">{{ producto.get_precio_display }}</span>
+                        </p>
+                        <p class="info-line">
+                            <strong>Creado:</strong><br>
+                            {{ producto.fecha_creacion|date:"j \d\e F \d\e Y" }}
+                        </p>
+
+                        <hr class="info-hr">
+
+                        <p class="info-hint">
+                            <i class="fas fa-lightbulb"></i>
+                            Si el producto ya no se venderá en el festival, desmarca
+                            <strong>"Disponible en el festival"</strong> en lugar de eliminarlo.
+                        </p>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+{% endblock %}
+
+
+{% block extra_css %}
+<style>
+/* ============================================================
+   EDITAR PRODUCTO — Estilo cálido claro
+   ============================================================ */
+
+.expo-panel {
+    position: relative;
+    padding: 3rem 0 5rem;
+    background: linear-gradient(180deg, #FDF6E3 0%, #FAEBD5 50%, #F5E1C8 100%);
+    min-height: calc(100vh - 200px);
+    overflow: hidden;
+}
+.expo-pattern {
+    position: absolute;
+    inset: 0;
+    background-image:
+        radial-gradient(circle at 10% 10%, rgba(253, 153, 0, 0.10) 0%, transparent 45%),
+        radial-gradient(circle at 90% 90%, rgba(181, 88, 38, 0.10) 0%, transparent 45%),
+        radial-gradient(rgba(181, 88, 38, 0.07) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 28px 28px;
+    pointer-events: none;
+}
+
+/* Breadcrumb */
+.expo-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+}
+.expo-breadcrumb a {
+    color: var(--cafe);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+}
+.expo-breadcrumb a:hover { color: var(--naranja); }
+.expo-breadcrumb i { font-size: 0.6rem; color: var(--cafe-calido); }
+.expo-breadcrumb span { color: var(--cafe); font-weight: 600; }
+
+/* Header */
+.expo-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+    margin-bottom: 1.75rem;
+}
+.expo-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+    color: var(--cafe);
+    margin: 0.5rem 0 0.35rem;
+    letter-spacing: 0.02em;
+    line-height: 1.1;
+}
+.expo-subtitle {
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    margin: 0;
+    max-width: 560px;
+}
+
+/* Card */
+.expo-card {
+    background: #FFF;
+    border: 2px solid var(--cafe-calido);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    height: 100%;
+    box-shadow: 0 6px 20px rgba(181, 88, 38, 0.10);
+}
+.expo-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 1.1rem 1.5rem;
+    background: var(--bg-crema-alt);
+    border-bottom: 2px solid var(--cafe-calido);
+    font-family: var(--font-heading);
+    font-size: 0.95rem;
+    color: var(--cafe);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+.expo-card-header i { color: var(--naranja); font-size: 1rem; }
+.expo-card-body { padding: 1.5rem; }
+
+/* Fields */
+.expo-field {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1.1rem;
+}
+.expo-field:last-child { margin-bottom: 0; }
+
+.expo-label {
+    font-family: var(--font-heading);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--cafe);
+    margin-bottom: 0.45rem;
+}
+.expo-error {
+    display: block;
+    color: #DC3545;
+    font-size: 0.78rem;
+    margin-top: 0.35rem;
+}
+.expo-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+.expo-hint {
+    font-family: var(--font-body);
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-top: 0.4rem;
+    font-style: italic;
+}
+
+/* Inputs */
+.expo-card-body input[type="text"],
+.expo-card-body input[type="number"],
+.expo-card-body select,
+.expo-card-body textarea {
+    width: 100%;
+    font-family: var(--font-body);
+    font-size: 0.92rem;
+    padding: 0.7rem 0.95rem;
+    background: #FFF;
+    border: 1.5px solid var(--cafe-calido);
+    border-radius: var(--radius-sm);
+    color: var(--negro);
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
+}
+.expo-card-body input:focus,
+.expo-card-body select:focus,
+.expo-card-body textarea:focus {
+    outline: none;
+    border-color: var(--naranja);
+    background: #FFFDF5;
+    box-shadow: 0 0 0 0.2rem rgba(253, 153, 0, 0.18);
+}
+.expo-card-body textarea {
+    min-height: 80px;
+    resize: vertical;
+    line-height: 1.5;
+}
+
+/* Checkbox */
+.expo-check-line {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.75rem 1rem;
+    background: var(--bg-crema-alt);
+    border: 1.5px solid var(--cafe-calido);
+    border-radius: var(--radius-sm);
+}
+.expo-check-line input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--naranja);
+    cursor: pointer;
+    flex-shrink: 0;
+}
+.expo-check-line label {
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    color: var(--text-dark);
+    cursor: pointer;
+    margin: 0;
+}
+
+/* Actions */
+.expo-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.6rem;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 2px dashed var(--cafe-calido);
+    flex-wrap: wrap;
+}
+.expo-actions .btn {
+    font-size: 0.9rem;
+    padding: 0.7em 1.5em;
+}
+
+/* Info lateral */
+.info-line {
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    color: var(--text-dark);
+    margin: 0 0 0.85rem;
+    line-height: 1.5;
+}
+.info-line:last-of-type { margin-bottom: 0; }
+.info-line strong {
+    font-family: var(--font-heading);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--cafe);
+    display: block;
+    margin-bottom: 0.15rem;
+}
+.price-cell {
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+    color: #198754;
+    letter-spacing: 0.02em;
+}
+.info-hr {
+    border: none;
+    border-top: 1.5px dashed var(--cafe-calido);
+    margin: 1.25rem 0;
+}
+.info-hint {
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin: 0;
+    display: flex;
+    gap: 0.5rem;
+}
+.info-hint i {
+    color: var(--naranja);
+    flex-shrink: 0;
+    margin-top: 0.15rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .expo-panel { padding: 2rem 0 3rem; }
+    .expo-header { align-items: flex-start; }
+    .expo-row { grid-template-columns: 1fr; gap: 0.85rem; }
+    .expo-card-body { padding: 1.15rem; }
+    .expo-card-header { padding: 0.95rem 1.15rem; font-size: 0.85rem; }
+    .expo-actions { justify-content: stretch; }
+    .expo-actions .btn { flex-grow: 1; }
+}
+</style>
+{% endblock %}

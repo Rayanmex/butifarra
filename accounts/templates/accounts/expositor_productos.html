@@ -1,0 +1,586 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Mis productos · {{ expositor.nombre_empresa }}{% endblock %}
+
+{% block content %}
+
+<section class="expo-panel">
+    <div class="expo-pattern"></div>
+
+    <div class="container position-relative py-5">
+
+        <!-- ============ BREADCRUMB ============ -->
+        <nav class="expo-breadcrumb">
+            <a href="{% url 'accounts:panel_expositor' %}">Mi panel</a>
+            <i class="fas fa-chevron-right"></i>
+            <span>Mis productos</span>
+        </nav>
+
+        <!-- ============ HEADER ============ -->
+        <div class="expo-header">
+            <div>
+                <span class="section-tag">Gestión de productos</span>
+                <h1 class="expo-title">
+                    Mis <span class="text-gradient">productos</span>
+                    <span class="count-pill">{{ productos|length }}</span>
+                </h1>
+                <p class="expo-subtitle">
+                    Añade uno a uno los productos de tu menú con su precio y unidad de venta.
+                </p>
+            </div>
+            <a href="{% url 'accounts:panel_expositor' %}" class="btn btn-outline-warning">
+                <i class="fas fa-arrow-left"></i> Volver al panel
+            </a>
+        </div>
+
+        {% if messages %}
+        <div class="mb-4">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- ============ AVISO SI NO PUEDE EDITAR ============ -->
+        {% if not puede_editar %}
+        <div class="expo-alert alert-warning">
+            <i class="fas fa-lock"></i>
+            <div>
+                <strong>No puedes modificar tus productos ahora.</strong>
+                <p>
+                    Tu solicitud está en estado
+                    <strong>{{ expositor.get_estado_solicitud_display }}</strong>.
+                    Podrás editar cuando esté en borrador o con observaciones.
+                </p>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- ============ CARD PRINCIPAL ============ -->
+        <div class="expo-card">
+
+            <div class="expo-card-header">
+                <i class="fas fa-utensils"></i>
+                <span>Productos del menú</span>
+            </div>
+
+            <!-- ============ FORM RÁPIDO AÑADIR ============ -->
+            {% if puede_editar %}
+            <div class="quick-form">
+                <h6 class="quick-title">
+                    <i class="fas fa-plus-circle"></i> Añadir producto
+                </h6>
+                <form method="post" action="{% url 'accounts:expositor_productos' %}">
+                    {% csrf_token %}
+                    <div class="quick-row">
+
+                        <div class="quick-field quick-field-wide">
+                            <label class="quick-label">Nombre</label>
+                            <input type="text" name="nombre" class="quick-input"
+                                   placeholder="Ej: 1 kilo de butifarra tradicional"
+                                   required maxlength="200">
+                        </div>
+
+                        <div class="quick-field">
+                            <label class="quick-label">Categoría</label>
+                            <select name="categoria" class="quick-input" required>
+                                {% for val, label in form.fields.categoria.choices %}
+                                    {% if val %}
+                                    <option value="{{ val }}">{{ label }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="quick-field">
+                            <label class="quick-label">Unidad</label>
+                            <select name="unidad" class="quick-input" required>
+                                {% for val, label in form.fields.unidad.choices %}
+                                    {% if val %}
+                                    <option value="{{ val }}">{{ label }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="quick-field">
+                            <label class="quick-label">Precio ($)</label>
+                            <input type="number" name="precio" class="quick-input"
+                                   placeholder="350.00" step="0.01" min="0">
+                        </div>
+
+                        <div class="quick-field quick-field-action">
+                            <button type="submit" class="btn btn-warning fw-bold">
+                                <i class="fas fa-plus"></i> Añadir
+                            </button>
+                        </div>
+
+                    </div>
+                </form>
+            </div>
+            {% endif %}
+
+            <!-- ============ TABLA PRODUCTOS ============ -->
+            {% if productos %}
+            <div class="table-responsive">
+                <table class="expo-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 45%;">Producto</th>
+                            <th>Categoría</th>
+                            <th>Unidad</th>
+                            <th class="text-end">Precio</th>
+                            {% if puede_editar %}
+                            <th class="text-end" style="width: 100px;">Acciones</th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for prod in productos %}
+                        <tr>
+                            <td>
+                                <strong class="row-nombre">{{ prod.nombre }}</strong>
+                                {% if prod.descripcion %}
+                                    <div class="row-desc">{{ prod.descripcion }}</div>
+                                {% endif %}
+                                {% if not prod.disponible %}
+                                    <span class="badge-inactive-sm">No disponible</span>
+                                {% endif %}
+                            </td>
+                            <td><span class="cell-muted">{{ prod.get_categoria_display }}</span></td>
+                            <td><span class="cell-muted">{{ prod.get_unidad_display }}</span></td>
+                            <td class="text-end">
+                                <span class="price-cell">{{ prod.get_precio_display }}</span>
+                            </td>
+                            {% if puede_editar %}
+                            <td class="text-end">
+                                <div class="row-actions">
+                                    <a href="{% url 'accounts:expositor_producto_edit' prod.pk %}"
+                                       class="action-btn action-edit" title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{% url 'accounts:expositor_producto_delete' prod.pk %}"
+                                       class="action-btn action-delete"
+                                       onclick="return confirm('¿Eliminar el producto {{ prod.nombre|escapejs }}?');"
+                                       title="Eliminar">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                            {% endif %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="3" class="text-end total-label">Total productos:</td>
+                            <td colspan="{% if puede_editar %}2{% else %}1{% endif %}" class="total-num">
+                                {{ productos|length }}
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-block">
+                <i class="fas fa-utensils"></i>
+                <h5>Sin productos aún</h5>
+                <p>
+                    {% if puede_editar %}
+                        Añade tu primer producto con el formulario de arriba.
+                    {% else %}
+                        Este expositor aún no ha registrado productos.
+                    {% endif %}
+                </p>
+            </div>
+            {% endif %}
+
+        </div>
+
+    </div>
+</section>
+
+{% endblock %}
+
+
+{% block extra_css %}
+<style>
+/* ============================================================
+   PRODUCTOS DEL EXPOSITOR — Estilo cálido claro
+   ============================================================ */
+
+.expo-panel {
+    position: relative;
+    padding: 3rem 0 5rem;
+    background: linear-gradient(180deg, #FDF6E3 0%, #FAEBD5 50%, #F5E1C8 100%);
+    min-height: calc(100vh - 200px);
+    overflow: hidden;
+}
+.expo-pattern {
+    position: absolute;
+    inset: 0;
+    background-image:
+        radial-gradient(circle at 10% 10%, rgba(253, 153, 0, 0.10) 0%, transparent 45%),
+        radial-gradient(circle at 90% 90%, rgba(181, 88, 38, 0.10) 0%, transparent 45%),
+        radial-gradient(rgba(181, 88, 38, 0.07) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 28px 28px;
+    pointer-events: none;
+}
+
+/* Breadcrumb */
+.expo-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+}
+.expo-breadcrumb a {
+    color: var(--cafe);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+}
+.expo-breadcrumb a:hover { color: var(--naranja); }
+.expo-breadcrumb i { font-size: 0.6rem; color: var(--cafe-calido); }
+.expo-breadcrumb span { color: var(--cafe); font-weight: 600; }
+
+/* Header */
+.expo-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+    margin-bottom: 1.75rem;
+}
+.expo-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+    color: var(--cafe);
+    margin: 0.5rem 0 0.35rem;
+    letter-spacing: 0.02em;
+    line-height: 1.1;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+.expo-subtitle {
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    margin: 0;
+    max-width: 560px;
+}
+
+/* Count pill */
+.count-pill {
+    font-family: var(--font-heading);
+    font-size: 0.9rem;
+    background: var(--grad-amarillo-naranja);
+    color: var(--negro);
+    padding: 0.3em 0.9em;
+    border-radius: var(--radius-pill);
+    letter-spacing: 0.02em;
+    line-height: 1;
+}
+
+/* Alerta */
+.expo-alert {
+    display: flex;
+    gap: 1rem;
+    padding: 1.25rem 1.5rem;
+    background: #FFF;
+    border-radius: var(--radius-md);
+    border-left: 5px solid var(--amarillo);
+    box-shadow: 0 6px 20px rgba(181, 88, 38, 0.12);
+    margin-bottom: 1.5rem;
+    font-family: var(--font-body);
+}
+.expo-alert i {
+    font-size: 1.5rem;
+    color: var(--naranja);
+    flex-shrink: 0;
+    margin-top: 0.15rem;
+}
+.expo-alert strong {
+    font-family: var(--font-heading);
+    color: var(--cafe);
+    display: block;
+    font-size: 1rem;
+    letter-spacing: 0.02em;
+    margin-bottom: 0.25rem;
+}
+.expo-alert p {
+    font-size: 0.9rem;
+    color: var(--text-dark);
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* Card */
+.expo-card {
+    background: #FFF;
+    border: 2px solid var(--cafe-calido);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: 0 6px 20px rgba(181, 88, 38, 0.10);
+}
+.expo-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 1.1rem 1.5rem;
+    background: var(--bg-crema-alt);
+    border-bottom: 2px solid var(--cafe-calido);
+    font-family: var(--font-heading);
+    font-size: 0.95rem;
+    color: var(--cafe);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+.expo-card-header i { color: var(--naranja); font-size: 1rem; }
+
+/* Quick form */
+.quick-form {
+    padding: 1.25rem 1.5rem;
+    background: var(--bg-crema-alt);
+    border-bottom: 2px solid var(--cafe-calido);
+}
+.quick-title {
+    font-family: var(--font-heading);
+    font-size: 0.85rem;
+    color: var(--cafe);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin: 0 0 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.quick-title i { color: var(--naranja); }
+
+.quick-row {
+    display: grid;
+    grid-template-columns: 2fr 1.2fr 1fr 1fr auto;
+    gap: 0.75rem;
+    align-items: end;
+}
+
+.quick-field {
+    display: flex;
+    flex-direction: column;
+}
+.quick-label {
+    font-family: var(--font-heading);
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--cafe);
+    margin-bottom: 0.35rem;
+}
+.quick-input {
+    width: 100%;
+    font-family: var(--font-body);
+    font-size: 0.88rem;
+    padding: 0.6rem 0.85rem;
+    background: #FFF;
+    border: 1.5px solid var(--cafe-calido);
+    border-radius: var(--radius-sm);
+    color: var(--negro);
+    transition: border-color var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast);
+}
+.quick-input:focus {
+    outline: none;
+    border-color: var(--naranja);
+    background: #FFFDF5;
+    box-shadow: 0 0 0 0.2rem rgba(253, 153, 0, 0.18);
+}
+.quick-input::placeholder { color: var(--text-muted); opacity: 0.7; }
+
+.quick-field-action .btn {
+    font-size: 0.88rem;
+    padding: 0.6em 1.3em;
+    white-space: nowrap;
+}
+
+/* Tabla */
+.table-responsive {
+    overflow-x: auto;
+}
+.expo-table {
+    width: 100%;
+    border-collapse: collapse;
+    color: var(--text-dark);
+    font-family: var(--font-body);
+}
+.expo-table thead {
+    background: var(--bg-crema-alt);
+    border-bottom: 2px solid var(--cafe-calido);
+}
+.expo-table thead th {
+    font-family: var(--font-heading);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--cafe);
+    padding: 0.9rem 1rem;
+    text-align: left;
+    font-weight: 400;
+}
+.expo-table thead th.text-end { text-align: right; }
+.expo-table tbody tr {
+    border-bottom: 1px solid var(--cafe-calido);
+    transition: background var(--transition-fast);
+}
+.expo-table tbody tr:last-child { border-bottom: none; }
+.expo-table tbody tr:hover { background: #FFFDF5; }
+.expo-table td {
+    padding: 0.9rem 1rem;
+    vertical-align: middle;
+    font-size: 0.9rem;
+}
+.expo-table tfoot {
+    background: var(--bg-crema-alt);
+    border-top: 2px solid var(--cafe-calido);
+}
+.expo-table tfoot td {
+    padding: 0.9rem 1rem;
+    font-family: var(--font-heading);
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--cafe);
+}
+.total-label { text-align: right; }
+.total-num {
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    color: var(--cafe);
+    letter-spacing: 0.02em;
+}
+
+.row-nombre {
+    font-family: var(--font-heading);
+    font-size: 0.95rem;
+    color: var(--text-dark);
+    letter-spacing: 0.02em;
+}
+.row-desc {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-top: 0.15rem;
+}
+.cell-muted {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+}
+.price-cell {
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    color: #198754;
+    letter-spacing: 0.02em;
+}
+
+.badge-inactive-sm {
+    display: inline-block;
+    margin-top: 0.35rem;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 0.25em 0.7em;
+    border-radius: var(--radius-pill);
+    background: rgba(0, 0, 0, 0.06);
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Acciones fila */
+.row-actions {
+    display: inline-flex;
+    gap: 0.3rem;
+}
+.action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: var(--radius-sm);
+    background: var(--bg-crema-alt);
+    border: 1.5px solid var(--cafe-calido);
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    text-decoration: none;
+    transition: all var(--transition-fast);
+}
+.action-btn:hover {
+    transform: translateY(-2px);
+}
+.action-edit:hover {
+    background: #FFF;
+    border-color: var(--naranja);
+    color: var(--naranja);
+}
+.action-delete:hover {
+    background: rgba(220, 53, 69, 0.08);
+    border-color: #DC3545;
+    color: #DC3545;
+}
+
+/* Empty */
+.empty-block {
+    text-align: center;
+    padding: 3rem 1.5rem;
+    color: var(--text-muted);
+}
+.empty-block i {
+    font-size: 2.5rem;
+    color: var(--cafe-calido);
+    display: block;
+    margin-bottom: 0.85rem;
+}
+.empty-block h5 {
+    font-family: var(--font-heading);
+    font-size: 1.1rem;
+    color: var(--cafe);
+    margin: 0 0 0.5rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+.empty-block p {
+    font-family: var(--font-body);
+    font-size: 0.88rem;
+    margin: 0;
+    line-height: 1.6;
+}
+
+/* Responsive */
+@media (max-width: 991px) {
+    .quick-row {
+        grid-template-columns: 1fr 1fr;
+    }
+    .quick-field-wide { grid-column: 1 / -1; }
+    .quick-field-action { grid-column: 1 / -1; }
+    .quick-field-action .btn { width: 100%; }
+}
+@media (max-width: 576px) {
+    .expo-panel { padding: 2rem 0 3rem; }
+    .expo-header { align-items: flex-start; }
+    .quick-row { grid-template-columns: 1fr; }
+    .expo-table td,
+    .expo-table thead th {
+        padding: 0.7rem 0.6rem;
+        font-size: 0.82rem;
+    }
+    .action-btn { width: 30px; height: 30px; font-size: 0.75rem; }
+}
+</style>
+{% endblock %}
