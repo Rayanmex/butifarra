@@ -1,5 +1,17 @@
+# Forzar el uso de pysqlite3 en lugar del sqlite3 del sistema
+# (necesario en servidores con SQLite antiguo, como AlmaLinux 8)
+try:
+    __import__('pysqlite3')
+    import sys
+    sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+except ImportError:
+    # En Windows no existe pysqlite3, pero tampoco hace falta.
+    pass
+
 from pathlib import Path
 import os
+
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
