@@ -25,7 +25,7 @@
 <section class="section-intro">
     <div class="container">
         <div class="row justify-content-center">
-            <div class="col-lg-9">
+            <div class="col-12 col-lg-9">
 
                 <div class="section-header">
                     <span class="section-tag">Nuestro origen</span>
@@ -40,8 +40,8 @@
                     generación en generación entre las familias del municipio.
                 </p>
 
-                <div class="row g-4 mt-5">
-                    <div class="col-md-4">
+                <div class="row g-3 g-md-4 mt-4 mt-md-5">
+                    <div class="col-12 col-sm-6 col-md-4">
                         <div class="intro-card">
                             <div class="intro-icon">
                                 <i class="fas fa-drumstick-bite"></i>
@@ -52,7 +52,7 @@
                             </p>
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-12 col-sm-6 col-md-4">
                         <div class="intro-card">
                             <div class="intro-icon">
                                 <i class="fas fa-users"></i>
@@ -63,7 +63,7 @@
                             </p>
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-12 col-sm-6 col-md-4">
                         <div class="intro-card">
                             <div class="intro-icon">
                                 <i class="fas fa-award"></i>
@@ -85,7 +85,7 @@
 <section class="section-festival">
     <div class="container">
         <div class="row justify-content-center">
-            <div class="col-lg-9">
+            <div class="col-12 col-lg-9">
 
                 <div class="section-header">
                     <span class="section-tag">Nacimiento</span>
@@ -124,26 +124,26 @@
             <h2 class="section-title cifras-title">Un festival que crece cada año</h2>
         </div>
 
-        <div class="row text-center g-4">
-            <div class="col-md-3 col-6">
+        <div class="row text-center g-3 g-md-4">
+            <div class="col-6 col-md-3">
                 <div class="cifra-item">
                     <div class="cifra-numero">+230,000</div>
                     <div class="cifra-label">Visitantes esperados</div>
                 </div>
             </div>
-            <div class="col-md-3 col-6">
+            <div class="col-6 col-md-3">
                 <div class="cifra-item">
                     <div class="cifra-numero">+63</div>
                     <div class="cifra-label">Toneladas de butifarra</div>
                 </div>
             </div>
-            <div class="col-md-3 col-6">
+            <div class="col-6 col-md-3">
                 <div class="cifra-item">
                     <div class="cifra-numero">+$220M</div>
                     <div class="cifra-label">Derrama económica</div>
                 </div>
             </div>
-            <div class="col-md-3 col-6">
+            <div class="col-6 col-md-3">
                 <div class="cifra-item">
                     <div class="cifra-numero">3</div>
                     <div class="cifra-label">Días de festival</div>
@@ -157,7 +157,7 @@
 <section class="section-evento">
     <div class="container">
         <div class="row justify-content-center">
-            <div class="col-lg-10">
+            <div class="col-12 col-lg-10">
 
                 <div class="section-header">
                     <span class="section-tag">Nuestro propósito</span>
@@ -168,8 +168,8 @@
                     </p>
                 </div>
 
-                <div class="row g-4 mb-5">
-                    <div class="col-md-3 col-6">
+                <div class="row g-3 g-md-4 mb-4 mb-md-5">
+                    <div class="col-6 col-md-3">
                         <div class="pilar-card">
                             <div class="pilar-icon">
                                 <i class="fas fa-utensils"></i>
@@ -177,7 +177,7 @@
                             <h6 class="pilar-title">Gastronomía</h6>
                         </div>
                     </div>
-                    <div class="col-md-3 col-6">
+                    <div class="col-6 col-md-3">
                         <div class="pilar-card">
                             <div class="pilar-icon">
                                 <i class="fas fa-theater-masks"></i>
@@ -185,7 +185,7 @@
                             <h6 class="pilar-title">Cultura</h6>
                         </div>
                     </div>
-                    <div class="col-md-3 col-6">
+                    <div class="col-6 col-md-3">
                         <div class="pilar-card">
                             <div class="pilar-icon">
                                 <i class="fas fa-umbrella-beach"></i>
@@ -193,7 +193,7 @@
                             <h6 class="pilar-title">Turismo</h6>
                         </div>
                     </div>
-                    <div class="col-md-3 col-6">
+                    <div class="col-6 col-md-3">
                         <div class="pilar-card">
                             <div class="pilar-icon">
                                 <i class="fas fa-store"></i>
@@ -222,7 +222,7 @@
 <section class="section-invitacion">
     <div class="container">
         <div class="row justify-content-center">
-            <div class="col-lg-8 text-center">
+            <div class="col-12 col-lg-8 text-center">
 
                 <div class="invitacion-icon">
                     <i class="fas fa-map-marker-alt"></i>
@@ -286,6 +286,7 @@
     justify-content: center;
     overflow: hidden;
     color: #FFF;
+    max-width: 100vw;
 }
 .historia-hero-bg {
     position: absolute;
@@ -311,13 +312,14 @@
     z-index: 2;
     text-align: center;
     padding: 4rem 1rem;
+    overflow-x: hidden;
 }
 .historia-hero .hero-badge {
     margin-bottom: 1.5rem;
 }
 .historia-hero-title {
     font-family: var(--font-display);
-    font-size: clamp(2.25rem, 6vw, 4rem);
+    font-size: clamp(2rem, 6vw, 4rem);
     line-height: 1.05;
     color: #FFF;
     text-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
@@ -338,6 +340,7 @@
 .section-intro {
     padding: 5rem 0;
     background: var(--bg-blanco);
+    overflow-x: hidden;
 }
 .intro-card {
     background: var(--bg-crema-alt);
@@ -387,6 +390,7 @@
 .section-festival {
     padding: 5rem 0;
     background: var(--bg-crema-alt);
+    overflow-x: hidden;
 }
 .historia-content {
     position: relative;
@@ -435,7 +439,7 @@
 }
 .cifra-numero {
     font-family: var(--font-display);
-    font-size: clamp(2rem, 5vw, 3rem);
+    font-size: clamp(1.75rem, 5vw, 3rem);
     color: var(--amarillo);
     line-height: 1;
     letter-spacing: 0.02em;
@@ -443,7 +447,7 @@
 }
 .cifra-label {
     font-family: var(--font-body);
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.1em;
     color: rgba(255, 255, 255, 0.7);
@@ -454,6 +458,7 @@
 .section-evento {
     padding: 5rem 0;
     background: var(--bg-blanco);
+    overflow-x: hidden;
 }
 .pilar-card {
     background: #FFF;
@@ -532,6 +537,7 @@
 .section-invitacion {
     padding: 5rem 0;
     background: var(--bg-crema-alt);
+    overflow-x: hidden;
 }
 .invitacion-icon {
     width: 90px;
@@ -583,7 +589,7 @@
 }
 .cta-title {
     font-family: var(--font-display);
-    font-size: clamp(1.5rem, 3.5vw, 2.5rem);
+    font-size: clamp(1.35rem, 3.5vw, 2.5rem);
     color: #FFF;
     margin-bottom: 1rem;
     letter-spacing: 0.02em;
@@ -611,7 +617,13 @@
     text-shadow: none !important;
 }
 
-/* ============ RESPONSIVE ============ */
+/* ============================================================
+   RESPONSIVE HISTORIA
+   ============================================================ */
+@media (max-width: 991px) {
+    .historia-hero { min-height: 48vh; }
+}
+
 @media (max-width: 768px) {
     .historia-hero { min-height: 45vh; }
     .historia-hero-content { padding: 3rem 1rem; }
@@ -621,12 +633,42 @@
     .section-invitacion,
     .section-cta,
     .cifras-section { padding: 3rem 0; }
+
     .intro-card { padding: 1.5rem 1rem; }
     .intro-icon { width: 65px; height: 65px; font-size: 1.6rem; }
+
     .pilar-icon { width: 60px; height: 60px; font-size: 1.5rem; }
+    .pilar-title { font-size: 0.95rem; }
+
     .invitacion-icon { width: 75px; height: 75px; font-size: 1.9rem; }
+    .invitacion-buttons {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .invitacion-buttons .btn { width: 100%; }
+
     .cita-block { padding: 2rem 1.25rem 1.5rem; }
     .cita-text { font-size: 1rem; }
+
+    .section-title { font-size: 1.5rem; }
+    .section-subtitle { font-size: 0.9rem; }
+}
+
+@media (max-width: 480px) {
+    .historia-hero-title { font-size: 1.85rem; }
+    .historia-hero-subtitle { font-size: 0.9rem; }
+    .cifra-numero { font-size: 1.5rem; }
+    .cifra-label { font-size: 0.65rem; }
+    .section-title { font-size: 1.35rem; }
+    .lead-text { font-size: 1rem; }
+    .historia-content .lead-text { font-size: 1rem; }
+    .intro-title { font-size: 1rem; }
+    .intro-desc { font-size: 0.82rem; }
+    .pilar-title { font-size: 0.88rem; }
+    .invitacion-text { font-size: 0.95rem; }
+    .cta-title { font-size: 1.2rem; }
+    .cta-subtitle { font-size: 0.95rem; }
+    .cita-text { font-size: 0.9rem; }
 }
 </style>
 {% endblock %}

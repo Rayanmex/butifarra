@@ -11,10 +11,10 @@
     <div class="expositor-hero-overlay"></div>
 
     <div class="container expositor-hero-content position-relative">
-        <div class="row align-items-center g-4">
+        <div class="row align-items-center g-3 g-md-4">
 
             <!-- Logo -->
-            <div class="col-md-3 text-center">
+            <div class="col-12 col-md-3 text-center">
                 <div class="expositor-hero-logo">
                     {% if expositor.logo %}
                         <img src="{{ expositor.logo.url }}"
@@ -29,7 +29,7 @@
             </div>
 
             <!-- Info principal -->
-            <div class="col-md-9 text-white">
+            <div class="col-12 col-md-9 text-white text-center text-md-start">
                 <div class="expositor-hero-badges">
                     <span class="badge-categoria-hero">{{ expositor.get_categoria_display_corta }}</span>
 
@@ -95,16 +95,16 @@
 <section class="expositor-contenido">
     <div class="expositor-contenido-pattern"></div>
 
-    <div class="container position-relative py-5">
+    <div class="container position-relative py-4 py-md-5">
 
         <!-- ========== ROW 1: INFO + PRODUCTOS ========== -->
-        <div class="row g-4">
+        <div class="row g-3 g-md-4">
 
             <!-- COLUMNA IZQUIERDA: INFO -->
-            <div class="col-lg-4">
+            <div class="col-12 col-lg-4">
 
                 <!-- Info de contacto -->
-                <div class="panel-card mb-4">
+                <div class="panel-card mb-3 mb-md-4">
                     <div class="panel-card-header">
                         <i class="fas fa-address-card"></i>
                         <h5>Información</h5>
@@ -163,7 +163,7 @@
                 </div>
 
                 <!-- Métodos de pago -->
-                <div class="panel-card mb-4">
+                <div class="panel-card mb-3 mb-md-4">
                     <div class="panel-card-header">
                         <i class="fas fa-credit-card"></i>
                         <h5>Métodos de pago</h5>
@@ -225,11 +225,11 @@
             </div>
 
             <!-- COLUMNA DERECHA: MENÚ -->
-            <div class="col-lg-8">
+            <div class="col-12 col-lg-8">
 
                 {% if productos_por_categoria %}
                     {% for categoria, prods in productos_por_categoria.items %}
-                    <div class="productos-categoria-card mb-4">
+                    <div class="productos-categoria-card mb-3 mb-md-4">
 
                         <div class="productos-categoria-header">
                             <h4>
@@ -260,7 +260,7 @@
                     {% endfor %}
 
                 {% elif expositor.get_menu_list %}
-                    <div class="productos-categoria-card mb-4">
+                    <div class="productos-categoria-card mb-3 mb-md-4">
                         <div class="productos-categoria-header">
                             <h4>
                                 <i class="fas fa-utensils"></i>
@@ -289,13 +289,13 @@
                 <!-- CTA de contacto -->
                 <div class="cta-expositor">
                     <div class="row align-items-center g-3">
-                        <div class="col-md-8">
+                        <div class="col-12 col-md-8 text-center text-md-start">
                             <h5 class="cta-expositor-title">¿Te interesa este expositor?</h5>
                             <p class="cta-expositor-desc">
                                 Contáctalo directamente para hacer tu pedido o consultar más información.
                             </p>
                         </div>
-                        <div class="col-md-4 text-md-end">
+                        <div class="col-12 col-md-4 text-center text-md-end">
                             {% if expositor.numero_contacto %}
                             <a href="https://wa.me/52{{ expositor.numero_contacto|cut:' '|cut:'-'|cut:'('|cut:')'|cut:'.' }}"
                                target="_blank" rel="noopener"
@@ -317,7 +317,7 @@
 
         <!-- ========== ROW 2: GALERÍA FULL-WIDTH ========== -->
         {% if fotos %}
-        <div class="galeria-fullwidth mt-5">
+        <div class="galeria-fullwidth mt-4 mt-md-5">
             <div class="galeria-header">
                 <div class="galeria-header-left">
                     <i class="fas fa-camera"></i>
@@ -351,16 +351,16 @@
 
         <!-- ========== ROW 3: EXPOSITORES RELACIONADOS ========== -->
         {% if relacionados %}
-        <div class="row mt-5">
+        <div class="row mt-4 mt-md-5">
             <div class="col-12">
                 <div class="section-header-relacionados">
                     <span class="section-tag">También te puede interesar</span>
                     <h2 class="section-title-relacionados">Otros expositores</h2>
                 </div>
 
-                <div class="row g-4">
+                <div class="row g-3 g-md-4">
                     {% for rel in relacionados %}
-                    <div class="col-md-4">
+                    <div class="col-12 col-sm-6 col-md-4">
                         <div class="expositor-rel-card">
                             <div class="rel-logo-wrapper">
                                 {% if rel.logo %}
@@ -420,6 +420,7 @@
     padding: 4rem 0;
     overflow: hidden;
     background: linear-gradient(135deg, #1A0D00 0%, #2D1400 50%, #1A0D00 100%);
+    max-width: 100vw;
 }
 .expositor-hero-bg {
     position: absolute;
@@ -445,6 +446,7 @@
 }
 .expositor-hero-content {
     z-index: 1;
+    overflow-x: hidden;
 }
 
 .expositor-hero-logo {
@@ -481,6 +483,7 @@
     flex-wrap: wrap;
     gap: 0.5rem;
     margin-bottom: 1rem;
+    justify-content: center;
 }
 .badge-categoria-hero {
     display: inline-block;
@@ -556,6 +559,7 @@
     flex-wrap: wrap;
     gap: 0.4rem;
     margin-bottom: 1.5rem;
+    justify-content: center;
 }
 .badge-especialidad-hero {
     display: inline-block;
@@ -573,6 +577,7 @@
     display: flex;
     flex-wrap: wrap;
     gap: 0.65rem;
+    justify-content: center;
 }
 .btn-whatsapp {
     display: inline-flex;
@@ -663,17 +668,6 @@
     font-size: 1.05rem;
     color: #FFF;
     margin: 0;
-    letter-spacing: 0.02em;
-}
-.badge-count {
-    display: inline-block;
-    background: var(--grad-amarillo-naranja);
-    color: var(--negro);
-    font-family: var(--font-display);
-    font-size: 0.75rem;
-    padding: 0.15rem 0.55rem;
-    border-radius: var(--radius-pill);
-    margin-left: 0.4rem;
     letter-spacing: 0.02em;
 }
 .panel-card-body {
@@ -997,6 +991,8 @@
     padding: 1.5rem 2rem;
     background: linear-gradient(135deg, #1A0D00 0%, #2D1400 100%);
     border-bottom: 2px solid var(--naranja);
+    flex-wrap: wrap;
+    gap: 0.75rem;
 }
 .galeria-header-left {
     display: flex;
@@ -1163,7 +1159,25 @@
     margin-top: auto;
 }
 
-/* ============ RESPONSIVE ============ */
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (min-width: 768px) {
+    .expositor-hero-badges,
+    .expositor-hero-especialidades,
+    .expositor-hero-buttons {
+        justify-content: flex-start;
+    }
+}
+
+@media (max-width: 991px) {
+    .expositor-hero-logo {
+        width: 180px;
+        height: 180px;
+        padding: 14px;
+    }
+}
+
 @media (max-width: 768px) {
     .expositor-hero { padding: 3rem 0; }
     .expositor-hero-logo { width: 140px; height: 140px; padding: 12px; }
@@ -1171,15 +1185,28 @@
     .expositor-hero-nombre { font-size: 1.75rem; }
     .expositor-hero-persona { font-size: 0.85rem; }
     .expositor-hero-desc { font-size: 0.9rem; }
+
+    .expositor-hero-buttons {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .expositor-hero-buttons .btn-whatsapp,
+    .expositor-hero-buttons .btn-hero-outline {
+        width: 100%;
+        justify-content: center;
+    }
+
     .producto-item {
         flex-direction: column;
         align-items: flex-start;
         gap: 0.6rem;
+        padding: 0.85rem 1.25rem;
     }
     .producto-item-detalle {
         width: 100%;
         justify-content: space-between;
     }
+
     .cta-expositor { padding: 1.5rem; }
     .cta-expositor-title { font-size: 1.15rem; }
 
@@ -1195,12 +1222,43 @@
         gap: 0.75rem;
         padding: 1.25rem;
     }
+
+    .panel-card-header {
+        padding: 1rem 1.25rem;
+    }
+    .panel-card-header h5 { font-size: 0.95rem; }
+    .panel-card-body { padding: 1rem 1.25rem; }
+
+    .productos-categoria-header {
+        padding: 1rem 1.25rem;
+    }
+    .productos-categoria-header h4 { font-size: 1.15rem; }
+
+    .section-title-relacionados { font-size: 1.5rem; }
 }
 
 @media (max-width: 480px) {
+    .expositor-hero-logo { width: 120px; height: 120px; padding: 10px; }
+    .expositor-hero-logo-placeholder { font-size: 2.5rem; }
+    .expositor-hero-nombre { font-size: 1.5rem; }
+    .expositor-hero-desc { font-size: 0.85rem; }
+    .badge-especialidad-hero { font-size: 0.72rem; padding: 0.3rem 0.7rem; }
+
     .galeria-grid {
         grid-template-columns: repeat(2, 1fr);
+        padding: 1rem;
+        gap: 0.6rem;
     }
+
+    .productos-categoria-header h4 { font-size: 1.05rem; }
+    .producto-item-nombre { font-size: 0.92rem; }
+    .producto-item-precio { font-size: 1.1rem; }
+
+    .cta-expositor { padding: 1.25rem; }
+    .cta-expositor-title { font-size: 1.05rem; }
+
+    .section-title-relacionados { font-size: 1.35rem; }
+    .rel-nombre { font-size: 1rem; }
 }
 </style>
 {% endblock %}
