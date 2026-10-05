@@ -10,7 +10,7 @@ urlpatterns = [
     path('historia/', views.historia, name='historia'),
     path('programa/', views.programa, name='programa'),
 
-    # Productores (redirige al catálogo — las páginas están fusionadas)
+    # Productores (redirige al catálogo)
     path('productores/', views.productores, name='productores'),
 
     # Expositores (público)
@@ -31,6 +31,40 @@ urlpatterns = [
         'panel/solicitudes/<int:pk>/',
         views.panel_solicitud_detalle,
         name='panel_solicitud_detalle'
+    ),
+
+    # ===== Gestión de Usuarios (expositores) =====
+    path(
+        'panel/usuarios/',
+        views.panel_usuarios,
+        name='panel_usuarios'
+    ),
+    path(
+        'panel/usuarios/nuevo/',
+        views.panel_usuario_create,
+        name='panel_usuario_create'
+    ),
+    path(
+        'panel/usuarios/<int:pk>/editar/',
+        views.panel_usuario_edit,
+        name='panel_usuario_edit'
+    ),
+    path(
+        'panel/usuarios/<int:pk>/reset-password/',
+        views.panel_usuario_reset_password,
+        name='panel_usuario_reset_password'
+    ),
+    path(
+        'panel/usuarios/<int:pk>/toggle-activo/',
+        views.panel_usuario_toggle_activo,
+        name='panel_usuario_toggle_activo'
+    ),
+
+    # ===== Comentarios del admin =====
+    path(
+        'panel/comentarios/<int:pk>/',
+        views.panel_comentarios,
+        name='panel_comentarios'
     ),
 
     # ===== Expositores =====

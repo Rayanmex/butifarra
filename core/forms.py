@@ -1,13 +1,20 @@
 from django import forms
-from .models import Expositor, Producto, FotoProducto
+from django.contrib.auth.models import User
+from django.db import transaction
 
+from .models import Expositor, Producto, FotoProducto, ComentarioAdmin
+
+
+# =============================================================
+#  EXPOSITOR (panel propio)
+# =============================================================
 
 class ExpositorForm(forms.ModelForm):
     """
-    Formulario del EXPOSITOR (panel propio).
-    NO incluye 'menu_completo' (se quitó del form porque el menú
-    ahora se gestiona como Productos individuales).
-    NO incluye 'es_destacado' ni 'activo' — esos los controla el admin.
+    Formulario del EXPOSITOR.
+    NO incluye 'menu_completo' ni 'es_destacado' ni 'activo'.
+    El expositor siempre puede editar — los cambios se guardan como
+    CambioPendiente hasta que el admin apruebe.
     """
     class Meta:
         model = Expositor
@@ -44,22 +51,15 @@ class ExpositorForm(forms.ModelForm):
             'acepta_efectivo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 
-    def clean(self):
-        """Bloquea edición si el estado no lo permite (defensa en profundidad)."""
-        cleaned = super().clean()
-        if self.instance and self.instance.pk and not self.instance.puede_editar:
-            raise forms.ValidationError(
-                'Esta solicitud ya fue enviada y no puede editarse en su estado actual.'
-            )
-        return cleaned
 
+# =============================================================
+#  EXPOSITOR (panel admin — edición directa)
+# =============================================================
 
 class ExpositorAdminForm(forms.ModelForm):
     """
-    Formulario del ADMIN (panel de administración).
-    SÍ incluye 'menu_completo' (para que el admin vea/edite el menú de texto
-    de los expositores viejos que aún no se han migrado a Producto).
-    SÍ incluye 'es_destacado' y 'activo'.
+    Formulario del ADMIN.
+    Incluye 'menu_completo', 'es_destacado' y 'activo'.
     """
     class Meta:
         model = Expositor
@@ -76,18 +76,13 @@ class ExpositorAdminForm(forms.ModelForm):
             'menu_completo': forms.Textarea(attrs={
                 'rows': 10,
                 'placeholder': '1 kilo de butifarra tradicional - $350\n'
-                               '1 kilo de longaniza casera - $250\n'
-                               'Medio kilo de queso de puerco - $180',
+                               '1 kilo de longaniza casera - $250',
                 'class': 'form-control'
             }),
             'descripcion': forms.Textarea(attrs={
                 'rows': 3, 'class': 'form-control',
-                'placeholder': 'Ej: Butifarras artesanales de la familia Pérez, desde 1985.'
             }),
-            'especialidades': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'crema de ajo, mango habanero, BBQ'
-            }),
+            'especialidades': forms.TextInput(attrs={'class': 'form-control'}),
             'categoria': forms.Select(attrs={'class': 'form-select'}),
             'nombre_expositor': forms.TextInput(attrs={'class': 'form-control'}),
             'nombre_empresa': forms.TextInput(attrs={'class': 'form-control'}),
@@ -107,8 +102,11 @@ class ExpositorAdminForm(forms.ModelForm):
         }
 
 
+# =============================================================
+#  PRODUCTO / FOTO
+# =============================================================
+
 class ProductoForm(forms.ModelForm):
-    """Formulario para crear/editar productos del menú."""
     class Meta:
         model = Producto
         fields = ['nombre', 'categoria', 'unidad', 'precio', 'descripcion', 'disponible']
@@ -154,11 +152,11 @@ class FotoProductoForm(forms.ModelForm):
         }
 
 
+# =============================================================
+#  REVISIÓN DE SOLICITUD (admin)
+# =============================================================
+
 class RevisionSolicitudForm(forms.Form):
-    """
-    Formulario exclusivo del ADMIN para revisar una solicitud.
-    Acciones: aprobar / observar / rechazar.
-    """
     ACCIONES = [
         ('aprobar', 'Aprobar y publicar'),
         ('observar', 'Hacer observaciones'),
@@ -190,3 +188,175 @@ class RevisionSolicitudForm(forms.Form):
                 'Debes escribir un comentario si vas a observar o rechazar la solicitud.'
             )
         return cleaned
+
+
+# =============================================================
+#  GESTIÓN DE USUARIOS (admin)
+# =============================================================
+
+class CrearUsuarioExpositorForm(forms.Form):
+    """
+    Formulario del ADMIN para crear un nuevo usuario expositor.
+    Crea User + Expositor + PerfilUsuario en una transacción atómica.
+    """
+
+    # === Datos del User ===
+    username = forms.CharField(
+        max_length=150,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Nombre de usuario'
+        })
+    )
+    email = forms.EmailField(
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'correo@ejemplo.com'
+        })
+    )
+    first_name = forms.CharField(
+        max_length=150,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Nombre (opcional)'
+        })
+    )
+    password1 = forms.CharField(
+        label='Contraseña',
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Contraseña'
+        })
+    )
+    password2 = forms.CharField(
+        label='Repetir contraseña',
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Repite la contraseña'
+        })
+    )
+
+    # === Datos básicos del Expositor ===
+    nombre_empresa = forms.CharField(
+        max_length=200,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Ej: Butifarras "El Buen Sabor"'
+        })
+    )
+    nombre_expositor = forms.CharField(
+        max_length=200,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Ej: Juan Pérez'
+        })
+    )
+    numero_contacto = forms.CharField(
+        max_length=50,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': '914 123 4567'
+        })
+    )
+
+    def clean_username(self):
+        username = (self.cleaned_data.get('username') or '').strip()
+        if User.objects.filter(username__iexact=username).exists():
+            raise forms.ValidationError('Ese nombre de usuario ya está en uso.')
+        return username
+
+    def clean_email(self):
+        email = (self.cleaned_data.get('email') or '').strip()
+        if User.objects.filter(email__iexact=email).exists():
+            raise forms.ValidationError('Ese correo ya está registrado.')
+        return email
+
+    def clean(self):
+        cleaned = super().clean()
+        p1 = cleaned.get('password1')
+        p2 = cleaned.get('password2')
+        if p1 and p2 and p1 != p2:
+            raise forms.ValidationError('Las contraseñas no coinciden.')
+        return cleaned
+
+    def save(self):
+        """Crea User + Expositor + PerfilUsuario."""
+        # Import aquí adentro para evitar import circular
+        from accounts.models import PerfilUsuario
+
+        data = self.cleaned_data
+
+        with transaction.atomic():
+            # 1) User
+            user = User.objects.create_user(
+                username=data['username'],
+                email=data['email'],
+                password=data['password1'],
+                first_name=data.get('first_name') or '',
+                is_active=True,
+            )
+
+            # 2) Expositor (estado inicial = borrador)
+            expositor = Expositor.objects.create(
+                nombre_empresa=data.get('nombre_empresa') or 'Por definir',
+                nombre_expositor=data.get('nombre_expositor') or None,
+                email_contacto=data['email'],
+                numero_contacto=data.get('numero_contacto') or None,
+                categoria='tradicional',
+                activo=True,
+                estado_solicitud='borrador',
+            )
+
+            # 3) Perfil
+            perfil, _ = PerfilUsuario.objects.get_or_create(user=user)
+            perfil.rol = 'expositor'
+            perfil.expositor = expositor
+            perfil.telefono = data.get('numero_contacto') or ''
+            perfil.save()
+
+        return user
+
+
+class ResetPasswordForm(forms.Form):
+    """Formulario del ADMIN para resetear la contraseña de un usuario."""
+    password1 = forms.CharField(
+        label='Nueva contraseña',
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Nueva contraseña'
+        })
+    )
+    password2 = forms.CharField(
+        label='Repetir contraseña',
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Repite la contraseña'
+        })
+    )
+
+    def clean(self):
+        cleaned = super().clean()
+        p1 = cleaned.get('password1')
+        p2 = cleaned.get('password2')
+        if p1 and p2 and p1 != p2:
+            raise forms.ValidationError('Las contraseñas no coinciden.')
+        return cleaned
+
+
+class ComentarioAdminForm(forms.ModelForm):
+    """Formulario del ADMIN para agregar un comentario al historial."""
+    class Meta:
+        model = ComentarioAdmin
+        fields = ['tipo', 'texto']
+        widgets = {
+            'tipo': forms.Select(attrs={'class': 'form-select'}),
+            'texto': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Escribe un comentario para el expositor...'
+            }),
+        }

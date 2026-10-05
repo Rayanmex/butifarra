@@ -1,5 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
+from django.contrib.auth.models import User
 from django.core.paginator import Paginator
 from django.db.models import Q, Min, Max, Count
 from django.utils import timezone
@@ -10,6 +11,8 @@ from .models import (
     Expositor,
     Producto,
     FotoProducto,
+    CambioPendiente,
+    ComentarioAdmin,
     Festival,
     HistoriaFestival,
     Artista,
@@ -18,7 +21,14 @@ from .models import (
     VideoGaleria,
     Patrocinador,
 )
-from .forms import ExpositorAdminForm, ProductoForm, RevisionSolicitudForm
+from .forms import (
+    ExpositorAdminForm,
+    ProductoForm,
+    RevisionSolicitudForm,
+    CrearUsuarioExpositorForm,
+    ResetPasswordForm,
+    ComentarioAdminForm,
+)
 
 # Decoradores de rol
 from accounts.decorators import admin_requerido
@@ -105,8 +115,12 @@ def productores(request):
 # =============================================================
 
 def expositores_list(request):
-    """Catálogo con filtros + contenido editorial del festival.
-    Solo muestra expositores APROBADOS y ACTIVOS.
+    """
+    Catálogo con filtros + contenido editorial del festival.
+    Muestra expositores ACTIVOS que estén APROBADOS o con
+    CAMBIOS PENDIENTES (revision_pendiente). En el segundo caso,
+    el público ve la versión aprobada anterior porque los cambios
+    viven en CambioPendiente hasta que el admin los aprueba.
     """
     festival = Festival.objects.filter(activo=True).order_by('-edicion').first()
     modo = request.GET.get('modo', 'expositores')
@@ -121,11 +135,8 @@ def expositores_list(request):
     orden = request.GET.get('orden', 'nombre')
     categoria_producto = request.GET.get('cat_prod', '').strip()
 
-    # Solo expositores aprobados y activos
-    expositores = Expositor.objects.filter(
-        activo=True,
-        estado_solicitud='aprobado',
-    )
+    # Base: visibles (aprobados + revisión pendiente)
+    expositores = Expositor.visibles_en_catalogo()
 
     if q:
         expositores = expositores.filter(
@@ -175,16 +186,20 @@ def expositores_list(request):
         ordenamientos.get(orden, 'nombre_empresa')
     )
 
+    # Categorías disponibles
+    visibles_ids = Expositor.visibles_en_catalogo().values_list('id', flat=True)
     categorias_disponibles = Expositor.objects.filter(
-        activo=True, estado_solicitud='aprobado'
+        id__in=visibles_ids
     ).values_list('categoria', flat=True).distinct()
     categorias_disponibles = [
         (c, dict(Expositor.CATEGORIA_CHOICES).get(c, c))
         for c in categorias_disponibles if c
     ]
 
+    # Especialidades top
     especialidades_raw = Expositor.objects.filter(
-        activo=True, estado_solicitud='aprobado', especialidades__isnull=False
+        id__in=visibles_ids,
+        especialidades__isnull=False
     ).exclude(especialidades='').values_list('especialidades', flat=True)
 
     contador_esp = {}
@@ -195,26 +210,25 @@ def expositores_list(request):
                 contador_esp[esp] = contador_esp.get(esp, 0) + 1
     especialidades_top = sorted(contador_esp.items(), key=lambda x: -x[1])[:12]
 
+    # Rango de precios
     rango_precios = Producto.objects.filter(
-        expositor__activo=True,
-        expositor__estado_solicitud='aprobado',
+        expositor__id__in=visibles_ids,
     ).aggregate(min_p=Min('precio'), max_p=Max('precio'))
 
-    total_expositores = Expositor.objects.filter(
-        activo=True, estado_solicitud='aprobado'
-    ).count()
+    # Contadores globales
+    total_expositores = Expositor.objects.filter(id__in=visibles_ids).count()
     total_destacados = Expositor.objects.filter(
-        activo=True, estado_solicitud='aprobado', es_destacado=True
+        id__in=visibles_ids, es_destacado=True
     ).count()
     total_con_menu = Expositor.objects.filter(
-        activo=True, estado_solicitud='aprobado'
+        id__in=visibles_ids
     ).exclude(menu_completo='').count()
 
+    # Modo productos
     productos_qs = None
     if modo == 'productos':
         productos_qs = Producto.objects.filter(
-            expositor__activo=True,
-            expositor__estado_solicitud='aprobado',
+            expositor__id__in=visibles_ids,
             disponible=True
         ).select_related('expositor')
 
@@ -294,12 +308,12 @@ def expositores_list(request):
 
 
 def expositor_detail(request, pk):
-    """Detalle público. Solo visible si está aprobado y activo."""
+    """
+    Detalle público. Visible si está activo y (aprobado o con cambios pendientes).
+    """
     expositor = get_object_or_404(
-        Expositor,
+        Expositor.visibles_en_catalogo(),
         pk=pk,
-        activo=True,
-        estado_solicitud='aprobado',
     )
     productos = expositor.productos.filter(disponible=True)
     fotos = expositor.fotos.all()
@@ -310,12 +324,8 @@ def expositor_detail(request, pk):
         productos_por_categoria.setdefault(cat_display, []).append(prod)
 
     relacionados = (
-        Expositor.objects
-        .filter(
-            activo=True,
-            estado_solicitud='aprobado',
-            categoria=expositor.categoria,
-        )
+        Expositor.visibles_en_catalogo()
+        .filter(categoria=expositor.categoria)
         .exclude(pk=expositor.pk)
         .order_by('-es_destacado')[:3]
     )
@@ -357,6 +367,7 @@ def panel_dashboard(request):
     solicitudes_aprobadas = Expositor.objects.filter(estado_solicitud='aprobado').count()
     solicitudes_rechazadas = Expositor.objects.filter(estado_solicitud='rechazado').count()
     solicitudes_borrador = Expositor.objects.filter(estado_solicitud='borrador').count()
+    solicitudes_en_revision = Expositor.objects.filter(estado_solicitud='revision_pendiente').count()
 
     contexto = {
         'total_expositores': total_expositores,
@@ -375,6 +386,7 @@ def panel_dashboard(request):
         'solicitudes_aprobadas': solicitudes_aprobadas,
         'solicitudes_rechazadas': solicitudes_rechazadas,
         'solicitudes_borrador': solicitudes_borrador,
+        'solicitudes_en_revision': solicitudes_en_revision,
     }
     return render(request, 'core/panel/dashboard.html', contexto)
 
@@ -385,13 +397,17 @@ def panel_dashboard(request):
 
 @admin_requerido
 def panel_solicitudes(request):
-    """Lista de solicitudes enviadas por expositores, filtrable por estado."""
-    estado = request.GET.get('estado', 'pendiente').strip()
+    """Lista de solicitudes, filtrable por estado."""
+    estado = request.GET.get('estado', 'requieren_accion').strip()
     q = request.GET.get('q', '').strip()
 
     solicitudes = Expositor.objects.all()
 
-    if estado and estado != 'todas':
+    if estado == 'requieren_accion':
+        solicitudes = solicitudes.filter(
+            estado_solicitud__in=['pendiente', 'revision_pendiente', 'observado']
+        )
+    elif estado and estado != 'todas':
         solicitudes = solicitudes.filter(estado_solicitud=estado)
 
     if q:
@@ -406,11 +422,15 @@ def panel_solicitudes(request):
 
     contadores = {
         'todas': Expositor.objects.count(),
+        'requieren_accion': Expositor.objects.filter(
+            estado_solicitud__in=['pendiente', 'revision_pendiente', 'observado']
+        ).count(),
         'borrador': Expositor.objects.filter(estado_solicitud='borrador').count(),
         'pendiente': Expositor.objects.filter(estado_solicitud='pendiente').count(),
         'observado': Expositor.objects.filter(estado_solicitud='observado').count(),
         'aprobado': Expositor.objects.filter(estado_solicitud='aprobado').count(),
         'rechazado': Expositor.objects.filter(estado_solicitud='rechazado').count(),
+        'revision_pendiente': Expositor.objects.filter(estado_solicitud='revision_pendiente').count(),
     }
 
     contexto = {
@@ -427,15 +447,15 @@ def panel_solicitudes(request):
 @admin_requerido
 def panel_solicitud_detalle(request, pk):
     """
-    Detalle de una solicitud. El admin puede:
-      - aprobar
-      - observar
-      - rechazar
-    con comentario obligatorio en observar/rechazar.
+    Detalle de una solicitud.
+    - Si hay un CambioPendiente, muestra los cambios propuestos y permite aprobar/rechazar.
+    - Si no hay, permite aprobar/observar/rechazar la solicitud inicial.
     """
     expositor = get_object_or_404(Expositor, pk=pk)
     fotos = expositor.fotos.all()
     productos = expositor.productos.all().order_by('categoria', 'nombre')
+    cambio = getattr(expositor, 'cambio_pendiente', None)
+    comentarios = expositor.comentarios_admin.all()[:10]
 
     if request.method == 'POST':
         form = RevisionSolicitudForm(request.POST)
@@ -445,20 +465,54 @@ def panel_solicitud_detalle(request, pk):
 
             with transaction.atomic():
                 if accion == 'aprobar':
-                    expositor.estado_solicitud = 'aprobado'
-                    expositor.activo = True
-                elif accion == 'observar':
-                    expositor.estado_solicitud = 'observado'
-                    expositor.activo = False
-                elif accion == 'rechazar':
-                    expositor.estado_solicitud = 'rechazado'
-                    expositor.activo = False
+                    if cambio:
+                        # Aplicar los cambios al Expositor y marcar el cambio como aprobado
+                        expositor.aplicar_cambio_pendiente(cambio, request.user)
+                    else:
+                        # Aprobar la solicitud inicial (no había cambios pendientes)
+                        expositor.estado_solicitud = 'aprobado'
+                        expositor.activo = True
+                        expositor.fecha_revision = timezone.now()
+                        expositor.save(update_fields=[
+                            'estado_solicitud', 'activo', 'fecha_revision'
+                        ])
 
-                expositor.nota_admin = comentario
-                expositor.fecha_revision = timezone.now()
-                expositor.save(update_fields=[
-                    'estado_solicitud', 'activo', 'nota_admin', 'fecha_revision'
-                ])
+                    # Registrar comentario de aprobación
+                    ComentarioAdmin.objects.create(
+                        expositor=expositor,
+                        autor=request.user,
+                        tipo='aprobacion',
+                        texto=comentario or 'Solicitud aprobada.',
+                    )
+
+                elif accion in ('observar', 'rechazar'):
+                    # NO se toca el Expositor (mantiene su versión aprobada anterior)
+                    # Solo se marca el cambio como rechazado y se registra el comentario.
+                    if cambio:
+                        cambio.estado = 'rechazado'
+                        cambio.fecha_resolucion = timezone.now()
+                        cambio.resuelto_por = request.user
+                        cambio.save(update_fields=[
+                            'estado', 'fecha_resolucion', 'resuelto_por'
+                        ])
+
+                    tipo = 'observacion' if accion == 'observar' else 'rechazo'
+                    ComentarioAdmin.objects.create(
+                        expositor=expositor,
+                        autor=request.user,
+                        tipo=tipo,
+                        texto=comentario,
+                    )
+
+                    # Actualizar estado del expositor
+                    expositor.estado_solicitud = (
+                        'observado' if accion == 'observar' else 'rechazado'
+                    )
+                    expositor.nota_admin = comentario
+                    expositor.fecha_revision = timezone.now()
+                    expositor.save(update_fields=[
+                        'estado_solicitud', 'nota_admin', 'fecha_revision'
+                    ])
 
             mensajes_por_accion = {
                 'aprobar': f'✅ Solicitud aprobada: {expositor.nombre_empresa}',
@@ -476,9 +530,181 @@ def panel_solicitud_detalle(request, pk):
         'expositor': expositor,
         'fotos': fotos,
         'productos': productos,
+        'cambio': cambio,
+        'comentarios': comentarios,
         'form': form,
     }
     return render(request, 'core/panel/solicitud_detalle.html', contexto)
+
+
+# =============================================================
+#  PANEL: GESTIÓN DE USUARIOS (expositores)
+# =============================================================
+
+@admin_requerido
+def panel_usuarios(request):
+    """Lista de usuarios con perfil expositor."""
+    q = request.GET.get('q', '').strip()
+    estado = request.GET.get('estado', '').strip()  # activo / inactivo / sin_perfil
+
+    perfiles = (
+        User.objects
+        .select_related('perfil', 'perfil__expositor')
+        .order_by('-date_joined')
+    )
+
+    if q:
+        perfiles = perfiles.filter(
+            Q(username__icontains=q) |
+            Q(email__icontains=q) |
+            Q(first_name__icontains=q) |
+            Q(perfil__expositor__nombre_empresa__icontains=q)
+        )
+
+    if estado == 'activo':
+        perfiles = perfiles.filter(is_active=True)
+    elif estado == 'inactivo':
+        perfiles = perfiles.filter(is_active=False)
+
+    contexto = {
+        'usuarios': perfiles,
+        'total': perfiles.count(),
+        'filtros': {'q': q, 'estado': estado},
+    }
+    return render(request, 'core/panel/usuarios.html', contexto)
+
+
+@admin_requerido
+def panel_usuario_create(request):
+    """Crear un nuevo usuario expositor desde el panel admin."""
+    if request.method == 'POST':
+        form = CrearUsuarioExpositorForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            messages.success(
+                request,
+                f'Usuario creado: {user.username} → {user.perfil.expositor.nombre_empresa}'
+            )
+            return redirect('core:panel_usuarios')
+        else:
+            messages.error(request, 'Revisa los errores del formulario.')
+    else:
+        form = CrearUsuarioExpositorForm()
+
+    return render(request, 'core/panel/usuario_form.html', {
+        'form': form,
+        'modo': 'crear',
+    })
+
+
+@admin_requerido
+def panel_usuario_edit(request, pk):
+    """Editar los datos del User (username, email, first_name, is_active)."""
+    user = get_object_or_404(User, pk=pk)
+
+    if request.method == 'POST':
+        username = request.POST.get('username', '').strip()
+        email = request.POST.get('email', '').strip()
+        first_name = request.POST.get('first_name', '').strip()
+        is_active = request.POST.get('is_active') == 'on'
+
+        errores = []
+        if not username:
+            errores.append('El usuario es obligatorio.')
+        if User.objects.filter(username__iexact=username).exclude(pk=user.pk).exists():
+            errores.append('Ese nombre de usuario ya existe.')
+        if email and User.objects.filter(email__iexact=email).exclude(pk=user.pk).exists():
+            errores.append('Ese correo ya está en uso.')
+
+        if errores:
+            for e in errores:
+                messages.error(request, e)
+        else:
+            user.username = username
+            user.email = email
+            user.first_name = first_name
+            user.is_active = is_active
+            user.save(update_fields=['username', 'email', 'first_name', 'is_active'])
+            messages.success(request, f'Usuario actualizado: {user.username}')
+            return redirect('core:panel_usuarios')
+
+    contexto = {
+        'usuario': user,
+        'modo': 'editar',
+    }
+    return render(request, 'core/panel/usuario_edit.html', contexto)
+
+
+@admin_requerido
+def panel_usuario_reset_password(request, pk):
+    """Resetear la contraseña de un usuario."""
+    user = get_object_or_404(User, pk=pk)
+
+    if request.method == 'POST':
+        form = ResetPasswordForm(request.POST)
+        if form.is_valid():
+            nueva = form.cleaned_data['password1']
+            user.set_password(nueva)
+            user.save(update_fields=['password'])
+            messages.success(
+                request,
+                f'Contraseña actualizada para {user.username}.'
+            )
+            return redirect('core:panel_usuarios')
+        else:
+            messages.error(request, 'Revisa los errores del formulario.')
+    else:
+        form = ResetPasswordForm()
+
+    return render(request, 'core/panel/usuario_reset_password.html', {
+        'form': form,
+        'usuario': user,
+    })
+
+
+@admin_requerido
+def panel_usuario_toggle_activo(request, pk):
+    """Activa/desactiva un usuario (bloquea su login)."""
+    user = get_object_or_404(User, pk=pk)
+    user.is_active = not user.is_active
+    user.save(update_fields=['is_active'])
+    messages.success(
+        request,
+        f"{'Activado' if user.is_active else 'Desactivado'}: {user.username}"
+    )
+    return redirect(request.META.get('HTTP_REFERER', 'core:panel_usuarios'))
+
+
+# =============================================================
+#  PANEL: COMENTARIOS DEL ADMIN
+# =============================================================
+
+@admin_requerido
+def panel_comentarios(request, pk):
+    """Historial completo de comentarios de un expositor."""
+    expositor = get_object_or_404(Expositor, pk=pk)
+    comentarios = expositor.comentarios_admin.all()
+
+    if request.method == 'POST':
+        form = ComentarioAdminForm(request.POST)
+        if form.is_valid():
+            ComentarioAdmin.objects.create(
+                expositor=expositor,
+                autor=request.user,
+                tipo=form.cleaned_data['tipo'],
+                texto=form.cleaned_data['texto'],
+            )
+            messages.success(request, 'Comentario añadido.')
+            return redirect('core:panel_comentarios', pk=expositor.pk)
+    else:
+        form = ComentarioAdminForm()
+
+    contexto = {
+        'expositor': expositor,
+        'comentarios': comentarios,
+        'form': form,
+    }
+    return render(request, 'core/panel/comentarios.html', contexto)
 
 
 # =============================================================
@@ -552,11 +778,15 @@ def panel_expositor_detail(request, pk):
     expositor = get_object_or_404(Expositor, pk=pk)
     fotos = expositor.fotos.all()
     productos = expositor.productos.all().order_by('categoria', 'nombre')
+    cambio = getattr(expositor, 'cambio_pendiente', None)
+    comentarios = expositor.comentarios_admin.all()[:5]
 
     contexto = {
         'expositor': expositor,
         'fotos': fotos,
         'productos': productos,
+        'cambio': cambio,
+        'comentarios': comentarios,
     }
     return render(request, 'core/panel/expositor_detail.html', contexto)
 
@@ -664,7 +894,7 @@ def panel_producto_delete(request, prod_pk):
     """Eliminar un producto."""
     producto = get_object_or_404(Producto, pk=prod_pk)
     expositor = producto.expositor
-    nombre = producto.nombre
+    nombre = producto.nombre 
     producto.delete()
     expositor.recalcular_precio_desde()
     messages.success(request, f'Producto "{nombre}" eliminado.')

@@ -1,0 +1,445 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Gestión de Usuarios · Panel{% endblock %}
+
+{% block content %}
+
+<section class="panel-section">
+    <div class="panel-pattern"></div>
+
+    <div class="container position-relative py-5">
+
+        <!-- ============ HEADER ============ -->
+        <div class="panel-header">
+            <div>
+                <a href="{% url 'core:panel_dashboard' %}" class="panel-back">
+                    <i class="fas fa-arrow-left"></i> Volver al panel
+                </a>
+                <h1 class="panel-title">
+                    Usuarios
+                    <span class="panel-count">{{ total }}</span>
+                </h1>
+                <p class="panel-subtitle">
+                    Gestiona las cuentas de los expositores del festival.
+                </p>
+            </div>
+
+            <div class="panel-actions">
+                <a href="{% url 'core:panel_usuario_create' %}" class="btn btn-warning fw-bold">
+                    <i class="fas fa-user-plus"></i> Nuevo usuario
+                </a>
+            </div>
+        </div>
+
+        {% if messages %}
+        <div class="mb-4">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- ============ FILTROS ============ -->
+        <div class="filter-card">
+            <form method="get" class="filter-grid">
+
+                <div class="filter-field filter-search">
+                    <label class="filter-label">Buscar</label>
+                    <input type="text"
+                           name="q"
+                           class="filter-input"
+                           placeholder="Usuario, correo, empresa..."
+                           value="{{ filtros.q }}">
+                </div>
+
+                <div class="filter-field">
+                    <label class="filter-label">Estado</label>
+                    <select name="estado" class="filter-input">
+                        <option value="">Todos</option>
+                        <option value="activo" {% if filtros.estado == 'activo' %}selected{% endif %}>Activos</option>
+                        <option value="inactivo" {% if filtros.estado == 'inactivo' %}selected{% endif %}>Inactivos</option>
+                    </select>
+                </div>
+
+                <div class="filter-actions">
+                    <button class="btn btn-warning fw-bold" type="submit">
+                        <i class="fas fa-filter"></i> Filtrar
+                    </button>
+                    <a href="{% url 'core:panel_usuarios' %}" class="btn btn-outline-warning">
+                        Limpiar
+                    </a>
+                </div>
+
+            </form>
+        </div>
+
+        <!-- ============ TABLA ============ -->
+        <div class="table-card">
+            <div class="table-responsive">
+                <table class="panel-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;">#</th>
+                            <th>Usuario</th>
+                            <th>Email</th>
+                            <th>Expositor vinculado</th>
+                            <th>Último acceso</th>
+                            <th>Estado</th>
+                            <th class="text-end">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for u in usuarios %}
+                        <tr>
+                            <td>
+                                <span class="cell-muted">#{{ u.pk }}</span>
+                            </td>
+                            <td>
+                                <strong class="row-empresa">{{ u.username }}</strong>
+                                {% if u.first_name %}
+                                <div class="row-categoria">{{ u.first_name }}</div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="cell-muted">{{ u.email|default:'—' }}</span>
+                            </td>
+                            <td>
+                                {% if u.perfil.expositor %}
+                                    <a href="{% url 'core:panel_expositor_detail' u.perfil.expositor.pk %}"
+                                       class="link-warning">
+                                        {{ u.perfil.expositor.nombre_empresa }}
+                                    </a>
+                                {% else %}
+                                    <span class="text-muted-sm">Sin expositor</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="cell-muted">
+                                    {{ u.last_login|date:"j M Y H:i"|default:'Nunca' }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if u.is_active %}
+                                    <span class="status-badge status-active">Activo</span>
+                                {% else %}
+                                    <span class="status-badge status-inactive">Inactivo</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                <div class="row-actions">
+                                    <a href="{% url 'core:panel_usuario_edit' u.pk %}"
+                                       class="action-btn action-edit" title="Editar datos">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{% url 'core:panel_usuario_reset_password' u.pk %}"
+                                       class="action-btn action-star" title="Resetear contraseña">
+                                        <i class="fas fa-key"></i>
+                                    </a>
+                                    <a href="{% url 'core:panel_usuario_toggle_activo' u.pk %}"
+                                       class="action-btn action-power"
+                                       title="{% if u.is_active %}Desactivar{% else %}Activar{% endif %}">
+                                        <i class="fas fa-power-off"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="empty-row">
+                                <i class="fas fa-users"></i>
+                                <p>No hay usuarios que coincidan con los filtros.</p>
+                                <a href="{% url 'core:panel_usuarios' %}" class="btn btn-outline-warning btn-sm">
+                                    Limpiar filtros
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+{% endblock %}
+
+
+{% block extra_css %}
+<style>
+/* ============================================================
+   PANEL · GESTIÓN DE USUARIOS — Oscuro
+   ============================================================ */
+.panel-section {
+    position: relative;
+    padding: 3rem 0;
+    background: #0A0A0A;
+    min-height: calc(100vh - 200px);
+    overflow: hidden;
+}
+.panel-pattern {
+    position: absolute;
+    inset: 0;
+    background-image:
+        radial-gradient(circle at 10% 10%, rgba(253, 153, 0, 0.08) 0%, transparent 45%),
+        radial-gradient(circle at 90% 90%, rgba(181, 88, 38, 0.08) 0%, transparent 45%),
+        radial-gradient(rgba(253, 233, 1, 0.05) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 28px 28px;
+    pointer-events: none;
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+}
+.panel-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.55);
+    text-decoration: none;
+    margin-bottom: 0.75rem;
+    transition: color var(--transition-fast), transform var(--transition-fast);
+}
+.panel-back:hover {
+    color: var(--amarillo);
+    transform: translateX(-3px);
+}
+.panel-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+    color: #FFF;
+    margin: 0 0 0.35rem;
+    letter-spacing: 0.02em;
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    flex-wrap: wrap;
+}
+.panel-count {
+    font-family: var(--font-heading);
+    font-size: 0.95rem;
+    background: var(--grad-amarillo-naranja);
+    color: var(--negro);
+    padding: 0.3em 0.9em;
+    border-radius: var(--radius-pill);
+    line-height: 1;
+}
+.panel-subtitle {
+    font-family: var(--font-body);
+    font-size: 0.92rem;
+    color: rgba(255, 255, 255, 0.55);
+    margin: 0;
+}
+.panel-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+/* Filtros */
+.filter-card {
+    background: #141414;
+    border: 1.5px solid rgba(253, 233, 1, 0.12);
+    border-radius: var(--radius-md);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.5rem;
+}
+.filter-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr auto;
+    gap: 0.85rem;
+    align-items: end;
+}
+.filter-field { display: flex; flex-direction: column; }
+.filter-label {
+    font-family: var(--font-heading);
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--amarillo);
+    margin-bottom: 0.4rem;
+}
+.filter-input {
+    width: 100%;
+    font-family: var(--font-body);
+    font-size: 0.88rem;
+    padding: 0.6rem 0.85rem;
+    background: #1A1A1A;
+    border: 1.5px solid rgba(253, 233, 1, 0.15);
+    border-radius: var(--radius-sm);
+    color: #FFF;
+    transition: border-color var(--transition-fast);
+}
+.filter-input:focus {
+    outline: none;
+    border-color: var(--naranja);
+    background: #1F1F1F;
+    box-shadow: 0 0 0 0.15rem rgba(253, 153, 0, 0.2);
+}
+.filter-input::placeholder { color: rgba(255, 255, 255, 0.35); }
+.filter-input option { background: #1A1A1A; color: #FFF; }
+.filter-actions { display: flex; gap: 0.4rem; }
+
+/* Tabla */
+.table-card {
+    background: #141414;
+    border: 1.5px solid rgba(253, 233, 1, 0.12);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+.table-responsive { overflow-x: auto; }
+.panel-table {
+    width: 100%;
+    border-collapse: collapse;
+    color: #FFF;
+    font-family: var(--font-body);
+}
+.panel-table thead {
+    background: #0F0F0F;
+    border-bottom: 1.5px solid rgba(253, 233, 1, 0.12);
+}
+.panel-table thead th {
+    font-family: var(--font-heading);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--amarillo);
+    padding: 1rem 1rem;
+    text-align: left;
+    font-weight: 400;
+}
+.panel-table thead th.text-end { text-align: right; }
+.panel-table tbody tr {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    transition: background var(--transition-fast);
+}
+.panel-table tbody tr:hover { background: rgba(253, 233, 1, 0.035); }
+.panel-table td {
+    padding: 0.9rem 1rem;
+    vertical-align: middle;
+    font-size: 0.9rem;
+}
+
+.row-empresa {
+    font-family: var(--font-heading);
+    font-size: 0.95rem;
+    color: #FFF;
+    letter-spacing: 0.02em;
+}
+.row-categoria {
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.45);
+    margin-top: 0.15rem;
+}
+.cell-muted {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.6);
+}
+.text-muted-sm {
+    color: rgba(255, 255, 255, 0.3);
+    font-size: 0.85rem;
+    font-style: italic;
+}
+.link-warning {
+    color: var(--amarillo);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+}
+.link-warning:hover { color: var(--naranja); }
+
+.status-badge {
+    font-family: var(--font-body);
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.4em 0.85em;
+    border-radius: var(--radius-pill);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+.status-active {
+    background: rgba(46, 204, 113, 0.15);
+    color: #7EEBAE;
+}
+.status-inactive {
+    background: rgba(231, 76, 60, 0.15);
+    color: #FF8A80;
+}
+
+.row-actions { display: inline-flex; gap: 0.3rem; }
+.action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: var(--radius-sm);
+    background: #1A1A1A;
+    border: 1.5px solid rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.55);
+    font-size: 0.82rem;
+    text-decoration: none;
+    transition: all var(--transition-fast);
+}
+.action-btn:hover { transform: translateY(-2px); color: #FFF; }
+.action-edit:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.25);
+    color: #FFF;
+}
+.action-star:hover {
+    background: rgba(253, 233, 1, 0.12);
+    border-color: var(--amarillo);
+    color: var(--amarillo);
+}
+.action-power:hover {
+    background: rgba(253, 153, 0, 0.12);
+    border-color: var(--naranja);
+    color: var(--naranja);
+}
+
+.empty-row {
+    text-align: center;
+    padding: 4rem 1rem !important;
+    color: rgba(255, 255, 255, 0.4);
+}
+.empty-row i {
+    font-size: 2.5rem;
+    color: rgba(253, 233, 1, 0.25);
+    display: block;
+    margin-bottom: 0.75rem;
+}
+.empty-row p {
+    font-family: var(--font-body);
+    margin-bottom: 1rem;
+}
+
+@media (max-width: 991px) {
+    .filter-grid { grid-template-columns: 1fr 1fr; }
+    .filter-search { grid-column: 1 / -1; }
+    .filter-actions { grid-column: 1 / -1; justify-content: flex-end; }
+}
+@media (max-width: 576px) {
+    .panel-section { padding: 2rem 0; }
+    .panel-header { align-items: flex-start; }
+    .filter-grid { grid-template-columns: 1fr; }
+    .filter-actions { grid-column: 1 / -1; }
+    .filter-actions .btn { flex-grow: 1; }
+    .panel-table td, .panel-table thead th {
+        padding: 0.7rem 0.6rem;
+        font-size: 0.82rem;
+    }
+    .action-btn { width: 30px; height: 30px; font-size: 0.75rem; }
+}
+</style>
+{% endblock %}

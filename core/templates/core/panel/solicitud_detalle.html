@@ -1,0 +1,1023 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Revisar solicitud · {{ expositor.nombre_empresa }}{% endblock %}
+
+{% block content %}
+
+<section class="panel-section">
+    <div class="panel-pattern"></div>
+
+    <div class="container position-relative py-5">
+
+        <!-- ============ BREADCRUMB ============ -->
+        <nav class="panel-breadcrumb">
+            <a href="{% url 'core:panel_dashboard' %}">Panel</a>
+            <i class="fas fa-chevron-right"></i>
+            <a href="{% url 'core:panel_solicitudes' %}">Solicitudes</a>
+            <i class="fas fa-chevron-right"></i>
+            <span>{{ expositor.nombre_empresa }}</span>
+        </nav>
+
+        <!-- ============ HEADER ============ -->
+        <div class="panel-header">
+            <div>
+                <span class="section-tag section-tag-light">Revisión de solicitud</span>
+                <h1 class="panel-title">
+                    {{ expositor.nombre_empresa }}
+                </h1>
+                <p class="panel-subtitle">
+                    Estado actual:
+                    <strong>
+                        {% if expositor.estado_solicitud == 'revision_pendiente' %}
+                            Cambios pendientes de aprobación
+                        {% elif expositor.estado_solicitud == 'pendiente' %}
+                            Pendiente de revisión
+                        {% elif expositor.estado_solicitud == 'observado' %}
+                            Con observaciones
+                        {% elif expositor.estado_solicitud == 'aprobado' %}
+                            Aprobado
+                        {% elif expositor.estado_solicitud == 'rechazado' %}
+                            Rechazado
+                        {% else %}
+                            {{ expositor.get_estado_solicitud_display }}
+                        {% endif %}
+                    </strong>
+                </p>
+            </div>
+
+            <div class="panel-actions">
+                <a href="{% url 'core:panel_expositor_detail' expositor.pk %}"
+                   class="btn btn-outline-warning" target="_blank">
+                    <i class="fas fa-external-link-alt"></i> Ver detalle completo
+                </a>
+                <a href="{% url 'core:panel_solicitudes' %}" class="btn btn-outline-warning">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </a>
+            </div>
+        </div>
+
+        {% if messages %}
+        <div class="mb-4">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- ============ AVISO DE CAMBIOS PENDIENTES ============ -->
+        {% if cambio %}
+        <div class="cambio-banner">
+            <i class="fas fa-info-circle"></i>
+            <div>
+                <strong>El expositor ha propuesto cambios</strong>
+                <p>
+                    Los cambios se muestran en <span class="highlight-box">amarillo</span>.
+                    Si apruebas, se aplicarán al expositor y aparecerán en el catálogo.
+                    Si rechazas, se mantiene la versión actual.
+                </p>
+                <p class="cambio-meta">
+                    <i class="fas fa-clock"></i>
+                    Propuesto el {{ cambio.fecha_actualizacion|date:"j \d\e F \d\e Y, H:i" }}
+                </p>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="row g-4">
+
+            <!-- ============ COLUMNA IZQUIERDA: DATOS + CAMBIOS ============ -->
+            <div class="col-lg-8">
+
+                <!-- ============ DATOS DEL EXPOSITOR ============ -->
+                <div class="form-card mb-4">
+                    <div class="form-card-header form-card-header-flex">
+                        <div class="header-left">
+                            <i class="fas fa-store"></i>
+                            <span>Datos del expositor</span>
+                        </div>
+                        {% if cambio and cambio.datos.expositor %}
+                        <span class="badge-cambios">
+                            {{ cambio.datos.expositor|length }} campo(s) con cambios
+                        </span>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-card-body">
+                        <div class="data-grid">
+
+                            <div class="data-field">
+                                <span class="data-label">Nombre del expositor</span>
+                                <span class="data-valor">{{ expositor.nombre_expositor|default:'—' }}</span>
+                            </div>
+
+                            <div class="data-field">
+                                <span class="data-label">Nombre de la empresa</span>
+                                <span class="data-valor">{{ expositor.nombre_empresa|default:'—' }}</span>
+                            </div>
+
+                            <div class="data-field">
+                                <span class="data-label">Email de contacto</span>
+                                <span class="data-valor">{{ expositor.email_contacto|default:'—' }}</span>
+                            </div>
+
+                            <div class="data-field">
+                                <span class="data-label">Teléfono</span>
+                                <span class="data-valor">{{ expositor.numero_contacto|default:'—' }}</span>
+                            </div>
+
+                            <div class="data-field">
+                                <span class="data-label">Categoría</span>
+                                <span class="data-valor">{{ expositor.get_categoria_display }}</span>
+                            </div>
+
+                            <div class="data-field">
+                                <span class="data-label">Número de stand</span>
+                                <span class="data-valor">{{ expositor.numero_stand|default:'—' }}</span>
+                            </div>
+
+                            <div class="data-field data-field-full">
+                                <span class="data-label">Descripción</span>
+                                <span class="data-valor">{{ expositor.descripcion|default:'—' }}</span>
+                            </div>
+
+                            <div class="data-field">
+                                <span class="data-label">Especialidades</span>
+                                <span class="data-valor">{{ expositor.especialidades|default:'—' }}</span>
+                            </div>
+
+                            <div class="data-field">
+                                <span class="data-label">Dirección</span>
+                                <span class="data-valor">{{ expositor.direccion_negocio|default:'—' }}</span>
+                            </div>
+
+                            <div class="data-field">
+                                <span class="data-label">Google Maps</span>
+                                <span class="data-valor">
+                                    {% if expositor.link_google_maps %}
+                                        <a href="{{ expositor.link_google_maps }}" target="_blank" class="link-warning">
+                                            Ver ubicación <i class="fas fa-external-link-alt"></i>
+                                        </a>
+                                    {% else %}
+                                        —
+                                    {% endif %}
+                                </span>
+                            </div>
+
+                            <div class="data-field">
+                                <span class="data-label">Red social 1</span>
+                                <span class="data-valor">{{ expositor.enlace_red_social_1|default:'—' }}</span>
+                            </div>
+
+                            <div class="data-field">
+                                <span class="data-label">Red social 2</span>
+                                <span class="data-valor">{{ expositor.enlace_red_social_2|default:'—' }}</span>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============ OPERACIONES PENDIENTES (productos/fotos) ============ -->
+                {% if cambio and cambio.datos.operaciones %}
+                <div class="form-card mb-4">
+                    <div class="form-card-header form-card-header-flex">
+                        <div class="header-left">
+                            <i class="fas fa-exchange-alt"></i>
+                            <span>Operaciones propuestas</span>
+                        </div>
+                        <span class="badge-cambios">
+                            {{ cambio.datos.operaciones|length }} operación(es)
+                        </span>
+                    </div>
+                    <div class="form-card-body">
+                        <ul class="operaciones-list">
+                            {% for op in cambio.datos.operaciones %}
+                            <li class="operacion-item operacion-{{ op.tipo }}">
+                                <div class="operacion-icon">
+                                    {% if op.tipo == 'producto_crear' %}
+                                        <i class="fas fa-plus-circle"></i>
+                                    {% elif op.tipo == 'producto_editar' %}
+                                        <i class="fas fa-edit"></i>
+                                    {% elif op.tipo == 'producto_eliminar' %}
+                                        <i class="fas fa-trash"></i>
+                                    {% elif op.tipo == 'foto_agregar' %}
+                                        <i class="fas fa-camera"></i>
+                                    {% elif op.tipo == 'foto_eliminar' %}
+                                        <i class="fas fa-times-circle"></i>
+                                    {% elif op.tipo == 'logo_actualizar' %}
+                                        <i class="fas fa-image"></i>
+                                    {% else %}
+                                        <i class="fas fa-circle"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="operacion-info">
+                                    <strong>
+                                        {% if op.tipo == 'producto_crear' %}
+                                            Crear producto
+                                        {% elif op.tipo == 'producto_editar' %}
+                                            Editar producto
+                                        {% elif op.tipo == 'producto_eliminar' %}
+                                            Eliminar producto
+                                        {% elif op.tipo == 'foto_agregar' %}
+                                            Agregar foto
+                                        {% elif op.tipo == 'foto_eliminar' %}
+                                            Eliminar foto
+                                        {% elif op.tipo == 'logo_actualizar' %}
+                                            Actualizar logo
+                                        {% else %}
+                                            {{ op.tipo }}
+                                        {% endif %}
+                                    </strong>
+                                    {% if op.tipo == 'producto_crear' or op.tipo == 'producto_editar' %}
+                                        <span class="op-detalle">
+                                            {{ op.datos.nombre|default:'(sin nombre)' }}
+                                            {% if op.datos.precio %} · ${{ op.datos.precio }}{% endif %}
+                                        </span>
+                                    {% elif op.tipo == 'producto_eliminar' %}
+                                        <span class="op-detalle">Producto #{{ op.producto_id }}</span>
+                                    {% elif op.tipo == 'foto_agregar' %}
+                                        <span class="op-detalle">{{ op.datos.descripcion|default:'Sin descripción' }}</span>
+                                    {% elif op.tipo == 'foto_eliminar' %}
+                                        <span class="op-detalle">Foto #{{ op.foto_id }}</span>
+                                    {% endif %}
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- ============ PRODUCTOS ACTUALES ============ -->
+                <div class="form-card mb-4">
+                    <div class="form-card-header form-card-header-flex">
+                        <div class="header-left">
+                            <i class="fas fa-utensils"></i>
+                            <span>Productos actuales</span>
+                        </div>
+                        <span class="badge-count">{{ productos|length }}</span>
+                    </div>
+                    <div class="form-card-body">
+                        {% if productos %}
+                        <div class="table-responsive">
+                            <table class="panel-table">
+                                <thead>
+                                    <tr>
+                                        <th>Producto</th>
+                                        <th>Categoría</th>
+                                        <th>Unidad</th>
+                                        <th class="text-end">Precio</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for p in productos %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ p.nombre }}</strong>
+                                            {% if p.descripcion %}
+                                            <div class="row-categoria">{{ p.descripcion }}</div>
+                                            {% endif %}
+                                        </td>
+                                        <td><span class="cell-muted">{{ p.get_categoria_display }}</span></td>
+                                        <td><span class="cell-muted">{{ p.get_unidad_display }}</span></td>
+                                        <td class="text-end">
+                                            <span class="price-cell">{{ p.get_precio_display }}</span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="empty-block empty-small">
+                            <i class="fas fa-utensils"></i>
+                            <p>Sin productos registrados.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- ============ FOTOS ACTUALES ============ -->
+                {% if fotos %}
+                <div class="form-card mb-4">
+                    <div class="form-card-header form-card-header-flex">
+                        <div class="header-left">
+                            <i class="fas fa-camera"></i>
+                            <span>Fotos actuales</span>
+                        </div>
+                        <span class="badge-count">{{ fotos|length }}</span>
+                    </div>
+                    <div class="form-card-body">
+                        <div class="fotos-grid">
+                            {% for foto in fotos %}
+                            <a href="{{ foto.imagen.url }}" target="_blank" class="panel-foto">
+                                <img src="{{ foto.imagen.url }}" alt="{{ foto.descripcion|default:'' }}">
+                            </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+            </div>
+
+            <!-- ============ COLUMNA DERECHA: DECISIÓN ============ -->
+            <div class="col-lg-4">
+
+                <!-- ============ FORM DE DECISIÓN ============ -->
+                <div class="form-card decision-card mb-4">
+                    <div class="form-card-header">
+                        <i class="fas fa-gavel"></i>
+                        <span>Decisión</span>
+                    </div>
+                    <div class="form-card-body">
+
+                        <form method="post">
+                            {% csrf_token %}
+
+                            {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+                            </div>
+                            {% endif %}
+
+                            <div class="form-field">
+                                <label class="form-field-label">Acción *</label>
+                                <div class="radio-group">
+                                    {% for radio in form.accion %}
+                                    <div class="radio-line radio-{{ radio.data.value }}">
+                                        {{ radio.tag }}
+                                        <label for="{{ radio.id_for_label }}">
+                                            {% if radio.data.value == 'aprobar' %}
+                                                <i class="fas fa-check-circle"></i>
+                                            {% elif radio.data.value == 'observar' %}
+                                                <i class="fas fa-exclamation-circle"></i>
+                                            {% elif radio.data.value == 'rechazar' %}
+                                                <i class="fas fa-times-circle"></i>
+                                            {% endif %}
+                                            {{ radio.choice_label }}
+                                        </label>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% if form.accion.errors %}
+                                <small class="form-field-error">{{ form.accion.errors.0 }}</small>
+                                {% endif %}
+                            </div>
+
+                            <div class="form-field">
+                                <label class="form-field-label">Comentario / Observaciones</label>
+                                {{ form.comentario }}
+                                {% if form.comentario.errors %}
+                                <small class="form-field-error">{{ form.comentario.errors.0 }}</small>
+                                {% endif %}
+                                <div class="form-hint">
+                                    <i class="fas fa-lightbulb"></i>
+                                    Obligatorio si observas o rechazas. El expositor verá este texto.
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-warning fw-bold w-100">
+                                <i class="fas fa-paper-plane"></i> Enviar decisión
+                            </button>
+
+                        </form>
+
+                    </div>
+                </div>
+
+                <!-- ============ HISTORIAL DE COMENTARIOS ============ -->
+                <div class="form-card">
+                    <div class="form-card-header form-card-header-flex">
+                        <div class="header-left">
+                            <i class="fas fa-history"></i>
+                            <span>Historial</span>
+                        </div>
+                        <a href="{% url 'core:panel_comentarios' expositor.pk %}"
+                           class="btn-mini">
+                            Ver todo
+                        </a>
+                    </div>
+                    <div class="form-card-body">
+                        {% if comentarios %}
+                            <div class="mini-timeline">
+                                {% for c in comentarios %}
+                                <div class="mini-item mini-{{ c.tipo }}">
+                                    <div class="mini-dot"></div>
+                                    <div class="mini-content">
+                                        <div class="mini-header">
+                                            <strong>{{ c.get_tipo_display }}</strong>
+                                            <span>{{ c.fecha|date:"j M Y" }}</span>
+                                        </div>
+                                        <p class="mini-text">{{ c.texto|truncatewords:20 }}</p>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-muted-sm text-center mb-0">
+                                Sin comentarios previos.
+                            </p>
+                        {% endif %}
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+</section>
+
+{% endblock %}
+
+
+{% block extra_css %}
+<style>
+/* ============================================================
+   PANEL ADMIN · SOLICITUD DETALLE — Oscuro
+   ============================================================ */
+
+.panel-section {
+    position: relative;
+    padding: 3rem 0;
+    background: #0A0A0A;
+    min-height: calc(100vh - 200px);
+    overflow: hidden;
+}
+.panel-pattern {
+    position: absolute;
+    inset: 0;
+    background-image:
+        radial-gradient(circle at 10% 10%, rgba(253, 153, 0, 0.08) 0%, transparent 45%),
+        radial-gradient(circle at 90% 90%, rgba(181, 88, 38, 0.08) 0%, transparent 45%),
+        radial-gradient(rgba(253, 233, 1, 0.05) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 28px 28px;
+    pointer-events: none;
+}
+
+/* Breadcrumb */
+.panel-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.4);
+    margin-bottom: 1.5rem;
+}
+.panel-breadcrumb a {
+    color: rgba(255, 255, 255, 0.55);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+}
+.panel-breadcrumb a:hover { color: var(--amarillo); }
+.panel-breadcrumb i { font-size: 0.6rem; color: rgba(255, 255, 255, 0.25); }
+.panel-breadcrumb span { color: var(--amarillo); font-weight: 600; }
+
+/* Header */
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+}
+.panel-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+    color: #FFF;
+    margin: 0.5rem 0 0.35rem;
+    letter-spacing: 0.02em;
+    line-height: 1.1;
+}
+.panel-subtitle {
+    font-family: var(--font-body);
+    font-size: 0.92rem;
+    color: rgba(255, 255, 255, 0.55);
+    margin: 0;
+}
+.panel-subtitle strong { color: var(--amarillo); }
+.panel-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+/* Cambio banner */
+.cambio-banner {
+    display: flex;
+    gap: 1rem;
+    padding: 1.25rem 1.5rem;
+    background: rgba(253, 233, 1, 0.06);
+    border: 1.5px solid rgba(253, 233, 1, 0.25);
+    border-left: 5px solid var(--amarillo);
+    border-radius: var(--radius-md);
+    margin-bottom: 1.5rem;
+    font-family: var(--font-body);
+}
+.cambio-banner i {
+    font-size: 1.6rem;
+    color: var(--amarillo);
+    flex-shrink: 0;
+    margin-top: 0.15rem;
+}
+.cambio-banner strong {
+    font-family: var(--font-heading);
+    color: var(--amarillo);
+    display: block;
+    font-size: 1rem;
+    letter-spacing: 0.02em;
+    margin-bottom: 0.35rem;
+}
+.cambio-banner p {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.75);
+    margin: 0;
+    line-height: 1.6;
+}
+.cambio-meta {
+    margin-top: 0.5rem !important;
+    font-size: 0.82rem !important;
+    color: rgba(255, 255, 255, 0.5) !important;
+}
+.cambio-meta i { color: var(--naranja); font-size: 0.85rem; }
+
+.highlight-box {
+    background: rgba(253, 233, 1, 0.2);
+    color: var(--amarillo);
+    padding: 0.15em 0.5em;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+}
+
+/* Form cards */
+.form-card {
+    background: #141414;
+    border: 1.5px solid rgba(253, 233, 1, 0.12);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+.form-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 1.1rem 1.5rem;
+    background: #0F0F0F;
+    border-bottom: 1.5px solid rgba(253, 233, 1, 0.12);
+    font-family: var(--font-heading);
+    font-size: 0.95rem;
+    color: var(--amarillo);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+.form-card-header i { color: var(--naranja); font-size: 1rem; }
+.form-card-header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+.form-card-body { padding: 1.5rem; }
+
+.badge-count {
+    font-family: var(--font-display);
+    font-size: 0.82rem;
+    background: var(--grad-amarillo-naranja);
+    color: var(--negro);
+    padding: 0.25em 0.7em;
+    border-radius: var(--radius-pill);
+    line-height: 1;
+}
+.badge-cambios {
+    font-family: var(--font-body);
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.4em 0.85em;
+    border-radius: var(--radius-pill);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    background: rgba(253, 233, 1, 0.15);
+    color: var(--amarillo);
+}
+
+/* Data grid */
+.data-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem 1.5rem;
+}
+@media (max-width: 768px) {
+    .data-grid { grid-template-columns: 1fr; }
+}
+
+/* Operaciones */
+.operaciones-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+.operacion-item {
+    display: flex;
+    gap: 1rem;
+    padding: 0.9rem 1.1rem;
+    background: #1A1A1A;
+    border-radius: var(--radius-sm);
+    border-left: 3px solid var(--naranja);
+}
+.operacion-producto_crear { border-left-color: #2ECC71; }
+.operacion-producto_editar { border-left-color: var(--naranja); }
+.operacion-producto_eliminar { border-left-color: #E74C3C; }
+.operacion-foto_agregar { border-left-color: #0d6efd; }
+.operacion-foto_eliminar { border-left-color: #E74C3C; }
+
+.operacion-icon {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.05);
+    flex-shrink: 0;
+    font-size: 0.95rem;
+}
+.operacion-producto_crear .operacion-icon { color: #7EEBAE; }
+.operacion-producto_editar .operacion-icon { color: var(--naranja); }
+.operacion-producto_eliminar .operacion-icon { color: #FF8A80; }
+.operacion-foto_agregar .operacion-icon { color: #6EA8FE; }
+.operacion-foto_eliminar .operacion-icon { color: #FF8A80; }
+
+.operacion-info {
+    display: flex;
+    flex-direction: column;
+}
+.operacion-info strong {
+    font-family: var(--font-heading);
+    font-size: 0.9rem;
+    color: #FFF;
+    letter-spacing: 0.02em;
+}
+.op-detalle {
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.55);
+    margin-top: 0.15rem;
+}
+
+/* Radio group */
+.radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+.radio-line {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.75rem 1rem;
+    background: #1A1A1A;
+    border: 1.5px solid rgba(255, 255, 255, 0.06);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+.radio-line:hover {
+    border-color: rgba(253, 233, 1, 0.3);
+    background: #1F1F1F;
+}
+.radio-line input[type="radio"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--naranja);
+    cursor: pointer;
+    flex-shrink: 0;
+    margin: 0;
+}
+.radio-line label {
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.85);
+    cursor: pointer;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-grow: 1;
+}
+.radio-aprobar label i { color: #7EEBAE; }
+.radio-observar label i { color: var(--naranja); }
+.radio-rechazar label i { color: #FF8A80; }
+
+.radio-line input[type="radio"]:checked + label {
+    color: #FFF;
+    font-weight: 600;
+}
+
+/* Fields */
+.form-field {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1.1rem;
+}
+.form-field:last-child { margin-bottom: 0; }
+.form-field-label {
+    font-family: var(--font-heading);
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--amarillo);
+    margin-bottom: 0.45rem;
+}
+.form-field-error {
+    display: block;
+    color: #FF8A80;
+    font-size: 0.75rem;
+    margin-top: 0.35rem;
+}
+.form-hint {
+    font-family: var(--font-body);
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.4);
+    margin-top: 0.5rem;
+    font-style: italic;
+    display: flex;
+    gap: 0.4rem;
+    align-items: flex-start;
+}
+.form-hint i {
+    color: var(--naranja);
+    margin-top: 0.15rem;
+    flex-shrink: 0;
+}
+
+/* Inputs */
+.form-card-body textarea {
+    width: 100%;
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    padding: 0.65rem 0.9rem;
+    background: #1A1A1A;
+    border: 1.5px solid rgba(253, 233, 1, 0.15);
+    border-radius: var(--radius-sm);
+    color: #FFF;
+    resize: vertical;
+    min-height: 100px;
+    line-height: 1.6;
+}
+.form-card-body textarea:focus {
+    outline: none;
+    border-color: var(--naranja);
+    background: #1F1F1F;
+    box-shadow: 0 0 0 0.15rem rgba(253, 153, 0, 0.2);
+}
+.form-card-body textarea::placeholder { color: rgba(255, 255, 255, 0.3); }
+
+/* Decision card */
+.decision-card {
+    border-color: rgba(253, 233, 1, 0.3);
+    box-shadow: 0 0 20px rgba(253, 233, 1, 0.08);
+}
+
+/* Tabla */
+.table-responsive { overflow-x: auto; }
+.panel-table {
+    width: 100%;
+    border-collapse: collapse;
+    color: #FFF;
+    font-family: var(--font-body);
+}
+.panel-table thead {
+    background: #0F0F0F;
+    border-bottom: 1.5px solid rgba(253, 233, 1, 0.12);
+}
+.panel-table thead th {
+    font-family: var(--font-heading);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--amarillo);
+    padding: 0.9rem 1rem;
+    text-align: left;
+    font-weight: 400;
+}
+.panel-table thead th.text-end { text-align: right; }
+.panel-table tbody tr {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+.panel-table tbody tr:last-child { border-bottom: none; }
+.panel-table td {
+    padding: 0.85rem 1rem;
+    vertical-align: middle;
+    font-size: 0.88rem;
+}
+.row-categoria {
+    font-size: 0.76rem;
+    color: rgba(255, 255, 255, 0.45);
+    margin-top: 0.15rem;
+}
+.cell-muted {
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.55);
+}
+.price-cell {
+    font-family: var(--font-display);
+    font-size: 1rem;
+    color: #7EEBAE;
+    letter-spacing: 0.02em;
+}
+
+/* Fotos */
+.fotos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 0.75rem;
+}
+.panel-foto {
+    display: block;
+    aspect-ratio: 1;
+    overflow: hidden;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid rgba(253, 233, 1, 0.12);
+    transition: border-color var(--transition-fast), transform var(--transition-fast);
+}
+.panel-foto img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.panel-foto:hover {
+    border-color: var(--naranja);
+    transform: scale(1.03);
+}
+
+/* Mini timeline */
+.mini-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    position: relative;
+    padding-left: 1rem;
+}
+.mini-timeline::before {
+    content: '';
+    position: absolute;
+    left: 4px;
+    top: 4px;
+    bottom: 4px;
+    width: 2px;
+    background: rgba(253, 233, 1, 0.1);
+}
+.mini-item {
+    position: relative;
+    padding-left: 0.85rem;
+}
+.mini-dot {
+    position: absolute;
+    left: -1rem;
+    top: 4px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--naranja);
+    border: 2px solid #141414;
+}
+.mini-observacion .mini-dot { background: var(--naranja); }
+.mini-aprobacion .mini-dot { background: #2ECC71; }
+.mini-rechazo .mini-dot { background: #E74C3C; }
+.mini-info .mini-dot { background: #0d6efd; }
+
+.mini-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 0.3rem;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+.mini-header strong {
+    font-family: var(--font-heading);
+    font-size: 0.82rem;
+    color: var(--amarillo);
+    letter-spacing: 0.02em;
+}
+.mini-header span {
+    font-family: var(--font-body);
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.4);
+}
+.mini-text {
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0;
+    line-height: 1.5;
+    word-break: break-word;
+}
+
+/* Botón mini */
+.btn-mini {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.4em 0.75em;
+    background: #1A1A1A;
+    border: 1.5px solid rgba(253, 233, 1, 0.2);
+    color: var(--amarillo);
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    transition: all var(--transition-fast);
+}
+.btn-mini:hover {
+    background: rgba(253, 233, 1, 0.08);
+    border-color: var(--amarillo);
+    color: var(--amarillo);
+}
+
+/* Empty */
+.empty-block {
+    text-align: center;
+    padding: 2rem 1rem;
+    color: rgba(255, 255, 255, 0.4);
+}
+.empty-block i {
+    font-size: 2rem;
+    color: rgba(253, 233, 1, 0.25);
+    display: block;
+    margin-bottom: 0.6rem;
+}
+.empty-block p {
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    margin: 0;
+}
+.empty-small { padding: 1.5rem 1rem; }
+
+.text-muted-sm {
+    color: rgba(255, 255, 255, 0.35);
+    font-size: 0.85rem;
+}
+
+/* Responsive */
+@media (max-width: 991px) {
+    .data-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 768px) {
+    .panel-section { padding: 2rem 0; }
+    .panel-header { align-items: flex-start; }
+    .panel-actions { width: 100%; }
+    .panel-actions .btn { flex-grow: 1; }
+    .form-card-body { padding: 1.15rem; }
+    .operacion-item { padding: 0.75rem 0.9rem; }
+}
+
+
+.data-field {
+    display: flex;
+    flex-direction: column;
+    padding: 0.6rem 0;
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.06);
+}
+.data-field:last-child { border-bottom: none; }
+.data-field-full {
+    grid-column: 1 / -1;
+}
+.data-label {
+    font-family: var(--font-heading);
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(255, 255, 255, 0.45);
+    margin-bottom: 0.25rem;
+}
+.data-valor {
+    font-family: var(--font-body);
+    font-size: 0.92rem;
+    color: rgba(255, 255, 255, 0.9);
+    word-break: break-word;
+}
+.link-warning {
+    color: var(--amarillo);
+    text-decoration: none;
+}
+.link-warning:hover { color: var(--naranja); }
+</style>
+{% endblock %}

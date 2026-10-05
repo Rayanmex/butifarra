@@ -1,6 +1,7 @@
 # ===== Sistema =====
 .DS_Store
 Thumbs.db
+desktop.ini
 
 # ===== IDE =====
 .vscode/
@@ -9,15 +10,60 @@ Thumbs.db
 *.swo
 *~
 
-# ===== Python (solo cachés) =====
+# ===== Python =====
 __pycache__/
 *.py[cod]
 *$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+
 # ===== Entorno virtual =====
 venv/
+env/
+.venv/
 
+# ===== Django: Base de datos =====
+# IMPORTANTE: nunca subir la BD al repo
+db.sqlite3
+db.sqlite3-journal
+*.sqlite3
+*.sqlite3-journal
+
+# ===== Django: Media (archivos subidos por usuarios) =====
+media/
+
+# ===== Django: Estáticos generados por collectstatic =====
+staticfiles/
+static_root/
 
 # ===== Backups =====
 *.bak
 *.bak_*
-db.sqlite3.bak_*
+*.backup-*
+backups/
+
+# ===== Variables de entorno / secretos =====
+.env
+.env.*
+*.env
+secrets.json
+secret_key.txt
+
+# ===== Logs =====
+*.log
+logs/
+
+# ===== Archivos de Excel / scripts de migración =====
+formulario.xlsx
+corregir_productos.py
+diagnostico.py
+previsualizar_productos.py
+renombrar_fotos.py
+fotos/
+fotos_renombradas/
+Fotos_productos/
+logos/
+Logo_marca/

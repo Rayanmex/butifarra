@@ -1,4 +1,7 @@
 from django.db import models
+from django.contrib.auth.models import User
+from django.utils import timezone
+import json
 
 
 class Expositor(models.Model):
@@ -17,6 +20,7 @@ class Expositor(models.Model):
         ('observado', 'Con observaciones'),
         ('aprobado', 'Aprobado y publicado'),
         ('rechazado', 'Rechazado'),
+        ('revision_pendiente', 'Cambios pendientes de aprobación'),
     ]
 
     # ============ Información básica ============
@@ -193,8 +197,11 @@ class Expositor(models.Model):
     # ============ Propiedades de estado ============
     @property
     def puede_editar(self):
-        """El expositor solo puede editar en borrador u observado."""
-        return self.estado_solicitud in ('borrador', 'observado')
+        """
+        El expositor SIEMPRE puede editar sus datos.
+        Los cambios se guardan como CambioPendiente hasta que el admin apruebe.
+        """
+        return True
 
     @property
     def esta_pendiente(self):
@@ -213,6 +220,15 @@ class Expositor(models.Model):
         return self.estado_solicitud == 'observado'
 
     @property
+    def esta_en_revision(self):
+        return self.estado_solicitud == 'revision_pendiente'
+
+    @property
+    def tiene_cambio_pendiente(self):
+        """¿Tiene cambios sin aprobar?"""
+        return hasattr(self, 'cambio_pendiente') and self.cambio_pendiente is not None
+
+    @property
     def campos_requeridos_completos(self):
         """
         Campos mínimos para poder enviar la solicitud:
@@ -227,6 +243,25 @@ class Expositor(models.Model):
             self.categoria,
         ])
         return datos_basicos_ok and self.productos.exists()
+
+    @classmethod
+    def visibles_en_catalogo(cls):
+        """
+        Devuelve un queryset con los expositores que deben aparecer
+        en el catálogo público:
+          - activos
+          - aprobados O con cambios pendientes de aprobación
+            (en el segundo caso, el público ve la versión aprobada anterior,
+             porque los cambios están en CambioPendiente, no en el Expositor)
+        """
+        from django.db.models import Q
+        return cls.objects.filter(activo=True).filter(
+            Q(estado_solicitud='aprobado') |
+            Q(estado_solicitud='revision_pendiente')
+        )
+
+
+    
 
     # ============ Helpers de presentación ============
     def get_menu_list(self):
@@ -267,6 +302,61 @@ class Expositor(models.Model):
         minimo = self.productos.aggregate(m=Min('precio'))['m']
         self.precio_desde = minimo
         self.save(update_fields=['precio_desde'])
+
+    # ============ Aplicar un cambio pendiente ============
+    def aplicar_cambio_pendiente(self, cambio, admin_user=None):
+        """
+        Aplica el JSON de un CambioPendiente al Expositor actual.
+        Es llamado por el admin al aprobar.
+        """
+        datos = cambio.datos
+        campos = datos.get('expositor', {})
+
+        # 1) Aplicar campos del Expositor
+        for campo, valor in campos.items():
+            if hasattr(self, campo) and campo not in ('id', 'pk'):
+                setattr(self, campo, valor)
+
+        self.estado_solicitud = 'aprobado'
+        self.fecha_revision = timezone.now()
+        self.nota_admin = ''
+        self.save()
+
+        # 2) Aplicar operaciones sobre productos y fotos
+        for op in datos.get('operaciones', []):
+            tipo = op.get('tipo')
+            if tipo == 'producto_crear':
+                Producto.objects.create(
+                    expositor=self,
+                    **op.get('datos', {})
+                )
+            elif tipo == 'producto_editar':
+                producto_id = op.get('producto_id')
+                try:
+                    producto = Producto.objects.get(pk=producto_id, expositor=self)
+                    for campo, valor in op.get('datos', {}).items():
+                        setattr(producto, campo, valor)
+                    producto.save()
+                except Producto.DoesNotExist:
+                    pass
+            elif tipo == 'producto_eliminar':
+                Producto.objects.filter(
+                    pk=op.get('producto_id'), expositor=self
+                ).delete()
+            elif tipo == 'foto_eliminar':
+                FotoProducto.objects.filter(
+                    pk=op.get('foto_id'), expositor=self
+                ).delete()
+            # las fotos que se agregan ya están creadas (ver accounts/views.py)
+
+        # 3) Recalcular precio_desde
+        self.recalcular_precio_desde()
+
+        # 4) Marcar el cambio como aprobado
+        cambio.estado = 'aprobado'
+        cambio.fecha_resolucion = timezone.now()
+        cambio.resuelto_por = admin_user
+        cambio.save()
 
 
 class FotoProducto(models.Model):
@@ -390,6 +480,132 @@ class Producto(models.Model):
         if self.precio == int(self.precio):
             return f"${int(self.precio)}"
         return f"${self.precio:.2f}"
+
+
+# =============================================================
+#  CAMBIOS PENDIENTES DE APROBACIÓN
+# =============================================================
+
+class CambioPendiente(models.Model):
+    """
+    Cambios que el expositor ha hecho y que esperan aprobación del admin.
+    Solo hay UNO activo por expositor (se sobreescribe al editar de nuevo).
+    """
+    ESTADO_CHOICES = [
+        ('pendiente', 'Pendiente'),
+        ('aprobado', 'Aprobado'),
+        ('rechazado', 'Rechazado'),
+    ]
+
+    expositor = models.OneToOneField(
+        Expositor,
+        on_delete=models.CASCADE,
+        related_name='cambio_pendiente',
+        verbose_name='Expositor'
+    )
+    datos = models.JSONField(
+        verbose_name='Datos del cambio',
+        help_text='JSON con los campos del expositor y las operaciones sobre productos/fotos.'
+    )
+    estado = models.CharField(
+        max_length=20,
+        choices=ESTADO_CHOICES,
+        default='pendiente'
+    )
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+    fecha_resolucion = models.DateTimeField(null=True, blank=True)
+    resuelto_por = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='cambios_resueltos'
+    )
+
+    class Meta:
+        verbose_name = 'Cambio pendiente'
+        verbose_name_plural = 'Cambios pendientes'
+        ordering = ['-fecha_actualizacion']
+
+    def __str__(self):
+        return f"Cambio de {self.expositor.nombre_empresa} ({self.get_estado_display()})"
+
+    def resumen_campos(self):
+        """Lista de campos que cambiaron (para mostrar en el admin)."""
+        campos = self.datos.get('expositor', {})
+        return list(campos.keys())
+
+    def resumen_operaciones(self):
+        """Lista legible de las operaciones."""
+        ops = self.datos.get('operaciones', [])
+        resumen = []
+        for op in ops:
+            tipo = op.get('tipo', '')
+            if tipo == 'producto_crear':
+                resumen.append(f"➕ Crear producto: {op.get('datos', {}).get('nombre', '?')}")
+            elif tipo == 'producto_editar':
+                resumen.append(f"✏️ Editar producto #{op.get('producto_id')}")
+            elif tipo == 'producto_eliminar':
+                resumen.append(f"🗑️ Eliminar producto #{op.get('producto_id')}")
+            elif tipo == 'foto_eliminar':
+                resumen.append(f"🗑️ Eliminar foto #{op.get('foto_id')}")
+            elif tipo == 'foto_agregar':
+                resumen.append(f"📷 Agregar foto: {op.get('datos', {}).get('descripcion', '')}")
+            elif tipo == 'logo_actualizar':
+                resumen.append("🖼️ Actualizar logo")
+        return resumen
+
+
+# =============================================================
+#  HISTORIAL DE COMENTARIOS DEL ADMIN
+# =============================================================
+
+class ComentarioAdmin(models.Model):
+    """
+    Historial de comentarios que el admin hace sobre un expositor.
+    El expositor los ve en su panel.
+    """
+    TIPO_CHOICES = [
+        ('observacion', 'Observación'),
+        ('aprobacion', 'Aprobación'),
+        ('rechazo', 'Rechazo'),
+        ('info', 'Información'),
+    ]
+
+    expositor = models.ForeignKey(
+        Expositor,
+        on_delete=models.CASCADE,
+        related_name='comentarios_admin',
+        verbose_name='Expositor'
+    )
+    autor = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        verbose_name='Autor'
+    )
+    tipo = models.CharField(
+        max_length=20,
+        choices=TIPO_CHOICES,
+        default='observacion',
+        verbose_name='Tipo'
+    )
+    texto = models.TextField(
+        verbose_name='Comentario'
+    )
+    leido = models.BooleanField(
+        default=False,
+        verbose_name='¿Leído por el expositor?'
+    )
+    fecha = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Comentario del admin'
+        verbose_name_plural = 'Comentarios del admin'
+        ordering = ['-fecha']
+
+    def __str__(self):
+        return f"{self.get_tipo_display()} - {self.expositor.nombre_empresa}"
 
 
 # =============================================================

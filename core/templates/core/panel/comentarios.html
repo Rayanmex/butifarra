@@ -1,0 +1,486 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Comentarios · {{ expositor.nombre_empresa }}{% endblock %}
+
+{% block content %}
+
+<section class="panel-section">
+    <div class="panel-pattern"></div>
+
+    <div class="container position-relative py-5">
+
+        <!-- ============ BREADCRUMB ============ -->
+        <nav class="panel-breadcrumb">
+            <a href="{% url 'core:panel_dashboard' %}">Panel</a>
+            <i class="fas fa-chevron-right"></i>
+            <a href="{% url 'core:panel_expositores' %}">Expositores</a>
+            <i class="fas fa-chevron-right"></i>
+            <a href="{% url 'core:panel_expositor_detail' expositor.pk %}">{{ expositor.nombre_empresa }}</a>
+            <i class="fas fa-chevron-right"></i>
+            <span>Comentarios</span>
+        </nav>
+
+        <!-- ============ HEADER ============ -->
+        <div class="panel-header">
+            <div>
+                <span class="section-tag">Historial de mensajes</span>
+                <h1 class="panel-title">
+                    Comentarios para <span class="text-gradient">{{ expositor.nombre_empresa }}</span>
+                </h1>
+                <p class="panel-subtitle">
+                    El expositor verá estos comentarios en su panel. Úsalos para pedir cambios o aclaraciones.
+                </p>
+            </div>
+
+            <div class="panel-actions">
+                <a href="{% url 'core:panel_expositor_detail' expositor.pk %}"
+                   class="btn btn-outline-warning">
+                    <i class="fas fa-arrow-left"></i> Volver al expositor
+                </a>
+            </div>
+        </div>
+
+        {% if messages %}
+        <div class="mb-4">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="row g-4">
+
+            <!-- ============ COLUMNA IZQUIERDA: NUEVO COMENTARIO ============ -->
+            <div class="col-lg-5">
+                <div class="form-card form-card-sticky">
+                    <div class="form-card-header">
+                        <i class="fas fa-plus-circle"></i>
+                        <span>Nuevo comentario</span>
+                    </div>
+                    <div class="form-card-body">
+
+                        <form method="post">
+                            {% csrf_token %}
+
+                            {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+                            </div>
+                            {% endif %}
+
+                            <div class="form-field">
+                                <label class="form-field-label">Tipo de comentario</label>
+                                {{ form.tipo }}
+                                {% if form.tipo.errors %}
+                                <small class="form-field-error">{{ form.tipo.errors.0 }}</small>
+                                {% endif %}
+                            </div>
+
+                            <div class="form-field">
+                                <label class="form-field-label">Mensaje</label>
+                                {{ form.texto }}
+                                {% if form.texto.errors %}
+                                <small class="form-field-error">{{ form.texto.errors.0 }}</small>
+                                {% endif %}
+                                <div class="form-hint">
+                                    <i class="fas fa-lightbulb"></i>
+                                    Sé específico: qué cambiar, dónde, y por qué.
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-warning fw-bold w-100">
+                                <i class="fas fa-paper-plane"></i> Enviar comentario
+                            </button>
+
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============ COLUMNA DERECHA: HISTORIAL ============ -->
+            <div class="col-lg-7">
+                <div class="form-card">
+                    <div class="form-card-header">
+                        <i class="fas fa-history"></i>
+                        <span>Historial ({{ comentarios|length }})</span>
+                    </div>
+                    <div class="form-card-body">
+
+                        {% if comentarios %}
+                            <div class="timeline">
+                                {% for c in comentarios %}
+                                <div class="timeline-item timeline-{{ c.tipo }}">
+                                    <div class="timeline-dot"></div>
+                                    <div class="timeline-content">
+                                        <div class="timeline-header">
+                                            <span class="badge-tipo badge-{{ c.tipo }}">
+                                                {% if c.tipo == 'observacion' %}
+                                                    <i class="fas fa-exclamation-circle"></i> Observación
+                                                {% elif c.tipo == 'aprobacion' %}
+                                                    <i class="fas fa-check-circle"></i> Aprobación
+                                                {% elif c.tipo == 'rechazo' %}
+                                                    <i class="fas fa-times-circle"></i> Rechazo
+                                                {% else %}
+                                                    <i class="fas fa-info-circle"></i> Información
+                                                {% endif %}
+                                            </span>
+                                            <span class="timeline-fecha">
+                                                {{ c.fecha|date:"j M Y, H:i" }}
+                                            </span>
+                                        </div>
+                                        <p class="timeline-texto">{{ c.texto|linebreaksbr }}</p>
+                                        <div class="timeline-meta">
+                                            <i class="fas fa-user-shield"></i>
+                                            {{ c.autor.get_full_name|default:c.autor.username|default:'Sistema' }}
+                                            {% if c.leido %}
+                                                <span class="leido-tag"><i class="fas fa-check-double"></i> Leído</span>
+                                            {% else %}
+                                                <span class="no-leido-tag"><i class="fas fa-eye"></i> Sin leer</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="empty-block">
+                                <i class="fas fa-comments"></i>
+                                <h5>Sin comentarios aún</h5>
+                                <p>Usa el formulario de la izquierda para agregar el primer comentario.</p>
+                            </div>
+                        {% endif %}
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</section>
+
+{% endblock %}
+
+
+{% block extra_css %}
+<style>
+/* ============================================================
+   PANEL ADMIN · COMENTARIOS — Oscuro minimalista
+   ============================================================ */
+
+.panel-section {
+    position: relative;
+    padding: 3rem 0;
+    background: #0A0A0A;
+    min-height: calc(100vh - 200px);
+    overflow: hidden;
+}
+.panel-pattern {
+    position: absolute;
+    inset: 0;
+    background-image:
+        radial-gradient(circle at 10% 10%, rgba(253, 153, 0, 0.08) 0%, transparent 45%),
+        radial-gradient(circle at 90% 90%, rgba(181, 88, 38, 0.08) 0%, transparent 45%),
+        radial-gradient(rgba(253, 233, 1, 0.05) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 28px 28px;
+    pointer-events: none;
+}
+
+/* Breadcrumb */
+.panel-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.4);
+    margin-bottom: 1.5rem;
+}
+.panel-breadcrumb a {
+    color: rgba(255, 255, 255, 0.55);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+}
+.panel-breadcrumb a:hover { color: var(--amarillo); }
+.panel-breadcrumb i { font-size: 0.6rem; color: rgba(255, 255, 255, 0.25); }
+.panel-breadcrumb span { color: var(--amarillo); font-weight: 600; }
+
+/* Header */
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+}
+.panel-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+    color: #FFF;
+    margin: 0.5rem 0 0.35rem;
+    letter-spacing: 0.02em;
+    line-height: 1.1;
+}
+.panel-subtitle {
+    font-family: var(--font-body);
+    font-size: 0.92rem;
+    color: rgba(255, 255, 255, 0.55);
+    margin: 0;
+    max-width: 640px;
+}
+.panel-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+/* Form Cards */
+.form-card {
+    background: #141414;
+    border: 1.5px solid rgba(253, 233, 1, 0.12);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+.form-card-sticky {
+    position: sticky;
+    top: 90px;
+}
+.form-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 1.1rem 1.5rem;
+    background: #0F0F0F;
+    border-bottom: 1.5px solid rgba(253, 233, 1, 0.12);
+    font-family: var(--font-heading);
+    font-size: 0.95rem;
+    color: var(--amarillo);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+.form-card-header i { color: var(--naranja); font-size: 1rem; }
+.form-card-body { padding: 1.5rem; }
+
+/* Fields */
+.form-field {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1.1rem;
+}
+.form-field-label {
+    font-family: var(--font-heading);
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--amarillo);
+    margin-bottom: 0.45rem;
+}
+.form-field-error {
+    display: block;
+    color: #FF8A80;
+    font-size: 0.75rem;
+    margin-top: 0.35rem;
+}
+.form-hint {
+    font-family: var(--font-body);
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.4);
+    margin-top: 0.5rem;
+    font-style: italic;
+    display: flex;
+    gap: 0.4rem;
+    align-items: flex-start;
+}
+.form-hint i {
+    color: var(--naranja);
+    margin-top: 0.15rem;
+    flex-shrink: 0;
+}
+
+/* Inputs */
+.form-card-body select,
+.form-card-body textarea {
+    width: 100%;
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    padding: 0.65rem 0.9rem;
+    background: #1A1A1A;
+    border: 1.5px solid rgba(253, 233, 1, 0.15);
+    border-radius: var(--radius-sm);
+    color: #FFF;
+    transition: border-color var(--transition-fast);
+}
+.form-card-body select:focus,
+.form-card-body textarea:focus {
+    outline: none;
+    border-color: var(--naranja);
+    background: #1F1F1F;
+    box-shadow: 0 0 0 0.15rem rgba(253, 153, 0, 0.2);
+}
+.form-card-body textarea {
+    resize: vertical;
+    min-height: 120px;
+    line-height: 1.6;
+}
+.form-card-body textarea::placeholder { color: rgba(255, 255, 255, 0.3); }
+
+/* Timeline */
+.timeline {
+    position: relative;
+    padding-left: 1.5rem;
+}
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 6px;
+    top: 8px;
+    bottom: 8px;
+    width: 2px;
+    background: rgba(253, 233, 1, 0.1);
+}
+
+.timeline-item {
+    position: relative;
+    padding-bottom: 1.75rem;
+}
+.timeline-item:last-child { padding-bottom: 0; }
+
+.timeline-dot {
+    position: absolute;
+    left: -1.5rem;
+    top: 4px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--naranja);
+    border: 3px solid #141414;
+    box-shadow: 0 0 0 2px rgba(253, 153, 0, 0.3);
+}
+.timeline-observacion .timeline-dot { background: var(--naranja); }
+.timeline-aprobacion .timeline-dot { background: #2ECC71; box-shadow: 0 0 0 2px rgba(46, 204, 113, 0.3); }
+.timeline-rechazo .timeline-dot { background: #E74C3C; box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.3); }
+.timeline-info .timeline-dot { background: #0d6efd; box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.3); }
+
+.timeline-content {
+    background: #1A1A1A;
+    border-radius: var(--radius-sm);
+    padding: 1rem 1.15rem;
+    border-left: 3px solid var(--naranja);
+}
+.timeline-observacion .timeline-content { border-left-color: var(--naranja); }
+.timeline-aprobacion .timeline-content { border-left-color: #2ECC71; }
+.timeline-rechazo .timeline-content { border-left-color: #E74C3C; }
+.timeline-info .timeline-content { border-left-color: #0d6efd; }
+
+.timeline-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.6rem;
+}
+
+.badge-tipo {
+    font-family: var(--font-body);
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 0.3em 0.75em;
+    border-radius: var(--radius-pill);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+.badge-observacion { background: rgba(253, 153, 0, 0.15); color: var(--naranja); }
+.badge-aprobacion { background: rgba(46, 204, 113, 0.15); color: #7EEBAE; }
+.badge-rechazo { background: rgba(231, 76, 60, 0.15); color: #FF8A80; }
+.badge-info { background: rgba(13, 110, 253, 0.15); color: #6EA8FE; }
+
+.timeline-fecha {
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.timeline-texto {
+    font-family: var(--font-body);
+    font-size: 0.88rem;
+    color: rgba(255, 255, 255, 0.85);
+    line-height: 1.6;
+    margin: 0 0 0.6rem;
+    word-break: break-word;
+}
+
+.timeline-meta {
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.45);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+.timeline-meta i { color: var(--naranja); }
+.leido-tag {
+    color: #7EEBAE;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+.no-leido-tag {
+    color: #FF8A80;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+/* Empty */
+.empty-block {
+    text-align: center;
+    padding: 3rem 1.5rem;
+    color: rgba(255, 255, 255, 0.4);
+}
+.empty-block i {
+    font-size: 2.5rem;
+    color: rgba(253, 233, 1, 0.25);
+    display: block;
+    margin-bottom: 0.85rem;
+}
+.empty-block h5 {
+    font-family: var(--font-heading);
+    font-size: 1.05rem;
+    color: var(--amarillo);
+    margin: 0 0 0.5rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+.empty-block p {
+    font-family: var(--font-body);
+    font-size: 0.88rem;
+    margin: 0;
+    line-height: 1.6;
+}
+
+/* Responsive */
+@media (max-width: 991px) {
+    .form-card-sticky { position: static; }
+}
+@media (max-width: 768px) {
+    .panel-section { padding: 2rem 0; }
+    .panel-header { align-items: flex-start; }
+    .panel-actions { width: 100%; }
+    .panel-actions .btn { flex-grow: 1; }
+    .form-card-body { padding: 1.15rem; }
+    .timeline-content { padding: 0.85rem 1rem; }
+}
+</style>
+{% endblock %}

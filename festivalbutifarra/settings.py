@@ -3,11 +3,44 @@ import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-cambia-esta-clave-en-produccion'
+# =============================================================
+#  SEGURIDAD
+# =============================================================
 
-DEBUG = True
+# SECRET_KEY: se lee de variable de entorno si existe.
+# En producción (servidor), se define DJANGO_SECRET_KEY en /etc/systemd/system/butifarra.service
+# En desarrollo, usa el fallback.
+SECRET_KEY = os.environ.get(
+    'DJANGO_SECRET_KEY',
+    'django-insecure-cambia-esta-clave-en-produccion'
+)
 
-ALLOWED_HOSTS = []
+DEBUG = os.environ.get('DJANGO_DEBUG', 'False') == 'True'
+
+ALLOWED_HOSTS = [
+    'chatbot-sigef.tabasco.gob.mx',
+    'www.chatbot-sigef.tabasco.gob.mx',
+    '127.0.0.1',
+    'localhost',
+]
+
+# Necesario para que los formularios funcionen por HTTPS
+CSRF_TRUSTED_ORIGINS = [
+    'http://chatbot-sigef.tabasco.gob.mx',
+    'https://chatbot-sigef.tabasco.gob.mx',
+]
+
+# Cookies seguras (solo en producción con HTTPS)
+if not DEBUG:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    # Descomentar cuando HTTPS esté 100% funcionando:
+    # SECURE_SSL_REDIRECT = True
+
+# =============================================================
+#  APLICACIONES
+# =============================================================
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -50,12 +83,20 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'festivalbutifarra.wsgi.application'
 
+# =============================================================
+#  BASE DE DATOS
+# =============================================================
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+# =============================================================
+#  CONTRASEÑAS
+# =============================================================
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
@@ -64,16 +105,29 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-LANGUAGE_CODE = 'es-es'
-TIME_ZONE = 'Europe/Madrid'
+# =============================================================
+#  INTERNACIONALIZACIÓN
+# =============================================================
+
+LANGUAGE_CODE = 'es-mx'
+TIME_ZONE = 'America/Mexico_City'
 USE_I18N = True
 USE_TZ = True
 
+# =============================================================
+#  ARCHIVOS ESTÁTICOS Y MEDIA
+# =============================================================
+
 STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'core' / 'static']
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# =============================================================
+#  OTROS
+# =============================================================
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 

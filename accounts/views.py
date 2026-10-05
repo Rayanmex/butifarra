@@ -3,12 +3,58 @@ from django.contrib.auth import login, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
+import os
 
 from .forms import LoginForm, RegistroExpositorForm
 from core.forms import ExpositorForm, ProductoForm
 from .decorators import admin_requerido, expositor_requerido
 from .models import PerfilUsuario
-from core.models import Expositor, Producto, FotoProducto
+from core.models import Expositor, Producto, FotoProducto, CambioPendiente, ComentarioAdmin
+
+
+# ============================================================
+#  UTILIDADES INTERNAS
+# ============================================================
+
+def _obtener_o_crear_cambio(expositor):
+    """
+    Devuelve el CambioPendiente activo del expositor, o crea uno nuevo vacío.
+    Si ya existe, lo devuelve tal cual (se sobreescribirá su contenido).
+    """
+    cambio, _ = CambioPendiente.objects.get_or_create(
+        expositor=expositor,
+        defaults={'datos': {'expositor': {}, 'operaciones': []}}
+    )
+    if 'expositor' not in cambio.datos:
+        cambio.datos['expositor'] = {}
+    if 'operaciones' not in cambio.datos:
+        cambio.datos['operaciones'] = []
+    return cambio
+
+
+def _guardar_campo_cambio(expositor, campo, valor):
+    """Añade/actualiza un campo del expositor en el CambioPendiente."""
+    cambio = _obtener_o_crear_cambio(expositor)
+    cambio.datos['expositor'][campo] = valor
+    cambio.estado = 'pendiente'
+    cambio.save()
+
+    # Actualizar estado del expositor si estaba aprobado
+    if expositor.estado_solicitud == 'aprobado':
+        expositor.estado_solicitud = 'revision_pendiente'
+        expositor.save(update_fields=['estado_solicitud'])
+
+
+def _guardar_operacion(expositor, operacion):
+    """Añade una operación (producto/foto) al CambioPendiente."""
+    cambio = _obtener_o_crear_cambio(expositor)
+    cambio.datos['operaciones'].append(operacion)
+    cambio.estado = 'pendiente'
+    cambio.save()
+
+    if expositor.estado_solicitud == 'aprobado':
+        expositor.estado_solicitud = 'revision_pendiente'
+        expositor.save(update_fields=['estado_solicitud'])
 
 
 # ============================================================
@@ -99,12 +145,17 @@ def panel_expositor(request):
         )
         return redirect('core:index')
 
-    perfil_incompleto = not expositor.campos_requeridos_completos
+    cambio = getattr(expositor, 'cambio_pendiente', None)
+    comentarios = expositor.comentarios_admin.all()[:5]
+    comentarios_no_leidos = expositor.comentarios_admin.filter(leido=False).count()
 
     contexto = {
         'expositor': expositor,
-        'perfil_incompleto': perfil_incompleto,
+        'perfil_incompleto': not expositor.campos_requeridos_completos,
         'puede_editar': expositor.puede_editar,
+        'cambio': cambio,
+        'comentarios': comentarios,
+        'comentarios_no_leidos': comentarios_no_leidos,
         'n_productos': expositor.productos.count(),
         'n_fotos': expositor.fotos.count(),
         'n_activos': expositor.productos.filter(disponible=True).count(),
@@ -123,19 +174,42 @@ def expositor_registro_completo(request):
         messages.error(request, 'Tu cuenta no tiene un expositor vinculado.')
         return redirect('core:index')
 
-    if not expositor.puede_editar:
-        messages.warning(
-            request,
-            'No puedes editar tu solicitud en este momento. '
-            'Solo se permite cuando está en borrador o con observaciones.'
-        )
-        return redirect('accounts:panel_expositor')
-
     if request.method == 'POST':
         form = ExpositorForm(request.POST, request.FILES, instance=expositor)
         if form.is_valid():
-            form.save()
-            messages.success(request, 'Datos guardados. Ya puedes enviar tu solicitud.')
+            # Guardamos los cambios en el CambioPendiente
+            cambio = _obtener_o_crear_cambio(expositor)
+
+            # Recorremos los campos del formulario
+            for campo, valor in form.cleaned_data.items():
+                if campo == 'logo':
+                    # El logo se sube físicamente y se referencia
+                    if valor:
+                        expositor.logo = valor
+                        expositor.save(update_fields=['logo'])
+                        cambio.datos['expositor']['logo'] = str(valor)
+                    continue
+                # Convertir a JSON serializable
+                if hasattr(valor, 'pk'):
+                    valor = valor.pk
+                elif valor is None or isinstance(valor, (str, int, float, bool)):
+                    pass
+                else:
+                    valor = str(valor)
+                cambio.datos['expositor'][campo] = valor
+
+            cambio.estado = 'pendiente'
+            cambio.save()
+
+            # Actualizar estado del expositor si estaba aprobado
+            if expositor.estado_solicitud == 'aprobado':
+                expositor.estado_solicitud = 'revision_pendiente'
+                expositor.save(update_fields=['estado_solicitud'])
+
+            messages.success(
+                request,
+                'Cambios guardados. El administrador los revisará pronto.'
+            )
             return redirect('accounts:panel_expositor')
         else:
             messages.error(request, 'Revisa los errores del formulario.')
@@ -153,6 +227,11 @@ def expositor_registro_completo(request):
 # ============================================================
 @expositor_requerido
 def expositor_enviar_solicitud(request):
+    """
+    Envía la solicitud (o los cambios pendientes) al admin para revisión.
+    Como ahora todos los cambios se guardan como CambioPendiente,
+    esta vista solo confirma al usuario.
+    """
     if request.method != 'POST':
         return redirect('accounts:panel_expositor')
 
@@ -162,13 +241,6 @@ def expositor_enviar_solicitud(request):
         messages.error(request, 'Tu cuenta no tiene un expositor vinculado.')
         return redirect('core:index')
 
-    if not expositor.puede_editar:
-        messages.warning(
-            request,
-            'Tu solicitud ya fue enviada y está en revisión o aprobada.'
-        )
-        return redirect('accounts:panel_expositor')
-
     if not expositor.campos_requeridos_completos:
         messages.error(
             request,
@@ -176,10 +248,21 @@ def expositor_enviar_solicitud(request):
         )
         return redirect('accounts:expositor_registro_completo')
 
-    expositor.estado_solicitud = 'pendiente'
+    # Si no existe cambio pendiente, creamos uno vacío para marcar el envío
+    cambio = _obtener_o_crear_cambio(expositor)
+    cambio.estado = 'pendiente'
+    cambio.save()
+
+    if expositor.estado_solicitud in ('borrador', 'observado'):
+        expositor.estado_solicitud = 'pendiente'
+    elif expositor.estado_solicitud == 'aprobado':
+        expositor.estado_solicitud = 'revision_pendiente'
+
     expositor.fecha_envio = timezone.now()
     expositor.nota_admin = ''
-    expositor.save(update_fields=['estado_solicitud', 'fecha_envio', 'nota_admin'])
+    expositor.save(update_fields=[
+        'estado_solicitud', 'fecha_envio', 'nota_admin'
+    ])
 
     messages.success(
         request,
@@ -197,20 +280,19 @@ def expositor_productos(request):
     productos = expositor.productos.all().order_by('categoria', 'nombre')
 
     if request.method == 'POST':
-        if not expositor.puede_editar:
-            messages.warning(
-                request,
-                'No puedes modificar productos mientras tu solicitud está en revisión o aprobada.'
-            )
-            return redirect('accounts:panel_expositor')
-
         form = ProductoForm(request.POST)
         if form.is_valid():
-            producto = form.save(commit=False)
-            producto.expositor = expositor
-            producto.save()
-            expositor.recalcular_precio_desde()
-            messages.success(request, f'Producto "{producto.nombre}" añadido.')
+            datos = form.cleaned_data.copy()
+            if hasattr(datos.get('precio'), 'quantize'):
+                datos['precio'] = str(datos['precio'])
+            _guardar_operacion(expositor, {
+                'tipo': 'producto_crear',
+                'datos': datos,
+            })
+            messages.success(
+                request,
+                f'Producto "{datos["nombre"]}" enviado para aprobación.'
+            )
             return redirect('accounts:expositor_productos')
         else:
             messages.error(request, 'Revisa los errores del formulario.')
@@ -221,7 +303,7 @@ def expositor_productos(request):
         'expositor': expositor,
         'productos': productos,
         'form': form,
-        'puede_editar': expositor.puede_editar,
+        'puede_editar': True,
     })
 
 
@@ -231,22 +313,23 @@ def expositor_productos(request):
 @expositor_requerido
 def expositor_producto_edit(request, prod_pk):
     expositor = request.user.perfil.expositor
-
-    if not expositor.puede_editar:
-        messages.warning(
-            request,
-            'No puedes editar productos mientras tu solicitud está en revisión o aprobada.'
-        )
-        return redirect('accounts:panel_expositor')
-
     producto = get_object_or_404(Producto, pk=prod_pk, expositor=expositor)
 
     if request.method == 'POST':
         form = ProductoForm(request.POST, instance=producto)
         if form.is_valid():
-            form.save()
-            expositor.recalcular_precio_desde()
-            messages.success(request, f'Producto "{producto.nombre}" actualizado.')
+            datos = form.cleaned_data.copy()
+            if hasattr(datos.get('precio'), 'quantize'):
+                datos['precio'] = str(datos['precio'])
+            _guardar_operacion(expositor, {
+                'tipo': 'producto_editar',
+                'producto_id': producto.pk,
+                'datos': datos,
+            })
+            messages.success(
+                request,
+                f'Cambios del producto "{producto.nombre}" enviados para aprobación.'
+            )
             return redirect('accounts:expositor_productos')
         else:
             messages.error(request, 'Revisa los errores del formulario.')
@@ -267,19 +350,18 @@ def expositor_producto_edit(request, prod_pk):
 @expositor_requerido
 def expositor_producto_delete(request, prod_pk):
     expositor = request.user.perfil.expositor
-
-    if not expositor.puede_editar:
-        messages.warning(
-            request,
-            'No puedes eliminar productos mientras tu solicitud está en revisión o aprobada.'
-        )
-        return redirect('accounts:panel_expositor')
-
     producto = get_object_or_404(Producto, pk=prod_pk, expositor=expositor)
     nombre = producto.nombre
-    producto.delete()
-    expositor.recalcular_precio_desde()
-    messages.success(request, f'Producto "{nombre}" eliminado.')
+
+    _guardar_operacion(expositor, {
+        'tipo': 'producto_eliminar',
+        'producto_id': producto.pk,
+    })
+
+    messages.success(
+        request,
+        f'Eliminación del producto "{nombre}" enviada para aprobación.'
+    )
     return redirect('accounts:expositor_productos')
 
 
@@ -292,27 +374,30 @@ def expositor_fotos(request):
     fotos = expositor.fotos.all()
 
     if request.method == 'POST':
-        if not expositor.puede_editar:
-            messages.warning(
-                request,
-                'No puedes subir fotos mientras tu solicitud está en revisión o aprobada.'
-            )
-            return redirect('accounts:panel_expositor')
-
         files = request.FILES.getlist('imagen')
         descripcion = request.POST.get('descripcion', '').strip()
 
         subidas = 0
         for f in files:
-            FotoProducto.objects.create(
+            # Guardamos la imagen físicamente pero NO la asociamos al Expositor
+            # hasta que el admin apruebe. Solo registramos la operación.
+            foto_temp = FotoProducto.objects.create(
                 expositor=expositor,
                 imagen=f,
                 descripcion=descripcion,
             )
+            _guardar_operacion(expositor, {
+                'tipo': 'foto_agregar',
+                'foto_id': foto_temp.pk,
+                'datos': {'descripcion': descripcion},
+            })
             subidas += 1
 
         if subidas:
-            messages.success(request, f'{subidas} foto(s) subida(s).')
+            messages.success(
+                request,
+                f'{subidas} foto(s) enviadas para aprobación.'
+            )
         else:
             messages.warning(request, 'No se subió ninguna foto.')
         return redirect('accounts:expositor_fotos')
@@ -320,24 +405,21 @@ def expositor_fotos(request):
     return render(request, 'accounts/expositor_fotos.html', {
         'expositor': expositor,
         'fotos': fotos,
-        'puede_editar': expositor.puede_editar,
+        'puede_editar': True,
     })
 
 
 @expositor_requerido
 def expositor_foto_delete(request, foto_pk):
     expositor = request.user.perfil.expositor
-
-    if not expositor.puede_editar:
-        messages.warning(
-            request,
-            'No puedes eliminar fotos mientras tu solicitud está en revisión o aprobada.'
-        )
-        return redirect('accounts:panel_expositor')
-
     foto = get_object_or_404(FotoProducto, pk=foto_pk, expositor=expositor)
-    foto.delete()
-    messages.success(request, 'Foto eliminada.')
+
+    _guardar_operacion(expositor, {
+        'tipo': 'foto_eliminar',
+        'foto_id': foto.pk,
+    })
+
+    messages.success(request, 'Eliminación de foto enviada para aprobación.')
     return redirect('accounts:expositor_fotos')
 
 
@@ -348,14 +430,7 @@ def expositor_foto_delete(request, foto_pk):
 def expositor_logo_delete(request):
     expositor = request.user.perfil.expositor
 
-    if not expositor.puede_editar:
-        messages.warning(
-            request,
-            'No puedes modificar tu logo mientras tu solicitud está en revisión o aprobada.'
-        )
-        return redirect('accounts:panel_expositor')
-
     if expositor.logo:
-        expositor.logo.delete(save=True)
-        messages.success(request, 'Logo eliminado.')
+        _guardar_campo_cambio(expositor, 'logo', '')
+        messages.success(request, 'Eliminación del logo enviada para aprobación.')
     return redirect('accounts:expositor_registro_completo')

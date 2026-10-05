@@ -23,14 +23,31 @@
             </div>
 
             <div class="panel-actions">
-                <a href="{% url 'core:panel_expositores' %}" class="btn btn-warning fw-bold">
-                    <i class="fas fa-store"></i> Expositores
+                <a href="{% url 'core:panel_solicitudes' %}" class="btn btn-warning fw-bold">
+                    <i class="fas fa-clipboard-check"></i> Solicitudes
+                    {% if solicitudes_pendientes or solicitudes_en_revision %}
+                        <span class="badge-count-nav">{{ solicitudes_pendientes|add:solicitudes_en_revision }}</span>
+                    {% endif %}
                 </a>
-                <a href="/admin/" target="_blank" class="btn btn-outline-warning">
-                    <i class="fas fa-cog"></i> Admin
+                <a href="{% url 'core:panel_usuarios' %}" class="btn btn-outline-warning">
+                    <i class="fas fa-users"></i> Usuarios
+                </a>
+                <a href="{% url 'core:panel_expositores' %}" class="btn btn-outline-warning">
+                    <i class="fas fa-store"></i> Expositores
                 </a>
             </div>
         </div>
+
+        {% if messages %}
+        <div class="mb-4">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
 
         <!-- ============ STATS PRINCIPALES ============ -->
         <div class="row g-3 mb-3">
@@ -65,7 +82,48 @@
 
         </div>
 
+        <!-- ============ SOLICITUDES ============ -->
+        <h2 class="panel-block-title">
+            <i class="fas fa-clipboard-list"></i> Solicitudes
+        </h2>
+
+        <div class="row g-3 mb-4">
+
+            <div class="col-md-3 col-6">
+                <a href="{% url 'core:panel_solicitudes' %}?estado=pendiente" class="pending-card pending-warning">
+                    <span class="pending-num">{{ solicitudes_pendientes }}</span>
+                    <span class="pending-label">Pendientes</span>
+                </a>
+            </div>
+
+            <div class="col-md-3 col-6">
+                <a href="{% url 'core:panel_solicitudes' %}?estado=revision_pendiente" class="pending-card pending-info">
+                    <span class="pending-num">{{ solicitudes_en_revision }}</span>
+                    <span class="pending-label">Cambios pendientes</span>
+                </a>
+            </div>
+
+            <div class="col-md-3 col-6">
+                <a href="{% url 'core:panel_solicitudes' %}?estado=observado" class="pending-card pending-neutral">
+                    <span class="pending-num">{{ solicitudes_observadas }}</span>
+                    <span class="pending-label">Observadas</span>
+                </a>
+            </div>
+
+            <div class="col-md-3 col-6">
+                <a href="{% url 'core:panel_solicitudes' %}?estado=aprobado" class="pending-card pending-success">
+                    <span class="pending-num">{{ solicitudes_aprobadas }}</span>
+                    <span class="pending-label">Aprobadas</span>
+                </a>
+            </div>
+
+        </div>
+
         <!-- ============ STATS SECUNDARIAS ============ -->
+        <h2 class="panel-block-title">
+            <i class="fas fa-chart-bar"></i> Contenido
+        </h2>
+
         <div class="row g-3 mb-4">
 
             <div class="col-md-4 col-6">
@@ -91,9 +149,9 @@
 
         </div>
 
-        <!-- ============ PENDIENTES ============ -->
+        <!-- ============ PENDIENTES DE COMPLETAR ============ -->
         <h2 class="panel-block-title">
-            <i class="fas fa-exclamation-circle"></i> Pendientes por revisar
+            <i class="fas fa-exclamation-circle"></i> Expositores con datos incompletos
         </h2>
 
         <div class="row g-3 mb-5">
@@ -174,10 +232,9 @@
 {% block extra_css %}
 <style>
 /* ============================================================
-   PANEL ADMIN · DASHBOARD — Fondo oscuro + contraste fuerte
+   PANEL ADMIN · DASHBOARD — Oscuro
    ============================================================ */
 
-/* ============ SECCIÓN ============ */
 .panel-section {
     position: relative;
     padding: 3rem 0;
@@ -196,7 +253,7 @@
     pointer-events: none;
 }
 
-/* ============ HEADER ============ */
+/* Header */
 .panel-header {
     display: flex;
     justify-content: space-between;
@@ -227,9 +284,26 @@
 .panel-actions .btn {
     font-size: 0.88rem;
     padding: 0.6em 1.1em;
+    position: relative;
+}
+.badge-count-nav {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 0.5em;
+    margin-left: 0.4rem;
+    background: #E74C3C;
+    color: #FFF;
+    font-family: var(--font-body);
+    font-size: 0.72rem;
+    font-weight: 700;
+    border-radius: var(--radius-pill);
+    line-height: 1;
 }
 
-/* ============ TÍTULO DE BLOQUE ============ */
+/* Block title */
 .panel-block-title {
     font-family: var(--font-heading);
     font-size: 1rem;
@@ -241,11 +315,9 @@
     align-items: center;
     gap: 0.5rem;
 }
-.panel-block-title i {
-    color: var(--naranja);
-}
+.panel-block-title i { color: var(--naranja); }
 
-/* ============ STAT CARDS ============ */
+/* Stat cards */
 .stat-card {
     display: flex;
     flex-direction: column;
@@ -262,7 +334,6 @@
     background: #1A1A1A;
     border-left-color: var(--amarillo);
 }
-
 .stat-num {
     font-family: var(--font-display);
     font-size: clamp(2.25rem, 4vw, 3rem);
@@ -279,29 +350,21 @@
     margin-top: 0.6rem;
 }
 
-/* Variaciones por color */
 .stat-success { border-left-color: #2ECC71; }
 .stat-success .stat-num { color: #7EEBAE; }
-
 .stat-warning { border-left-color: var(--amarillo); }
 .stat-warning .stat-num { color: var(--amarillo); }
-
 .stat-danger { border-left-color: #E74C3C; }
 .stat-danger .stat-num { color: #FF8A80; }
 
-/* Mini stats */
 .stat-mini {
     padding: 1.1rem 1.35rem;
     flex-direction: row;
     align-items: baseline;
     gap: 0.75rem;
 }
-.stat-mini .stat-num {
-    font-size: 1.9rem;
-}
-.stat-mini .stat-label {
-    margin-top: 0;
-}
+.stat-mini .stat-num { font-size: 1.9rem; }
+.stat-mini .stat-label { margin-top: 0; }
 
 .stat-highlight {
     background: linear-gradient(135deg, #1A0D00 0%, #2D1400 100%);
@@ -309,7 +372,7 @@
 }
 .stat-highlight .stat-num { color: var(--amarillo); }
 
-/* ============ PENDING CARDS ============ */
+/* Pending cards */
 .pending-card {
     display: flex;
     align-items: baseline;
@@ -328,7 +391,6 @@
     background: #1A1A1A;
     border-left-color: var(--naranja);
 }
-
 .pending-num {
     font-family: var(--font-display);
     font-size: 2rem;
@@ -343,9 +405,18 @@
     text-transform: uppercase;
     letter-spacing: 0.1em;
 }
+
+.pending-warning { border-left-color: var(--naranja); }
+.pending-warning .pending-num { color: var(--naranja); }
+.pending-info { border-left-color: var(--amarillo); }
+.pending-info .pending-num { color: var(--amarillo); }
+.pending-success { border-left-color: #2ECC71; }
+.pending-success .pending-num { color: #7EEBAE; }
+.pending-neutral { border-left-color: rgba(255, 255, 255, 0.2); }
+
 .pending-card:hover .pending-num { color: var(--amarillo); }
 
-/* ============ RECENT ============ */
+/* Recent */
 .recent-card {
     background: #141414;
     border: 1.5px solid rgba(253, 233, 1, 0.12);
@@ -372,7 +443,6 @@
     gap: 0.5rem;
 }
 .recent-title i { color: var(--naranja); }
-
 .recent-link {
     font-family: var(--font-body);
     font-size: 0.82rem;
@@ -383,10 +453,7 @@
 .recent-link:hover { color: var(--amarillo); }
 .recent-link i { font-size: 0.7rem; margin-left: 0.25rem; }
 
-.recent-list {
-    display: flex;
-    flex-direction: column;
-}
+.recent-list { display: flex; flex-direction: column; }
 .recent-item {
     display: flex;
     justify-content: space-between;
@@ -403,12 +470,7 @@
     padding-left: 1.75rem;
     color: inherit;
 }
-
-.recent-item-left {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
+.recent-item-left { display: flex; align-items: center; gap: 1rem; }
 .recent-logo {
     width: 46px;
     height: 46px;
@@ -430,7 +492,6 @@
     border: 1.5px solid rgba(253, 233, 1, 0.15);
     font-size: 1rem;
 }
-
 .recent-name {
     font-family: var(--font-heading);
     font-size: 1rem;
@@ -445,7 +506,6 @@
     margin-top: 0.15rem;
 }
 
-/* Status */
 .status-badge {
     font-family: var(--font-body);
     font-size: 0.72rem;
@@ -455,16 +515,9 @@
     letter-spacing: 0.05em;
     text-transform: uppercase;
 }
-.status-active {
-    background: rgba(46, 204, 113, 0.15);
-    color: #7EEBAE;
-}
-.status-inactive {
-    background: rgba(231, 76, 60, 0.15);
-    color: #FF8A80;
-}
+.status-active { background: rgba(46, 204, 113, 0.15); color: #7EEBAE; }
+.status-inactive { background: rgba(231, 76, 60, 0.15); color: #FF8A80; }
 
-/* Empty */
 .recent-empty {
     text-align: center;
     padding: 3rem 1rem;
@@ -476,12 +529,8 @@
     margin-bottom: 0.75rem;
     display: block;
 }
-.recent-empty p {
-    font-family: var(--font-body);
-    margin: 0;
-}
+.recent-empty p { font-family: var(--font-body); margin: 0; }
 
-/* ============ RESPONSIVE ============ */
 @media (max-width: 768px) {
     .panel-section { padding: 2rem 0; }
     .panel-header { align-items: flex-start; }
@@ -494,8 +543,7 @@
     .pending-num { font-size: 1.6rem; }
     .recent-item { padding: 0.85rem 1.15rem; }
     .recent-header { padding: 1rem 1.15rem; }
-    .recent-logo,
-    .recent-logo-placeholder { width: 40px; height: 40px; }
+    .recent-logo, .recent-logo-placeholder { width: 40px; height: 40px; }
 }
 </style>
 {% endblock %}

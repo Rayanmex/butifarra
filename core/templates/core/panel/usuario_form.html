@@ -1,0 +1,347 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Nuevo usuario · Panel{% endblock %}
+
+{% block content %}
+
+<section class="panel-section">
+    <div class="panel-pattern"></div>
+
+    <div class="container position-relative py-5">
+
+        <!-- ============ BREADCRUMB ============ -->
+        <nav class="panel-breadcrumb">
+            <a href="{% url 'core:panel_dashboard' %}">Panel</a>
+            <i class="fas fa-chevron-right"></i>
+            <a href="{% url 'core:panel_usuarios' %}">Usuarios</a>
+            <i class="fas fa-chevron-right"></i>
+            <span>Nuevo</span>
+        </nav>
+
+        <!-- ============ HEADER ============ -->
+        <div class="panel-header">
+            <div>
+                <h1 class="panel-title">
+                    Nuevo <span class="text-gradient">usuario expositor</span>
+                </h1>
+                <p class="panel-subtitle">
+                    Crea la cuenta ahora. Los datos restantes (logo, productos, redes) los completa el expositor desde su panel.
+                </p>
+            </div>
+        </div>
+
+        {% if messages %}
+        <div class="mb-4">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if form.non_field_errors %}
+        <div class="alert alert-danger">
+            {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- ============ FORM ============ -->
+        <form method="post" class="edit-form">
+            {% csrf_token %}
+
+            <div class="row g-4">
+
+                <!-- ============ DATOS DE ACCESO ============ -->
+                <div class="col-lg-6">
+                    <div class="form-card">
+                        <div class="form-card-header">
+                            <i class="fas fa-key"></i>
+                            <span>Datos de acceso</span>
+                        </div>
+                        <div class="form-card-body">
+
+                            <div class="form-field">
+                                <label class="form-field-label">Usuario *</label>
+                                {{ form.username }}
+                                {% if form.username.errors %}
+                                <small class="form-field-error">{{ form.username.errors.0 }}</small>
+                                {% endif %}
+                            </div>
+
+                            <div class="form-field">
+                                <label class="form-field-label">Correo electrónico *</label>
+                                {{ form.email }}
+                                {% if form.email.errors %}
+                                <small class="form-field-error">{{ form.email.errors.0 }}</small>
+                                {% endif %}
+                            </div>
+
+                            <div class="form-field">
+                                <label class="form-field-label">Nombre (opcional)</label>
+                                {{ form.first_name }}
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-field">
+                                    <label class="form-field-label">Contraseña *</label>
+                                    {{ form.password1 }}
+                                    {% if form.password1.errors %}
+                                    <small class="form-field-error">{{ form.password1.errors.0 }}</small>
+                                    {% endif %}
+                                </div>
+                                <div class="form-field">
+                                    <label class="form-field-label">Repetir contraseña *</label>
+                                    {{ form.password2 }}
+                                    {% if form.password2.errors %}
+                                    <small class="form-field-error">{{ form.password2.errors.0 }}</small>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="form-hint">
+                                <i class="fas fa-lightbulb"></i>
+                                Comparte el usuario y la contraseña con el expositor. Él podrá cambiarla después.
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============ DATOS DEL EXPOSITOR ============ -->
+                <div class="col-lg-6">
+                    <div class="form-card">
+                        <div class="form-card-header">
+                            <i class="fas fa-store"></i>
+                            <span>Datos del expositor (opcional)</span>
+                        </div>
+                        <div class="form-card-body">
+
+                            <div class="form-field">
+                                <label class="form-field-label">Marca o nombre del negocio</label>
+                                {{ form.nombre_empresa }}
+                                <div class="form-hint">
+                                    Si lo dejas vacío, quedará como <strong>"Por definir"</strong> hasta que el expositor lo complete.
+                                </div>
+                            </div>
+
+                            <div class="form-field">
+                                <label class="form-field-label">Nombre del expositor</label>
+                                {{ form.nombre_expositor }}
+                            </div>
+
+                            <div class="form-field">
+                                <label class="form-field-label">Teléfono / WhatsApp</label>
+                                {{ form.numero_contacto }}
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- ============ ACCIONES ============ -->
+            <div class="form-actions">
+                <a href="{% url 'core:panel_usuarios' %}" class="btn btn-outline-warning">
+                    Cancelar
+                </a>
+                <button type="submit" class="btn btn-warning fw-bold">
+                    <i class="fas fa-user-plus"></i> Crear usuario
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+</section>
+
+{% endblock %}
+
+
+{% block extra_css %}
+<style>
+/* ============================================================
+   PANEL ADMIN · CREAR USUARIO — Oscuro minimalista
+   ============================================================ */
+
+.panel-section {
+    position: relative;
+    padding: 3rem 0;
+    background: #0A0A0A;
+    min-height: calc(100vh - 200px);
+    overflow: hidden;
+}
+.panel-pattern {
+    position: absolute;
+    inset: 0;
+    background-image:
+        radial-gradient(circle at 10% 10%, rgba(253, 153, 0, 0.08) 0%, transparent 45%),
+        radial-gradient(circle at 90% 90%, rgba(181, 88, 38, 0.08) 0%, transparent 45%),
+        radial-gradient(rgba(253, 233, 1, 0.05) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 28px 28px;
+    pointer-events: none;
+}
+
+.panel-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.4);
+    margin-bottom: 1.5rem;
+}
+.panel-breadcrumb a {
+    color: rgba(255, 255, 255, 0.55);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+}
+.panel-breadcrumb a:hover { color: var(--amarillo); }
+.panel-breadcrumb i { font-size: 0.6rem; color: rgba(255, 255, 255, 0.25); }
+.panel-breadcrumb span { color: var(--amarillo); font-weight: 600; }
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+}
+.panel-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+    color: #FFF;
+    margin: 0 0 0.35rem;
+    letter-spacing: 0.02em;
+    line-height: 1.1;
+}
+.panel-subtitle {
+    font-family: var(--font-body);
+    font-size: 0.92rem;
+    color: rgba(255, 255, 255, 0.55);
+    margin: 0;
+    max-width: 640px;
+}
+
+/* Form Cards */
+.form-card {
+    background: #141414;
+    border: 1.5px solid rgba(253, 233, 1, 0.12);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+.form-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 1.1rem 1.5rem;
+    background: #0F0F0F;
+    border-bottom: 1.5px solid rgba(253, 233, 1, 0.12);
+    font-family: var(--font-heading);
+    font-size: 0.95rem;
+    color: var(--amarillo);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+.form-card-header i { color: var(--naranja); font-size: 1rem; }
+.form-card-body {
+    padding: 1.5rem;
+    flex-grow: 1;
+}
+
+/* Fields */
+.form-field {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1.1rem;
+}
+.form-field:last-child { margin-bottom: 0; }
+.form-field-label {
+    font-family: var(--font-heading);
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--amarillo);
+    margin-bottom: 0.45rem;
+}
+.form-field-error {
+    display: block;
+    color: #FF8A80;
+    font-size: 0.75rem;
+    margin-top: 0.35rem;
+}
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+.form-hint {
+    font-family: var(--font-body);
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.4);
+    margin-top: 0.5rem;
+    font-style: italic;
+}
+.form-hint i {
+    color: var(--naranja);
+    margin-right: 0.3rem;
+}
+
+/* Inputs */
+.form-card-body input[type="text"],
+.form-card-body input[type="email"],
+.form-card-body input[type="password"],
+.form-card-body select,
+.form-card-body textarea {
+    width: 100%;
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    padding: 0.65rem 0.9rem;
+    background: #1A1A1A;
+    border: 1.5px solid rgba(253, 233, 1, 0.15);
+    border-radius: var(--radius-sm);
+    color: #FFF;
+    transition: border-color var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast);
+}
+.form-card-body input:focus,
+.form-card-body select:focus,
+.form-card-body textarea:focus {
+    outline: none;
+    border-color: var(--naranja);
+    background: #1F1F1F;
+    box-shadow: 0 0 0 0.15rem rgba(253, 153, 0, 0.2);
+}
+.form-card-body input::placeholder { color: rgba(255, 255, 255, 0.3); }
+
+/* Actions */
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.6rem;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1.5px dashed rgba(253, 233, 1, 0.15);
+    flex-wrap: wrap;
+}
+.form-actions .btn {
+    font-size: 0.9rem;
+    padding: 0.7em 1.5em;
+}
+
+@media (max-width: 768px) {
+    .panel-section { padding: 2rem 0; }
+    .form-row { grid-template-columns: 1fr; gap: 0.85rem; }
+    .form-card-body { padding: 1.15rem; }
+    .form-actions { justify-content: stretch; }
+    .form-actions .btn { flex-grow: 1; }
+}
+</style>
+{% endblock %}

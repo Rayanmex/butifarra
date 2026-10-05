@@ -63,6 +63,26 @@
                  alt="Festival de la Butifarra"
                  class="hero-logo-img">
         </h1>
+        
+                <!-- ============ CUENTA REGRESIVA ============ -->
+        <div class="countdown" id="countdown">
+            <div class="countdown-item">
+                <span class="countdown-num" id="cd-dias">--</span>
+                <span class="countdown-label">Días</span>
+            </div>
+            <div class="countdown-item">
+                <span class="countdown-num" id="cd-horas">--</span>
+                <span class="countdown-label">Horas</span>
+            </div>
+            <div class="countdown-item">
+                <span class="countdown-num" id="cd-minutos">--</span>
+                <span class="countdown-label">Minutos</span>
+            </div>
+            <div class="countdown-item">
+                <span class="countdown-num" id="cd-segundos">--</span>
+                <span class="countdown-label">Segundos</span>
+            </div>
+        </div>
 
         <p class="hero-slogan">
             {% if festival.slogan %}"{{ festival.slogan }}"{% else %}"Tradición que se disfruta, orgullo que se comparte"{% endif %}
@@ -589,16 +609,13 @@
     transition: transform 1s cubic-bezier(0.77, 0, 0.18, 1);
     z-index: 1;
 }
-.curtain-left {
-    left: 0;
-    background: linear-gradient(135deg, #5A240E 0%, #7A3416 100%);
-    transform: translateX(0);
-}
+.curtain-left,
 .curtain-right {
-    right: 0;
-    background: linear-gradient(135deg, #7A3416 0%, #B5895A 100%);
+    background: #3D1808;
     transform: translateX(0);
 }
+.curtain-left { left: 0; }
+.curtain-right { right: 0; }
 
 .preloader.preloader-open .curtain-left  { transform: translateX(-100%); }
 .preloader.preloader-open .curtain-right { transform: translateX(100%); }
@@ -1341,4 +1358,66 @@ body.preloader-active { overflow: hidden; }
     }
 }
 </style>
+
+
+
+{% block extra_js %}
+<script>
+(function () {
+    // Fecha del festival: 16 de octubre de 2026, 00:00 hora local
+    // Puedes cambiarla aquí si el año o la fecha cambia
+    const FECHA_FESTIVAL = new Date('2026-10-16T00:00:00').getTime();
+
+    const elDias = document.getElementById('cd-dias');
+    const elHoras = document.getElementById('cd-horas');
+    const elMinutos = document.getElementById('cd-minutos');
+    const elSegundos = document.getElementById('cd-segundos');
+    const contenedor = document.getElementById('countdown');
+
+    if (!contenedor) return;
+
+    function actualizar() {
+        const ahora = new Date().getTime();
+        const diferencia = FECHA_FESTIVAL - ahora;
+
+        if (diferencia <= 0) {
+            // El festival ya empezó
+            contenedor.classList.add('countdown-done');
+            elDias.textContent = '0';
+            elHoras.textContent = '0';
+            elMinutos.textContent = '0';
+            elSegundos.textContent = '0';
+
+            // Cambiar labels
+            contenedor.querySelectorAll('.countdown-label').forEach((l, i) => {
+                if (i === 0) l.textContent = '¡Ya';
+                if (i === 1) l.textContent = 'empezó';
+                if (i === 2) l.textContent = 'el';
+                if (i === 3) l.textContent = 'festival!';
+            });
+            return;
+        }
+
+        const dias = Math.floor(diferencia / (1000 * 60 * 60 * 24));
+        const horas = Math.floor((diferencia % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutos = Math.floor((diferencia % (1000 * 60 * 60)) / (1000 * 60));
+        const segundos = Math.floor((diferencia % (1000 * 60)) / 1000);
+
+        // Rellenar con ceros a la izquierda si es menor a 10
+        elDias.textContent = String(dias).padStart(2, '0');
+        elHoras.textContent = String(horas).padStart(2, '0');
+        elMinutos.textContent = String(minutos).padStart(2, '0');
+        elSegundos.textContent = String(segundos).padStart(2, '0');
+
+        // Si faltan menos de 24h, modo urgente
+        if (dias === 0) {
+            contenedor.classList.add('countdown-urgent');
+        }
+    }
+
+    actualizar();
+    setInterval(actualizar, 1000);
+})();
+</script>
+{% endblock %}
 {% endblock %}
