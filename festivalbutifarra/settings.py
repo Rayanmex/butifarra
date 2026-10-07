@@ -27,7 +27,7 @@ SECRET_KEY = os.environ.get(
     'django-insecure-cambia-esta-clave-en-produccion'
 )
 
-DEBUG = os.environ.get('DJANGO_DEBUG', 'False') == 'True'
+DEBUG = os.environ.get('DJANGO_DEBUG', 'False') == 'False'
 
 ALLOWED_HOSTS = [
     'chatbot-sigef.tabasco.gob.mx',

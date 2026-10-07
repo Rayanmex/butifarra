@@ -49,20 +49,36 @@
     --grad-crema:            linear-gradient(135deg, var(--bg-crema) 0%, var(--bg-crema-alt) 100%);
     --grad-hero:             linear-gradient(180deg, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.5) 60%, rgba(181, 88, 38, 0.4) 100%);
 
+    /* ========== NUEVOS GRADIENTES (izq → der) ========== */
+    --grad-naranja-amarillo-h: linear-gradient(90deg, #FD9900 0%, #FDE901 100%);
+
+    /* ========== CONTORNO CAFÉ PARA TÍTULOS ========== */
+    --text-outline-cafe:
+        -1.5px -1.5px 0 #B55826,
+         1.5px -1.5px 0 #B55826,
+        -1.5px  1.5px 0 #B55826,
+         1.5px  1.5px 0 #B55826;
+
+    --text-outline-cafe-sm:
+        -1px -1px 0 #B55826,
+         1px -1px 0 #B55826,
+        -1px  1px 0 #B55826,
+         1px  1px 0 #B55826;
+
     /* ========== TIPOGRAFÍAS ========== */
-    --font-display:  'Anton', sans-serif;          /* Títulos grandes */
-    --font-heading:  'Lilita One', cursive;         /* Subtítulos y badges */
-    --font-body:     'Fredoka', sans-serif;         /* Cuerpo, botones, navbar */
+    --font-display:  'Anton', sans-serif;
+    --font-heading:  'Lilita One', cursive;
+    --font-body:     'Fredoka', sans-serif;
 
     /* Tamaños de fuente */
-    --fs-xs:   0.75rem;   /* 12px */
-    --fs-sm:   0.875rem;  /* 14px */
-    --fs-base: 1rem;      /* 16px */
-    --fs-md:   1.125rem;  /* 18px */
-    --fs-lg:   1.375rem;  /* 22px */
-    --fs-xl:   1.75rem;   /* 28px */
-    --fs-2xl:  2.5rem;    /* 40px */
-    --fs-3xl:  3.5rem;    /* 56px */
+    --fs-xs:   0.75rem;
+    --fs-sm:   0.875rem;
+    --fs-base: 1rem;
+    --fs-md:   1.125rem;
+    --fs-lg:   1.375rem;
+    --fs-xl:   1.75rem;
+    --fs-2xl:  2.5rem;
+    --fs-3xl:  3.5rem;
 
     /* ========== ESPACIADOS ========== */
     --space-xs: 0.25rem;
@@ -92,4 +108,22 @@
     --transition-fast:   0.2s ease;
     --transition-base:   0.3s ease;
     --transition-slow:   0.5s ease;
+
+
+        /* ========== SOMBRAS DE TEXTO ESPECÍFICAS ========== */
+    /* Sombra amarilla para títulos blancos */
+    --text-shadow-amarilla:
+        -2px -2px 0 #FDE901,
+         2px -2px 0 #FDE901,
+        -2px  2px 0 #FDE901,
+         2px  2px 0 #FDE901,
+        0 0 20px rgba(253, 233, 1, 0.6);
+
+    /* Sombra café para textos amarillos */
+    --text-shadow-cafe:
+        -2px -2px 0 #B55826,
+         2px -2px 0 #B55826,
+        -2px  2px 0 #B55826,
+         2px  2px 0 #B55826,
+        0 0 20px rgba(181, 88, 38, 0.5);
 }

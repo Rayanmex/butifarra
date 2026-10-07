@@ -14,7 +14,7 @@
 
         <span class="hero-badge">Los artesanos del sabor</span>
         <h1 class="expositores-hero-title">
-            Expositores y <span class="text-gradient">Productos</span>
+            Expositores y <span class="text-gradient-amarillo">Productos</span>
         </h1>
         <p class="expositores-hero-subtitle">
             Descubre, busca y contacta a los productores del
@@ -437,21 +437,6 @@
    EXPOSITORES Y PRODUCTOS — Fondo cálido con contraste
    ============================================================ */
 
-/* ============ TEXTO CON DEGRADADO VERTICAL ============ */
-.text-gradient {
-    background: linear-gradient(180deg, var(--amarillo) 0%, var(--naranja) 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    color: transparent;
-    text-shadow: none !important;
-    filter: none;
-    display: inline-block;
-}
-.expositores-hero-title .text-gradient {
-    text-shadow: none !important;
-}
-
 /* ============ HERO ============ */
 .expositores-hero {
     position: relative;
@@ -479,7 +464,7 @@
 .expositores-hero-overlay {
     position: absolute;
     inset: 0;
-    background: linear-gradient(180deg, rgba(0, 0, 0, 0.40) 0%, rgba(0, 0, 0, 0.20) 50%, rgba(0, 0, 0, 0.55) 100%);
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.20) 0%, rgba(0, 0, 0, 0.10) 50%, rgba(0, 0, 0, 0.30) 100%);
     z-index: 1;
 }
 .expositores-hero-content {
@@ -492,22 +477,33 @@
 .expositores-hero .hero-badge {
     margin-bottom: 1.25rem;
 }
+
+/* Título del hero: blanco sin sombras */
 .expositores-hero-title {
     font-family: var(--font-display);
     font-size: clamp(1.75rem, 5.5vw, 3.5rem);
     line-height: 1.05;
     color: #FFF;
-    text-shadow: 0 6px 20px rgba(0, 0, 0, 0.8);
+    text-shadow: none;
     margin-bottom: 1rem;
     letter-spacing: 0.02em;
 }
+
+/* Sombra oscura SOLO para la palabra "Productos" (el span amarillo) */
+.expositores-hero-title .text-gradient-amarillo {
+    filter: drop-shadow(2px 2px 0 rgba(0, 0, 0, 0.75))
+            drop-shadow(0 0 12px rgba(0, 0, 0, 0.5));
+}
+
+/* Subtítulo: blanco sin sombras */
 .expositores-hero-subtitle {
     font-family: var(--font-heading);
     font-size: clamp(1rem, 2vw, 1.25rem);
-    color: rgba(255, 255, 255, 0.9);
+    color: #FFFFFF;
+    opacity: 1;
     max-width: 720px;
     margin: 0 auto 2rem;
-    text-shadow: 0 3px 12px rgba(0, 0, 0, 0.7);
+    text-shadow: none;
 }
 
 /* Buscador */
@@ -550,7 +546,7 @@
     color: var(--cafe);
 }
 .search-btn {
-    background: var(--grad-amarillo-naranja);
+    background: var(--grad-naranja-amarillo-h);
     color: var(--negro);
     border: none;
     padding: 0.85rem 2rem;
@@ -598,7 +594,7 @@
     color: var(--amarillo);
 }
 .toggle-btn.active {
-    background: var(--grad-amarillo-naranja);
+    background: var(--grad-naranja-amarillo-h);
     color: var(--negro);
     box-shadow: 0 4px 12px rgba(253, 153, 0, 0.5);
 }
@@ -733,12 +729,12 @@
     transition: all var(--transition-fast);
 }
 .chip:hover {
-    background: var(--grad-amarillo-naranja);
+    background: var(--grad-naranja-amarillo-h);
     color: var(--negro);
     border-color: var(--naranja);
 }
 .chip.active {
-    background: var(--grad-amarillo-naranja);
+    background: var(--grad-naranja-amarillo-h);
     color: var(--negro);
     border-color: var(--naranja);
 }
@@ -793,7 +789,7 @@
 }
 .resultados-count {
     display: inline-block;
-    background: var(--grad-amarillo-naranja);
+    background: var(--grad-naranja-amarillo-h);
     color: var(--negro);
     font-family: var(--font-display);
     font-size: 0.95rem;
@@ -833,7 +829,7 @@
     position: absolute;
     top: 12px;
     right: 12px;
-    background: var(--grad-amarillo-naranja);
+    background: var(--grad-naranja-amarillo-h);
     color: var(--negro);
     font-family: var(--font-heading);
     font-size: 0.72rem;
@@ -1023,7 +1019,7 @@
 }
 .contacto-btn.maps:hover {
     border-color: var(--naranja);
-    background: var(--grad-amarillo-naranja);
+    background: var(--grad-naranja-amarillo-h);
     color: var(--negro);
 }
 .contacto-btn.social:hover {
@@ -1128,7 +1124,7 @@
     flex-shrink: 0;
 }
 .producto-link:hover {
-    background: var(--grad-amarillo-naranja);
+    background: var(--grad-naranja-amarillo-h);
     color: var(--negro);
     transform: scale(1.1);
 }
@@ -1195,7 +1191,7 @@
     color: var(--naranja);
 }
 .paginacion-btn.active {
-    background: var(--grad-amarillo-naranja);
+    background: var(--grad-naranja-amarillo-h);
     border-color: var(--naranja);
     color: var(--negro);
     box-shadow: 0 4px 12px rgba(253, 153, 0, 0.4);

@@ -67,13 +67,48 @@ p {
     margin: 0 0 var(--space-md);
 }
 
+/* ============ CLASES UTILITARIAS DE COLOR ============ */
 .text-amarillo { color: var(--amarillo); }
 .text-naranja  { color: var(--naranja); }
 .text-cafe     { color: var(--cafe); }
 .text-negro    { color: var(--negro); }
 .text-blanco   { color: var(--white, #FFFFFF); }
 
-/* ============ NAVBAR ============ */
+/* ============================================================
+   TEXTO CON DEGRADADO NARANJA → AMARILLO (izq → der)
+   ============================================================ */
+.text-gradient-amarillo,
+.text-gradient {
+    background: var(--grad-naranja-amarillo-h);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    display: inline-block;
+}
+
+/* ============================================================
+   TÍTULOS CON CONTORNO CAFÉ
+   ============================================================ */
+.title-outline-cafe,
+.section-title,
+.hero-title,
+.hero-slogan {
+    text-shadow: var(--text-outline-cafe-sm);
+}
+
+/* Títulos principales (más grandes) → contorno más grueso */
+.hero-title,
+.historia-hero-title,
+.programa-hero-title,
+.contacto-hero-title,
+.expositores-hero-title {
+    text-shadow: var(--text-outline-cafe);
+}
+
+/* ============================================================
+   NAVBAR
+   ============================================================ */
 #mainNavbar {
     background: var(--grad-oscuro) !important;
     padding: var(--space-sm) 0;
@@ -115,7 +150,7 @@ p {
     transform: translateX(-50%) scaleX(0);
     width: 60%;
     height: 2px;
-    background: var(--grad-amarillo-naranja);
+    background: var(--grad-naranja-amarillo-h);
     transition: transform var(--transition-base);
     transform-origin: center;
 }
@@ -153,15 +188,16 @@ p {
     cursor: pointer;
 }
 
+/* BOTÓN AMARILLO: degradado naranja → amarillo (izq → der) */
 .btn-warning {
-    background: linear-gradient(180deg, var(--amarillo) 0%, var(--naranja) 100%) !important;
+    background: var(--grad-naranja-amarillo-h) !important;
     color: var(--negro) !important;
     font-weight: 700;
     box-shadow: var(--shadow-amarillo);
 }
 
 .btn-warning:hover {
-    background: linear-gradient(180deg, var(--amarillo) 0%, var(--naranja-dark) 100%) !important;
+    background: linear-gradient(90deg, #CC7A00 0%, #D4C200 100%) !important;
     transform: translateY(-2px);
     box-shadow: var(--shadow-naranja), 0 10px 30px rgba(253, 153, 0, 0.4);
     color: var(--negro);
@@ -186,9 +222,9 @@ p {
 }
 
 .btn-outline-warning:hover {
-    background: linear-gradient(180deg, var(--amarillo) 0%, var(--naranja) 100%);
+    background: var(--grad-naranja-amarillo-h);
     color: var(--negro);
-    border-color: var(--naranja);
+    border-color: var(--amarillo);
     transform: translateY(-2px);
 }
 
@@ -239,7 +275,7 @@ p {
     font-weight: 400;
     padding: 0.4em 1.1em;
     border-radius: var(--radius-pill);
-    background: var(--grad-amarillo-naranja);
+    background: var(--grad-naranja-amarillo-h);
     color: var(--negro);
     text-transform: uppercase;
     letter-spacing: 0.08em;
@@ -335,7 +371,7 @@ p {
 }
 
 .social-links a:hover {
-    background: var(--grad-amarillo-naranja);
+    background: var(--grad-naranja-amarillo-h);
     color: var(--negro);
     transform: translateY(-3px);
     box-shadow: var(--shadow-amarillo);
@@ -390,7 +426,6 @@ p {
     50%      { opacity: 1;   transform: scale(1.15); }
 }
 
-/* Ocultar mascota en tablet y móvil para evitar scroll lateral */
 @media (max-width: 1024px) {
     .mascota-flotante {
         display: none !important;
@@ -423,7 +458,7 @@ p {
 }
 
 .badge.bg-warning {
-    background: var(--grad-amarillo-naranja) !important;
+    background: var(--grad-naranja-amarillo-h) !important;
     color: var(--negro) !important;
 }
 
@@ -436,15 +471,6 @@ p {
 }
 
 /* ============ UTILIDADES ============ */
-.text-gradient {
-    background: linear-gradient(180deg, var(--amarillo) 0%, var(--naranja) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    color: transparent;
-    display: inline-block;
-}
-
 .bg-gradient-festival {
     background: var(--grad-festival);
 }
@@ -489,4 +515,3 @@ p {
         height: 50px;
     }
 }
-
