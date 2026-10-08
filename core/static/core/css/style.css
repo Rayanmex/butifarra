@@ -92,8 +92,7 @@ p {
    ============================================================ */
 .title-outline-cafe,
 .section-title,
-.hero-title,
-.hero-slogan {
+.hero-title {
     text-shadow: var(--text-outline-cafe-sm);
 }
 
